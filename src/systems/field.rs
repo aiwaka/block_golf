@@ -12,13 +12,16 @@ fn set_field(mut commands: Commands, server: Res<AssetServer>) {
             fill_mode: FillMode::color(Color::LIME_GREEN),
             outline_mode: StrokeMode::new(Color::BLACK, 10.0),
         },
-        Transform::default(),
+        Transform {
+            translation: Vec3::new(0.0, 0.0, 10.0),
+            ..Default::default()
+        },
     ));
 }
 
 pub struct FieldPlugin;
 impl Plugin for FieldPlugin {
     fn build(&self, app: &mut App) {
-        app.add_system(set_field);
+        app.add_startup_system(set_field);
     }
 }
