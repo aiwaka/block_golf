@@ -6,7 +6,10 @@ use bevy::{input::keyboard::keyboard_input_system, prelude::*};
 use bevy_prototype_lyon::prelude::*;
 // use heron::prelude::*;
 
-use systems::{ball::BallPlugin, block::BlockPlugin, field::FieldPlugin, setup::global_setup};
+use systems::{
+    ball::BallPlugin, block::BlockPlugin, field::FieldPlugin, launcher::LauncherPlugin,
+    setup::global_setup,
+};
 
 const SCREEN_WIDTH: f32 = 1280.0;
 const SCREEN_HEIGHT: f32 = 720.0;
@@ -28,6 +31,7 @@ fn main() {
     app.add_plugin(FieldPlugin);
     app.add_plugin(BallPlugin);
     app.add_plugin(BlockPlugin);
+    app.add_plugin(LauncherPlugin);
     app.run();
 }
 

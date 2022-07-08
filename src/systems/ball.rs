@@ -4,7 +4,6 @@ use bevy_prototype_lyon::prelude::*;
 
 fn spawn_ball(mut commands: Commands, key_in: Res<Input<KeyCode>>) {
     if key_in.just_pressed(KeyCode::Z) {
-        println!("test");
         let ball_shape = shapes::Circle {
             radius: 30.0,
             ..Default::default()
