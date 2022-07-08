@@ -1,28 +1,10 @@
+use crate::components::ball::{Ball, BallType};
 use bevy::prelude::*;
 use bevy_prototype_lyon::prelude::*;
 
-enum BallType {
-    Normal,
-}
-
-#[derive(Component)]
-pub struct Ball {
-    pos: Vec2,
-    direction: Vec2, // 絶対値をspeedとする
-    _type: BallType,
-}
-impl Default for Ball {
-    fn default() -> Self {
-        Ball {
-            pos: Vec2::ZERO,
-            direction: Vec2::new(4.0, 0.0),
-            _type: BallType::Normal,
-        }
-    }
-}
-
 fn spawn_ball(mut commands: Commands, key_in: Res<Input<KeyCode>>) {
     if key_in.just_pressed(KeyCode::Z) {
+        println!("test");
         let ball_shape = shapes::Circle {
             radius: 30.0,
             ..Default::default()
@@ -30,7 +12,10 @@ fn spawn_ball(mut commands: Commands, key_in: Res<Input<KeyCode>>) {
         commands
             .spawn_bundle(GeometryBuilder::build_as(
                 &ball_shape,
-                DrawMode::Fill(FillMode::color(Color::BLUE)),
+                DrawMode::Outlined {
+                    fill_mode: FillMode::color(Color::BLUE),
+                    outline_mode: StrokeMode::new(Color::DARK_GRAY, 2.0),
+                },
                 Transform {
                     translation: Vec3::new(0.0, 0.0, 11.0),
                     ..Default::default()
