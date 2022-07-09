@@ -35,7 +35,7 @@ fn spawn_launcher(mut commands: Commands) {
                 outline_mode: StrokeMode::new(Color::DARK_GRAY, 2.0),
             },
             Transform {
-                translation: Vec3::new(-FIELD_WIDTH / 2.0, -FIELD_HEIGHT / 2.0, 15.0),
+                translation: Vec3::new(-FIELD_WIDTH / 2.0 + 30.0, -FIELD_HEIGHT / 2.0 + 30.0, 15.0),
                 ..Default::default()
             },
         ))

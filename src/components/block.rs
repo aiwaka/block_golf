@@ -38,11 +38,16 @@ impl From<&BlockType> for Color {
 pub struct SpawnBlockEvent {
     pub block_type: BlockType,
     pub color: Color,
+    pub default_angle: f32,
 }
 
 impl SpawnBlockEvent {
-    pub fn from_type(block_type: BlockType) -> Self {
+    pub fn from_type(block_type: BlockType, default_angle: f32) -> Self {
         let color = Color::from(&block_type);
-        SpawnBlockEvent { block_type, color }
+        SpawnBlockEvent {
+            block_type,
+            color,
+            default_angle,
+        }
     }
 }

@@ -4,30 +4,39 @@ use bevy_prototype_lyon::prelude::*;
 
 fn test_set_block(mut event_writer: EventWriter<SpawnBlockEvent>) {
     let block_list = vec![
-        SpawnBlockEvent::from_type({
-            BlockType::Rect {
-                pos: Vec2::ZERO,
-                extents: Vec2::new(90.0, 150.0),
-                rect_origin: Vec2::new(-130.0, 80.0),
-                strategy: RotateStrategy::CannotRotate,
-            }
-        }),
-        SpawnBlockEvent::from_type({
-            BlockType::Rect {
-                pos: Vec2::ZERO,
-                extents: Vec2::new(120.0, 80.0),
-                rect_origin: Vec2::new(30.0, 0.0),
-                strategy: RotateStrategy::Rotatable(0.015),
-            }
-        }),
-        SpawnBlockEvent::from_type({
-            BlockType::Rect {
-                pos: Vec2::new(200.0, 50.0),
-                extents: Vec2::new(120.0, 80.0),
-                rect_origin: Vec2::new(80.0, 0.0),
-                strategy: RotateStrategy::Always(0.02),
-            }
-        }),
+        SpawnBlockEvent::from_type(
+            {
+                BlockType::Rect {
+                    pos: Vec2::new(-230.0, 80.0),
+                    extents: Vec2::new(90.0, 150.0),
+                    rect_origin: Vec2::ZERO,
+                    strategy: RotateStrategy::CannotRotate,
+                }
+            },
+            2.0,
+        ),
+        SpawnBlockEvent::from_type(
+            {
+                BlockType::Rect {
+                    pos: Vec2::ZERO,
+                    extents: Vec2::new(120.0, 80.0),
+                    rect_origin: Vec2::new(30.0, 0.0),
+                    strategy: RotateStrategy::Rotatable(0.015),
+                }
+            },
+            0.0,
+        ),
+        SpawnBlockEvent::from_type(
+            {
+                BlockType::Rect {
+                    pos: Vec2::new(200.0, 50.0),
+                    extents: Vec2::new(120.0, 80.0),
+                    rect_origin: Vec2::new(80.0, 0.0),
+                    strategy: RotateStrategy::Always(0.02),
+                }
+            },
+            1.0,
+        ),
     ];
     for e in block_list {
         event_writer.send(e)
@@ -56,6 +65,7 @@ fn set_block(mut commands: Commands, mut event_listener: EventReader<SpawnBlockE
                         },
                         Transform {
                             translation: Vec3::new(pos.x, pos.y, 12.0),
+                            rotation: Quat::from_rotation_z(ev.default_angle),
                             ..Default::default()
                         },
                     ))
