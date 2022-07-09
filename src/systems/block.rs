@@ -7,8 +7,8 @@ fn test_set_block(mut event_writer: EventWriter<SpawnBlockEvent>) {
         SpawnBlockEvent::from_type({
             BlockType::Rect {
                 pos: Vec2::ZERO,
-                extents: Vec2::new(120.0, 80.0),
-                rect_origin: Vec2::new(30.0, 0.0),
+                extents: Vec2::new(90.0, 150.0),
+                rect_origin: Vec2::new(-130.0, 80.0),
                 strategy: RotateStrategy::CannotRotate,
             }
         }),

@@ -1,9 +1,11 @@
-use std::f32::consts::FRAC_PI_2;
-
+use super::field::{FIELD_HEIGHT, FIELD_WIDTH};
+use crate::components::{
+    ball::{BallType, LaunchBallEvent, SpawnBallEvent},
+    launcher::{Launcher, LauncherState},
+};
 use bevy::prelude::*;
 use bevy_prototype_lyon::{prelude::*, shapes::Polygon};
-
-use crate::components::launcher::Launcher;
+use std::f32::consts::FRAC_PI_2;
 
 fn construct_launcher_shape() -> Polygon {
     const LAUNCHER_WIDTH: f32 = 50.0;
@@ -33,11 +35,12 @@ fn spawn_launcher(mut commands: Commands) {
                 outline_mode: StrokeMode::new(Color::DARK_GRAY, 2.0),
             },
             Transform {
-                translation: Vec3::new(-100.0, -100.0, 15.0),
+                translation: Vec3::new(-FIELD_WIDTH / 2.0, -FIELD_HEIGHT / 2.0, 15.0),
                 ..Default::default()
             },
         ))
         .insert(Launcher {
+            state: LauncherState::Waiting,
             balls: vec![],
             angle: 0.0,
         });
@@ -60,10 +63,40 @@ fn rotate_launcher(key_in: Res<Input<KeyCode>>, mut query: Query<(&mut Transform
     }
 }
 
+fn launch_ball(
+    key_in: Res<Input<KeyCode>>,
+    mut spawn_ball_event_writer: EventWriter<SpawnBallEvent>,
+    mut launch_ball_event_writer: EventWriter<LaunchBallEvent>,
+    mut query: Query<&mut Launcher>,
+) {
+    if key_in.just_pressed(KeyCode::Z) {
+        println!("input z");
+        for mut launcher in query.iter_mut() {
+            match launcher.state {
+                LauncherState::Waiting => {
+                    println!("waiting to nocking");
+                    launcher.state = LauncherState::Nocking;
+                    spawn_ball_event_writer.send(SpawnBallEvent {
+                        ball_type: BallType::Normal,
+                    });
+                }
+                LauncherState::Nocking => {
+                    println!("nocking to waiting");
+                    launcher.state = LauncherState::Waiting;
+                    launch_ball_event_writer.send(LaunchBallEvent {
+                        direction: 5.0 * Vec2::new(launcher.angle.cos(), launcher.angle.sin()),
+                    });
+                }
+            }
+        }
+    }
+}
+
 pub struct LauncherPlugin;
 impl Plugin for LauncherPlugin {
     fn build(&self, app: &mut App) {
         app.add_startup_system(spawn_launcher);
         app.add_system(rotate_launcher);
+        app.add_system(launch_ball);
     }
 }
