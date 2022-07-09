@@ -7,8 +7,8 @@ use bevy_prototype_lyon::prelude::*;
 // use heron::prelude::*;
 
 use systems::{
-    ball::BallPlugin, block::BlockPlugin, field::FieldPlugin, launcher::LauncherPlugin,
-    setup::global_setup,
+    ball::BallPlugin, block::BlockPlugin, collision::CollisionPlugin, field::FieldPlugin,
+    launcher::LauncherPlugin, setup::global_setup,
 };
 
 const SCREEN_WIDTH: f32 = 1280.0;
@@ -32,6 +32,7 @@ fn main() {
     app.add_plugin(BallPlugin);
     app.add_plugin(BlockPlugin);
     app.add_plugin(LauncherPlugin);
+    app.add_plugin(CollisionPlugin);
     app.run();
 }
 

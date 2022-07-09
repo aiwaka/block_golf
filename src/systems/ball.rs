@@ -4,10 +4,12 @@ use bevy_prototype_lyon::prelude::*;
 
 use super::field::{FIELD_HEIGHT, FIELD_WIDTH};
 
+pub const BALL_RADIUS: f32 = 30.0;
+
 fn spawn_ball(mut commands: Commands, mut event_listener: EventReader<SpawnBallEvent>) {
     for ev in event_listener.iter() {
         let ball_shape = shapes::Circle {
-            radius: 30.0,
+            radius: BALL_RADIUS,
             ..Default::default()
         };
         commands
