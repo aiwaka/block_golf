@@ -1,4 +1,4 @@
-use crate::components::block::{Block, BlockType, RotateStrategy, SpawnBlockEvent};
+use crate::components::block::{Block, BlockType, RectangleBlock, RotateStrategy, SpawnBlockEvent};
 use bevy::prelude::*;
 use bevy_prototype_lyon::prelude::*;
 
@@ -20,7 +20,7 @@ fn test_set_block(mut event_writer: EventWriter<SpawnBlockEvent>) {
                 BlockType::Rect {
                     pos: Vec2::ZERO,
                     extents: Vec2::new(120.0, 80.0),
-                    rect_origin: Vec2::new(30.0, 0.0),
+                    rect_origin: Vec2::new(30.0, 20.0),
                     strategy: RotateStrategy::Rotatable(0.015),
                 }
             },
@@ -58,7 +58,7 @@ fn set_block(mut commands: Commands, mut event_listener: EventReader<SpawnBlockE
                 };
                 commands
                     .spawn_bundle(GeometryBuilder::build_as(
-                        &block_shape,
+                        &block_shape.clone(),
                         DrawMode::Outlined {
                             fill_mode: FillMode::color(ev.color),
                             outline_mode: StrokeMode::new(Color::DARK_GRAY, 3.0),
@@ -70,7 +70,22 @@ fn set_block(mut commands: Commands, mut event_listener: EventReader<SpawnBlockE
                         },
                     ))
                     .insert(Block)
+                    .insert(RectangleBlock {
+                        rect: block_shape,
+                        angle: ev.default_angle,
+                    })
                     .insert(strategy.clone());
+                commands.spawn_bundle(GeometryBuilder::build_as(
+                    &shapes::Circle {
+                        radius: 10.0,
+                        center: Vec2::new(0.0, 0.0),
+                    },
+                    DrawMode::Fill(FillMode::color(Color::RED)),
+                    Transform {
+                        translation: Vec3::new(pos.x, pos.y, 120.0),
+                        ..Default::default()
+                    },
+                ))
             }
         };
     }
@@ -79,24 +94,23 @@ fn set_block(mut commands: Commands, mut event_listener: EventReader<SpawnBlockE
 /// 回せるブロックと常に回るブロックを回す
 fn rotate_block(
     key_in: Res<Input<KeyCode>>,
-    mut block_query: Query<(&mut Transform, &RotateStrategy), With<Block>>,
+    mut block_query: Query<(&mut Transform, &mut RectangleBlock, &RotateStrategy), With<Block>>,
 ) {
-    for (mut transform, strategy) in block_query.iter_mut() {
+    for (mut trans, mut rect, strategy) in block_query.iter_mut() {
         match strategy {
             RotateStrategy::CannotRotate => {}
             RotateStrategy::Rotatable(angle) => {
-                if key_in.pressed(KeyCode::Right) || key_in.pressed(KeyCode::Left) {
-                    if key_in.pressed(KeyCode::Right) {
-                        transform.rotate(Quat::from_axis_angle(Vec3::Z, *angle));
-                    } else {
-                        transform.rotate(Quat::from_axis_angle(Vec3::Z, -*angle));
-                    };
-                }
+                if key_in.pressed(KeyCode::Left) {
+                    rect.angle += angle;
+                } else if key_in.pressed(KeyCode::Right) {
+                    rect.angle -= angle;
+                };
             }
             RotateStrategy::Always(angle) => {
-                transform.rotate(Quat::from_axis_angle(Vec3::Z, *angle));
+                rect.angle += angle;
             }
         }
+        trans.rotation = Quat::from_rotation_z(rect.angle);
     }
 }
 

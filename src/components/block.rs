@@ -1,7 +1,14 @@
 use bevy::prelude::*;
+use bevy_prototype_lyon::shapes::Rectangle;
 
 #[derive(Component)]
 pub struct Block;
+// Rectangleをあとで使うためのコンポーネント
+#[derive(Component)]
+pub struct RectangleBlock {
+    pub rect: Rectangle,
+    pub angle: f32,
+}
 
 /// 回転の方法
 #[derive(Component, Clone)]
