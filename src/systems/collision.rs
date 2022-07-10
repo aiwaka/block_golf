@@ -1,6 +1,5 @@
 use bevy::prelude::*;
 use bevy_prototype_lyon::prelude::RectangleOrigin;
-use heron::rapier_plugin::nalgebra::ComplexField;
 
 use crate::components::{
     ball::{Ball, BallNocking},
@@ -22,6 +21,7 @@ fn rect_circle_collision(block: &RectangleBlock, rect_trans: &Transform, circ_po
     } else {
         panic!("not customed origin put")
     };
+    // vec2を原点中心に回転させる
     let rotate_vec2 = |v: Vec2, angle: f32| -> Vec2 {
         Vec2::new(
             v.x * angle.cos() - v.y * angle.sin(),
@@ -30,35 +30,47 @@ fn rect_circle_collision(block: &RectangleBlock, rect_trans: &Transform, circ_po
     };
     // まず円を正方形と考えてかんたんな当たり判定を行う.
     // 適当な点を, 矩形の中心から出る局所座標の成分に直す. 角度0のときの直交座標と向きを合わせて回転させる.
-    // rect_posを引き補正. その後はoriginを中心とした逆回転操作を行えばよい.
-    let pos_diff = circ_pos - rect_pos - rect_origin;
+    // 回転軸はrect_originとは関係なくrect_posなので, 回転軸からボールまでの相対ベクトルを求める
+    let pos_diff = circ_pos - rect_pos;
+    // 回転を補正
     let before_rotate_vec = rotate_vec2(pos_diff, -rect_angle);
-    let rect_local_coord = before_rotate_vec + rect_origin;
+    //
+    let rect_local_coord = before_rotate_vec - rect_origin;
     // 矩形同士が重なっていたら判定を行う
     if rect_local_coord.x.abs() < block.rect.extents.x / 2.0 + BALL_RADIUS
         || rect_local_coord.y.abs() < block.rect.extents.y / 2.0 + BALL_RADIUS
     {
-        // 矩形で重なっている場合, 円と重なっていないのは頂点付近が怪しい場合のみ.
-        // 矩形と円が重なっていてかつ頂点を円が含まない場合は必ず矩形としても重なっているので,
-        // 各頂点が円に含まれないかどうかを判定すればよい.
-        let dir_temp: Vec<(f32, f32)> = vec![(1.0, 1.0), (-1.0, 1.0), (-1.0, -1.0), (1.0, -1.0)];
-        // 原点からの相対頂点座標リスト（回転基準点の補正付き）
-        let relative_vertex_list = dir_temp
-            .iter()
-            .map(|p| {
-                Vec2::new(
-                    p.0 * block.rect.extents.x / 2.0,
-                    p.1 * block.rect.extents.y / 2.0,
-                ) - rect_origin
-            })
-            .collect::<Vec<Vec2>>();
-        let vertex_list = relative_vertex_list
-            .iter()
-            .map(|rel_v| rotate_vec2(*rel_v, rect_angle) + rect_pos + rect_origin)
-            .collect::<Vec<Vec2>>();
-        vertex_list
-            .iter()
-            .any(|v| v.distance(circ_pos) < BALL_RADIUS)
+        // 辺が重なっているか判定
+        if (rect_local_coord.x.abs() < block.rect.extents.x / 2.0
+            && rect_local_coord.y.abs() < block.rect.extents.y / 2.0 + BALL_RADIUS)
+            || (rect_local_coord.x.abs() < block.rect.extents.x / 2.0 + BALL_RADIUS
+                && rect_local_coord.y.abs() < block.rect.extents.y / 2.0)
+        {
+            true
+        } else {
+            // 矩形として考えた円と矩形で重なっているが一辺では重なっていない場合, 目的の円との重なりは頂点付近で決まる.
+            // 矩形と円が重なっていてかつ頂点を円が含まない場合は必ず矩形としても重なっているので,
+            // 各頂点が円に含まれないかどうかを判定すればよい.
+            let dir_temp: Vec<(f32, f32)> =
+                vec![(1.0, 1.0), (-1.0, 1.0), (-1.0, -1.0), (1.0, -1.0)];
+            // 原点からの相対頂点座標リスト（回転基準点の補正付き）
+            let relative_vertex_list = dir_temp
+                .iter()
+                .map(|p| {
+                    Vec2::new(
+                        p.0 * block.rect.extents.x / 2.0,
+                        p.1 * block.rect.extents.y / 2.0,
+                    ) + rect_origin
+                })
+                .collect::<Vec<Vec2>>();
+            let vertex_list = relative_vertex_list
+                .iter()
+                .map(|rel_v| rotate_vec2(*rel_v, rect_angle) + rect_pos)
+                .collect::<Vec<Vec2>>();
+            vertex_list
+                .iter()
+                .any(|v| v.distance(circ_pos) < BALL_RADIUS)
+        }
     } else {
         false
     }
