@@ -2,7 +2,7 @@ mod components;
 mod stages;
 mod systems;
 
-use bevy::{input::keyboard::keyboard_input_system, prelude::*};
+use bevy::prelude::*;
 use bevy_prototype_lyon::prelude::*;
 
 use systems::{
@@ -22,14 +22,13 @@ fn main() {
         ..Default::default()
     });
     app.add_plugins(DefaultPlugins);
-    app.add_system(keyboard_input_system);
-    app.add_plugin(ShapePlugin);
     app.add_system(bevy::input::system::exit_on_esc_system);
+    app.add_plugin(ShapePlugin);
     app.add_startup_system(global_setup);
     app.add_plugin(FieldPlugin);
     app.add_plugin(BallPlugin);
     app.add_plugin(BlockPlugin);
-    app.add_plugin(LauncherPlugin);
     app.add_plugin(CollisionPlugin);
+    app.add_plugin(LauncherPlugin);
     app.run();
 }
