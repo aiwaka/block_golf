@@ -1,3 +1,5 @@
+use std::f32::{consts::FRAC_PI_2, EPSILON};
+
 use bevy::prelude::*;
 use bevy_prototype_lyon::prelude::RectangleOrigin;
 
@@ -11,22 +13,26 @@ use super::{
     field::{FIELD_HEIGHT, FIELD_WIDTH},
 };
 
+fn rotate_vec2(v: Vec2, angle: f32) -> Vec2 {
+    Vec2::new(
+        v.x * angle.cos() - v.y * angle.sin(),
+        v.x * angle.sin() + v.y * angle.cos(),
+    )
+}
+
 /// 矩形と円の当たり判定を行う.
 /// rect_posは位置指定, rect_originは軸の矩形中央からの相対指定
-fn rect_circle_collision(block: &RectangleBlock, rect_trans: &Transform, circ_pos: Vec2) -> bool {
+fn rect_circle_collision(
+    block: &RectangleBlock,
+    rect_trans: &Transform,
+    circ_pos: Vec2,
+) -> Option<Vec2> {
     let rect_pos = Vec2::new(rect_trans.translation.x, rect_trans.translation.y);
     let rect_angle = block.angle;
     let rect_origin = if let RectangleOrigin::CustomCenter(center) = block.rect.origin {
         center
     } else {
         panic!("not customed origin put")
-    };
-    // vec2を原点中心に回転させる
-    let rotate_vec2 = |v: Vec2, angle: f32| -> Vec2 {
-        Vec2::new(
-            v.x * angle.cos() - v.y * angle.sin(),
-            v.x * angle.sin() + v.y * angle.cos(),
-        )
     };
     // まず円を正方形と考えてかんたんな当たり判定を行う.
     // 適当な点を, 矩形の中心から出る局所座標の成分に直す. 角度0のときの直交座標と向きを合わせて回転させる.
@@ -46,7 +52,7 @@ fn rect_circle_collision(block: &RectangleBlock, rect_trans: &Transform, circ_po
             || (rect_local_coord.x.abs() < block.rect.extents.x / 2.0 + BALL_RADIUS
                 && rect_local_coord.y.abs() < block.rect.extents.y / 2.0)
         {
-            true
+            Some(rect_local_coord)
         } else {
             // 矩形として考えた円と矩形で重なっているが一辺では重なっていない場合, 目的の円との重なりは頂点付近で決まる.
             // 矩形と円が重なっていてかつ頂点を円が含まない場合は必ず矩形としても重なっているので,
@@ -67,30 +73,48 @@ fn rect_circle_collision(block: &RectangleBlock, rect_trans: &Transform, circ_po
                 .iter()
                 .map(|rel_v| rotate_vec2(*rel_v, rect_angle) + rect_pos)
                 .collect::<Vec<Vec2>>();
-            vertex_list
+            if vertex_list
                 .iter()
                 .any(|v| v.distance(circ_pos) < BALL_RADIUS)
+            {
+                Some(rect_local_coord)
+            } else {
+                None
+            }
         }
     } else {
-        false
+        None
     }
 }
 
 fn block_ball_collision(
     mut commands: Commands,
-    ball_query: Query<(&Transform, &Ball, Entity)>,
+    mut ball_query: Query<(&Transform, &mut Ball, Entity)>,
     block_query: Query<(&Transform, &Block, &RectangleBlock)>,
 ) {
-    for (ball_trans, ball, ent) in ball_query.iter() {
+    for (ball_trans, mut ball, ent) in ball_query.iter_mut() {
         for (trans, block, rect) in block_query.iter() {
-            let collide = rect_circle_collision(
+            if let Some(coord) = rect_circle_collision(
                 rect,
                 trans,
                 Vec2::new(ball_trans.translation.x, ball_trans.translation.y),
-            );
-            if collide {
+            ) {
                 // とりあえず一旦動きを止めさせる
-                commands.entity(ent).insert(BallNocking);
+                // commands.entity(ent).insert(BallNocking);
+                // 矩形の対角線の傾きと局所座標点の傾きの関係から反射位置を割り出し, 角度を使って反射軸を作成する.
+                // 傾きをa>0として|y|>|ax|の領域なら横辺, そうでなければ縦辺で反射している.
+                let tilt_coef = rect.rect.extents.y / rect.rect.extents.x;
+                let reflected_direction = if coord.y.abs() > tilt_coef * coord.x.abs() {
+                    // 横辺で反射
+                    // 入射角（水平面に対して左側から入る場合を正の入射とする）
+                    let incident_angle =
+                        (-ball.direction).angle_between(Vec2::X) - rect.angle - FRAC_PI_2;
+                    rotate_vec2(-ball.direction, incident_angle * 2.0)
+                } else {
+                    let incident_angle = (-ball.direction).angle_between(Vec2::X) - rect.angle;
+                    rotate_vec2(-ball.direction, incident_angle * 2.0)
+                };
+                ball.direction = reflected_direction;
             }
         }
     }
