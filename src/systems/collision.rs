@@ -1,12 +1,16 @@
 use bevy::prelude::*;
 use bevy_prototype_lyon::prelude::RectangleOrigin;
+use heron::rapier_plugin::nalgebra::ComplexField;
 
 use crate::components::{
     ball::{Ball, BallNocking},
     block::{Block, RectangleBlock},
 };
 
-use super::ball::BALL_RADIUS;
+use super::{
+    ball::BALL_RADIUS,
+    field::{FIELD_HEIGHT, FIELD_WIDTH},
+};
 
 /// 矩形と円の当たり判定を行う.
 /// rect_posは位置指定, rect_originは軸の矩形中央からの相対指定
@@ -60,7 +64,7 @@ fn rect_circle_collision(block: &RectangleBlock, rect_trans: &Transform, circ_po
     }
 }
 
-fn collision(
+fn block_ball_collision(
     mut commands: Commands,
     ball_query: Query<(&Transform, &Ball, Entity)>,
     block_query: Query<(&Transform, &Block, &RectangleBlock)>,
@@ -73,8 +77,22 @@ fn collision(
                 Vec2::new(ball_trans.translation.x, ball_trans.translation.y),
             );
             if collide {
+                // とりあえず一旦動きを止めさせる
                 commands.entity(ent).insert(BallNocking);
             }
+        }
+    }
+}
+
+fn field_ball_collision(mut ball_query: Query<(&Transform, &mut Ball)>) {
+    for (trans, mut ball) in ball_query.iter_mut() {
+        let pos_x = trans.translation.x;
+        let pos_y = trans.translation.y;
+        if pos_x.abs() + BALL_RADIUS > FIELD_WIDTH / 2.0 {
+            ball.direction.x *= -1.0;
+        }
+        if pos_y.abs() + BALL_RADIUS > FIELD_HEIGHT / 2.0 {
+            ball.direction.y *= -1.0;
         }
     }
 }
@@ -82,7 +100,8 @@ fn collision(
 pub struct CollisionPlugin;
 impl Plugin for CollisionPlugin {
     fn build(&self, app: &mut App) {
-        app.add_system(collision);
+        app.add_system(block_ball_collision);
+        app.add_system(field_ball_collision);
     }
 }
 
