@@ -55,20 +55,19 @@ fn rect_circle_collision(
             Some(rect_local_coord)
         } else {
             // 矩形として考えた円と矩形で重なっているが一辺では重なっていない場合, 目的の円との重なりは頂点付近で決まる.
-            // 矩形と円が重なっていてかつ頂点を円が含まない場合は必ず矩形としても重なっているので,
-            // 各頂点が円に含まれないかどうかを判定すればよい.
-            let dir_temp: Vec<(f32, f32)> =
-                vec![(1.0, 1.0), (-1.0, 1.0), (-1.0, -1.0), (1.0, -1.0)];
+            // 各頂点が円に含まれるかどうかを判定すればよい.
             // 原点からの相対頂点座標リスト（回転基準点の補正付き）
-            let relative_vertex_list = dir_temp
-                .iter()
-                .map(|p| {
-                    Vec2::new(
-                        p.0 * block.rect.extents.x / 2.0,
-                        p.1 * block.rect.extents.y / 2.0,
-                    ) + rect_origin
-                })
-                .collect::<Vec<Vec2>>();
+            let relative_vertex_list = {
+                let _x = block.rect.extents.x / 2.0;
+                let _y = block.rect.extents.y / 2.0;
+                let orig = rect_origin;
+                vec![
+                    Vec2::new(_x, _y) + orig,
+                    Vec2::new(-_x, _y) + orig,
+                    Vec2::new(-_x, -_y) + orig,
+                    Vec2::new(_x, -_y) + orig,
+                ]
+            };
             let vertex_list = relative_vertex_list
                 .iter()
                 .map(|rel_v| rotate_vec2(*rel_v, rect_angle) + rect_pos)
