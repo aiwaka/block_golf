@@ -70,18 +70,15 @@ fn launch_ball(
     mut query: Query<&mut Launcher>,
 ) {
     if key_in.just_pressed(KeyCode::Z) {
-        println!("input z");
         for mut launcher in query.iter_mut() {
             match launcher.state {
                 LauncherState::Waiting => {
-                    println!("waiting to nocking");
                     launcher.state = LauncherState::Nocking;
                     spawn_ball_event_writer.send(SpawnBallEvent {
                         ball_type: BallType::Normal,
                     });
                 }
                 LauncherState::Nocking => {
-                    println!("nocking to waiting");
                     launcher.state = LauncherState::Waiting;
                     launch_ball_event_writer.send(LaunchBallEvent {
                         direction: 5.0 * Vec2::new(launcher.angle.cos(), launcher.angle.sin()),
