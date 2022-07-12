@@ -60,12 +60,11 @@ fn rect_circle_collision(
             let relative_vertex_list = {
                 let _x = block.rect.extents.x / 2.0;
                 let _y = block.rect.extents.y / 2.0;
-                let orig = rect_origin;
                 vec![
-                    Vec2::new(_x, _y) + orig,
-                    Vec2::new(-_x, _y) + orig,
-                    Vec2::new(-_x, -_y) + orig,
-                    Vec2::new(_x, -_y) + orig,
+                    Vec2::new(_x, _y) + rect_origin,
+                    Vec2::new(-_x, _y) + rect_origin,
+                    Vec2::new(-_x, -_y) + rect_origin,
+                    Vec2::new(_x, -_y) + rect_origin,
                 ]
             };
             let vertex_list = relative_vertex_list
