@@ -1,4 +1,4 @@
-use std::f32::{consts::FRAC_PI_2, EPSILON};
+use std::f32::consts::{FRAC_PI_2, PI};
 
 use bevy::prelude::*;
 use bevy_prototype_lyon::prelude::RectangleOrigin;
@@ -102,20 +102,30 @@ fn block_ball_collision(
                 // 矩形の対角線の傾きと局所座標点の傾きの関係から反射位置を割り出し, 角度を使って反射軸を作成する.
                 // 傾きをa>0として|y|>|ax|の領域なら横辺, そうでなければ縦辺で反射している.
                 let tilt_coef = rect.rect.extents.y / rect.rect.extents.x;
-                let reflected_direction = if coord.y.abs() > tilt_coef * coord.x.abs() {
+                // 反射面に対する法線方向の角度
+                let reflect_normal_angle = if coord.y.abs() > tilt_coef * coord.x.abs() {
                     // 横辺で反射
-                    // 入射角（水平面に対して左側から入る場合を正の入射とする）
-                    let incident_angle =
-                        (-ball.direction).angle_between(Vec2::X) - rect.angle - FRAC_PI_2;
-                    rotate_vec2(-ball.direction, incident_angle * 2.0)
+                    rect.angle + coord.y.signum() * FRAC_PI_2
                 } else {
-                    let incident_angle = (-ball.direction).angle_between(Vec2::X) - rect.angle;
-                    rotate_vec2(-ball.direction, incident_angle * 2.0)
+                    rect.angle + (if coord.x > 0.0 { 0.0 } else { PI })
                 };
-                ball.direction = reflected_direction;
+                // 入射角（水平面に対して左側から入る場合を正の入射とする）
+                let direction_angle = Vec2::X.angle_between(-ball.direction);
+                let incident_angle = direction_angle - reflect_normal_angle;
+                ball.direction = rotate_vec2(-ball.direction, -incident_angle * 2.0);
             }
         }
     }
+}
+
+#[test]
+fn angle() {
+    let direction_angle = (-Vec2::new(1.0, -1.0)).angle_between(Vec2::X) - FRAC_PI_2;
+    println!(
+        "{}",
+        (-Vec2::new(1.0, -1.0)).angle_between(Vec2::X) * 180.0 / PI
+    );
+    println!("{}", direction_angle * 180.0 / PI);
 }
 
 fn field_ball_collision(mut ball_query: Query<(&Transform, &mut Ball)>) {
