@@ -12,6 +12,7 @@ fn spawn_ball(mut commands: Commands, mut event_listener: EventReader<SpawnBallE
             radius: BALL_RADIUS,
             ..Default::default()
         };
+        let default_pos = Vec2::new(-FIELD_WIDTH / 2.0 + 60.0, -FIELD_HEIGHT / 2.0 + 60.0);
         commands
             .spawn_bundle(GeometryBuilder::build_as(
                 &ball_shape,
@@ -20,15 +21,11 @@ fn spawn_ball(mut commands: Commands, mut event_listener: EventReader<SpawnBallE
                     outline_mode: StrokeMode::new(Color::DARK_GRAY, 2.0),
                 },
                 Transform {
-                    translation: Vec3::new(
-                        -FIELD_WIDTH / 2.0 + 60.0,
-                        -FIELD_HEIGHT / 2.0 + 60.0,
-                        11.0,
-                    ),
+                    translation: Vec3::new(default_pos.x, default_pos.y, 11.0),
                     ..Default::default()
                 },
             ))
-            .insert(Ball::new(vec2(0.0, 0.0), ev.ball_type))
+            .insert(Ball::new(default_pos, vec2(0.0, 0.0), ev.ball_type))
             .insert(BallNocking);
     }
 }
@@ -46,14 +43,11 @@ fn launch_ball(
     }
 }
 
-fn move_ball(mut ball_query: Query<(&Ball, &mut Transform), Without<BallNocking>>) {
-    for (ball, mut transform) in ball_query.iter_mut() {
-        let current_pos = transform.translation;
-        let new_pos = Vec2::new(
-            ball.direction.x + current_pos.x,
-            ball.direction.y + current_pos.y,
-        );
-        transform.translation = Vec3::new(new_pos.x, new_pos.y, 11.0);
+fn move_ball(mut ball_query: Query<(&mut Ball, &mut Transform), Without<BallNocking>>) {
+    for (mut ball, mut transform) in ball_query.iter_mut() {
+        let direction = ball.direction;
+        ball.pos += direction;
+        transform.translation = Vec3::new(ball.pos.x, ball.pos.y, 11.0);
     }
 }
 
