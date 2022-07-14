@@ -11,6 +11,8 @@ fn test_set_block(mut event_writer: EventWriter<SpawnBlockEvent>) {
                     extents: Vec2::new(90.0, 150.0),
                     rect_origin: Vec2::ZERO,
                     strategy: RotateStrategy::CannotRotate,
+                    friction: 0.0,
+                    restitution: 1.0,
                 }
             },
             2.0,
@@ -22,6 +24,8 @@ fn test_set_block(mut event_writer: EventWriter<SpawnBlockEvent>) {
                     extents: Vec2::new(120.0, 80.0),
                     rect_origin: Vec2::new(30.0, 20.0),
                     strategy: RotateStrategy::Rotatable(0.015),
+                    friction: 0.0,
+                    restitution: 1.0,
                 }
             },
             0.0,
@@ -33,6 +37,8 @@ fn test_set_block(mut event_writer: EventWriter<SpawnBlockEvent>) {
                     extents: Vec2::new(120.0, 80.0),
                     rect_origin: Vec2::new(80.0, 0.0),
                     strategy: RotateStrategy::Always(0.02),
+                    friction: 0.0,
+                    restitution: 1.0,
                 }
             },
             1.0,
@@ -51,6 +57,8 @@ fn set_block(mut commands: Commands, mut event_listener: EventReader<SpawnBlockE
                 extents,
                 rect_origin,
                 strategy,
+                friction,
+                restitution,
             } => {
                 let block_shape = shapes::Rectangle {
                     extents: *extents,
@@ -73,6 +81,8 @@ fn set_block(mut commands: Commands, mut event_listener: EventReader<SpawnBlockE
                     .insert(RectangleBlock {
                         rect: block_shape,
                         angle: ev.default_angle,
+                        friction: *friction,
+                        restitution: *restitution,
                     })
                     .insert(strategy.clone());
                 commands.spawn_bundle(GeometryBuilder::build_as(
