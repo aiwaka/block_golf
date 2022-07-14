@@ -7,7 +7,7 @@ use bevy_prototype_lyon::prelude::*;
 
 use systems::{
     ball::BallPlugin, block::BlockPlugin, collision::CollisionPlugin, field::FieldPlugin,
-    launcher::LauncherPlugin, setup::global_setup,
+    launcher::LauncherPlugin, physics::motion_dynamics::MotionDynamicsPlugin, setup::global_setup,
 };
 
 const SCREEN_WIDTH: f32 = 1280.0;
@@ -30,5 +30,6 @@ fn main() {
     app.add_plugin(BlockPlugin);
     app.add_plugin(CollisionPlugin);
     app.add_plugin(LauncherPlugin);
+    app.add_plugin(MotionDynamicsPlugin);
     app.run();
 }
