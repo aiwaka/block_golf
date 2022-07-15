@@ -25,6 +25,7 @@ fn test_set_block(mut event_writer: EventWriter<SpawnBlockEvent>) {
                             width: 50.0,
                         },
                     },
+                    weight: 1.0,
                     friction: 0.0,
                     restitution: 1.0,
                 }
@@ -40,6 +41,7 @@ fn test_set_block(mut event_writer: EventWriter<SpawnBlockEvent>) {
                     rect_origin: Vec2::new(30.0, 20.0),
                     rotate_strategy: RotateStrategy::Manual(0.025),
                     slide_strategy: SlideStrategy::NoSlide,
+                    weight: 1.0,
                     friction: 0.0,
                     restitution: 1.0,
                 }
@@ -55,6 +57,7 @@ fn test_set_block(mut event_writer: EventWriter<SpawnBlockEvent>) {
                     rect_origin: Vec2::new(80.0, 0.0),
                     rotate_strategy: RotateStrategy::Auto(0.02),
                     slide_strategy: SlideStrategy::NoSlide,
+                    weight: 1.0,
                     friction: 0.0,
                     restitution: 1.0,
                 }
@@ -76,6 +79,7 @@ fn test_set_block(mut event_writer: EventWriter<SpawnBlockEvent>) {
                             width: 40.0,
                         },
                     },
+                    weight: 0.5,
                     friction: 0.0,
                     restitution: 1.0,
                 }
@@ -99,6 +103,7 @@ fn set_block(mut commands: Commands, mut event_listener: EventReader<SpawnBlockE
                 rect_origin,
                 rotate_strategy,
                 slide_strategy,
+                weight,
                 friction,
                 restitution,
             } => {
@@ -125,6 +130,7 @@ fn set_block(mut commands: Commands, mut event_listener: EventReader<SpawnBlockE
                         rect: block_shape,
                         angle: ev.default_angle,
                         pos_param: ev.default_pos_param,
+                        weight: *weight,
                         friction: *friction,
                         restitution: *restitution,
                     })

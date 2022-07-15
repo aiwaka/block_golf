@@ -10,6 +10,7 @@ pub struct RectangleBlock {
     pub rect: Rectangle,
     pub angle: f32,
     pub pos_param: f32, // 位置を計算するためのパラメータ. Manualの場合[-1, 1]をとるとする.
+    pub weight: f32,
     pub friction: f32,
     pub restitution: f32,
 }
@@ -45,6 +46,7 @@ pub enum BlockType {
         rect_origin: Vec2, // 矩形内の位置
         rotate_strategy: RotateStrategy,
         slide_strategy: SlideStrategy,
+        weight: f32,      // 質量
         friction: f32,    // 摩擦係数
         restitution: f32, // 反発係数
     },
@@ -59,6 +61,7 @@ impl From<&BlockType> for Color {
                 rect_origin: _,
                 rotate_strategy: _,
                 slide_strategy: _,
+                weight: _,
                 friction: _,
                 restitution: _,
             } => Color::CYAN,
