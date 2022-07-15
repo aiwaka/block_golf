@@ -144,12 +144,12 @@ fn block_ball_collision(
     }
 }
 
-fn field_ball_collision(mut ball_query: Query<(&Position, &mut Velocity), With<Ball>>) {
+fn field_ball_collision(mut ball_query: Query<(&Transform, &mut Velocity), With<Ball>>) {
     for (pos, mut vel) in ball_query.iter_mut() {
-        if pos.0.x.abs() + BALL_RADIUS > FIELD_WIDTH / 2.0 {
+        if pos.translation.x.abs() + BALL_RADIUS > FIELD_WIDTH / 2.0 {
             vel.0.x *= -1.0;
         }
-        if pos.0.y.abs() + BALL_RADIUS > FIELD_HEIGHT / 2.0 {
+        if pos.translation.y.abs() + BALL_RADIUS > FIELD_HEIGHT / 2.0 {
             vel.0.y *= -1.0;
         }
     }
