@@ -1,4 +1,7 @@
-use crate::components::ball::{Ball, BallNocking, LaunchBallEvent, SpawnBallEvent};
+use crate::components::{
+    ball::{Ball, BallNocking, LaunchBallEvent, SpawnBallEvent},
+    physics::{position::Position, velocity::Velocity},
+};
 use bevy::{math::vec2, prelude::*};
 use bevy_prototype_lyon::prelude::*;
 
@@ -26,28 +29,31 @@ fn spawn_ball(mut commands: Commands, mut event_listener: EventReader<SpawnBallE
                 },
             ))
             .insert(Ball::new(default_pos, vec2(0.0, 0.0), ev.ball_type))
+            .insert(Position(default_pos))
+            .insert(Velocity(Vec2::new(0.0, 0.0)))
             .insert(BallNocking);
     }
 }
 
+type MarkerMovingBall = (With<Ball>, Without<BallNocking>);
+type MarkerNotMovingBall = (With<Ball>, With<BallNocking>);
+
 fn launch_ball(
     mut commands: Commands,
     mut event_listener: EventReader<LaunchBallEvent>,
-    mut query: Query<(&mut Ball, Entity), With<BallNocking>>,
+    mut query: Query<(&mut Velocity, Entity), MarkerNotMovingBall>,
 ) {
     for ev in event_listener.iter() {
-        for (mut ball, ball_ent) in query.iter_mut() {
-            ball.direction = ev.direction;
-            commands.entity(ball_ent).remove::<BallNocking>();
+        for (mut vel, ent) in query.iter_mut() {
+            vel.0 = ev.direction;
+            commands.entity(ent).remove::<BallNocking>();
         }
     }
 }
 
-fn move_ball(mut ball_query: Query<(&mut Ball, &mut Transform), Without<BallNocking>>) {
-    for (mut ball, mut transform) in ball_query.iter_mut() {
-        let direction = ball.direction;
-        ball.pos += direction;
-        transform.translation = Vec3::new(ball.pos.x, ball.pos.y, 11.0);
+fn reflect_ball_pos(mut query: Query<(&Position, &mut Transform), MarkerMovingBall>) {
+    for (pos, mut transform) in query.iter_mut() {
+        transform.translation = Vec3::new(pos.0.x, pos.0.y, 11.0);
     }
 }
 
@@ -57,7 +63,7 @@ impl Plugin for BallPlugin {
         app.add_event::<SpawnBallEvent>();
         app.add_event::<LaunchBallEvent>();
         app.add_system(spawn_ball);
-        app.add_system(move_ball);
+        app.add_system(reflect_ball_pos.after("move_pos"));
         app.add_system(launch_ball);
     }
 }
