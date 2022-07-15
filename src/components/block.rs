@@ -27,8 +27,8 @@ pub enum RotateStrategy {
 pub enum SlideStrategy {
     NoSlide,
     Manual { speed: f32, path: BlockSlidePath }, // キー入力で移動
-    AutoWrap { speed: f32, path: BlockSlidePath }, // キー入力で移動, 自動で折り返し, 左右のどちらのボタンでも同じ動きをする
-    Auto { speed: f32, path: BlockSlidePath },     // 自動で移動
+    AutoWrap { speed: f32, path: BlockSlidePath }, // キー入力で移動, 自動で折り返し
+    Auto { speed: f32, path: BlockSlidePath },   // 自動で移動
 }
 
 #[derive(Clone)]

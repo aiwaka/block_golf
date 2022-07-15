@@ -1,4 +1,4 @@
-use std::f32::consts::FRAC_PI_2;
+use std::f32::consts::{FRAC_PI_2, PI};
 
 use crate::components::block::{
     Block, BlockSlidePath, BlockType, RectangleBlock, RotateStrategy, SlideStrategy,
@@ -14,14 +14,14 @@ fn test_set_block(mut event_writer: EventWriter<SpawnBlockEvent>) {
         SpawnBlockEvent::from_type(
             {
                 BlockType::Rect {
-                    pos: Vec2::new(-230.0, 80.0),
-                    extents: Vec2::new(90.0, 150.0),
+                    pos: Vec2::new(-240.0, 70.0),
+                    extents: Vec2::new(90.0, 120.0),
                     rect_origin: Vec2::ZERO,
                     rotate_strategy: RotateStrategy::NoRotate,
                     slide_strategy: SlideStrategy::Manual {
                         speed: 0.08,
                         path: BlockSlidePath::StandardLine {
-                            theta: FRAC_PI_2,
+                            theta: PI,
                             width: 50.0,
                         },
                     },
@@ -61,6 +61,27 @@ fn test_set_block(mut event_writer: EventWriter<SpawnBlockEvent>) {
             },
             1.0,
             0.0,
+        ),
+        SpawnBlockEvent::from_type(
+            {
+                BlockType::Rect {
+                    pos: Vec2::new(300.0, -120.0),
+                    extents: Vec2::new(80.0, 30.0),
+                    rect_origin: Vec2::new(35.0, 0.0),
+                    rotate_strategy: RotateStrategy::Manual(0.1),
+                    slide_strategy: SlideStrategy::AutoWrap {
+                        speed: 0.1,
+                        path: BlockSlidePath::StandardLine {
+                            theta: FRAC_PI_2,
+                            width: 40.0,
+                        },
+                    },
+                    friction: 0.0,
+                    restitution: 1.0,
+                }
+            },
+            0.0,
+            -1.0,
         ),
     ];
     for e in block_list {
@@ -170,9 +191,11 @@ fn slide_block(
                 path
             }
             SlideStrategy::AutoWrap { speed, path } => {
-                if key_in.any_pressed([KeyCode::Left, KeyCode::Right]) {
+                if key_in.pressed(KeyCode::Left) {
                     rect.pos_param += speed;
-                }
+                } else if key_in.pressed(KeyCode::Right) {
+                    rect.pos_param -= speed;
+                };
                 path
             }
             SlideStrategy::Auto { speed, path } => {
