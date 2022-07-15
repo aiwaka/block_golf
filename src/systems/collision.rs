@@ -1,11 +1,10 @@
-use std::f32::consts::{FRAC_PI_2, PI};
-
 use bevy::prelude::*;
 use bevy_prototype_lyon::prelude::RectangleOrigin;
 
 use crate::components::{
     ball::{Ball, BallNocking},
     block::{Block, RectangleBlock},
+    physics::{position::Position, velocity::Velocity},
 };
 
 use super::{
@@ -20,62 +19,99 @@ fn rotate_vec2(v: Vec2, angle: f32) -> Vec2 {
     )
 }
 
-/// 矩形と円の当たり判定を行う.
-/// rect_posは位置指定, rect_originは軸の矩形中央からの相対指定
-fn rect_circle_collision(
-    block: &RectangleBlock,
-    rect_trans: &Transform,
-    circ_pos: Vec2,
+/// vec3のxyだけを抜き出したものをつくる
+fn vec3_to_vec2(v: Vec3) -> Vec2 {
+    Vec2::new(v.x, v.y)
+}
+
+// 直交座標系に水平な矩形が, ある点を含んでいるか？
+fn rect_contains_point(center: Vec2, extents: Vec2, p: Vec2) -> bool {
+    let leftbottom = center - extents / 2.0;
+    ((leftbottom.x)..(leftbottom.x + extents.x)).contains(&p.x)
+        && ((leftbottom.y)..(leftbottom.y + extents.y)).contains(&p.y)
+}
+
+/// 当たり判定をして拘束解消に必要な情報を返す
+fn collision_between_block_and_ball(
+    block_info: (&RectangleBlock, &Transform),
+    ball_trans: &Transform,
 ) -> Option<Vec2> {
-    let rect_pos = Vec2::new(rect_trans.translation.x, rect_trans.translation.y);
-    let rect_angle = block.angle;
-    let rect_origin = if let RectangleOrigin::CustomCenter(center) = block.rect.origin {
+    // 矩形の回転軸からの相対位置ベクトル
+    let block_origin = if let RectangleOrigin::CustomCenter(center) = block_info.0.rect.origin {
         center
     } else {
         panic!("not customed origin put")
     };
-    // まず円を正方形と考えてかんたんな当たり判定を行う.
-    // 適当な点を, 矩形の中心から出る局所座標の成分に直す. 角度0のときの直交座標と向きを合わせて回転させる.
-    // 回転軸はrect_originとは関係なくrect_posなので, 回転軸からボールまでの相対ベクトルを求める
-    let pos_diff = circ_pos - rect_pos;
-    // 回転を補正
-    let before_rotate_vec = rotate_vec2(pos_diff, -rect_angle);
-    //
-    let rect_local_coord = before_rotate_vec - rect_origin;
-    // 矩形同士が重なっていたら判定を行う
-    if rect_local_coord.x.abs() < block.rect.extents.x / 2.0 + BALL_RADIUS
-        || rect_local_coord.y.abs() < block.rect.extents.y / 2.0 + BALL_RADIUS
-    {
+    // 横縦幅
+    let block_extents = block_info.0.rect.extents;
+    let block_pos = vec3_to_vec2(block_info.1.translation);
+    let block_angle = block_info.0.angle;
+    let ball_pos = vec3_to_vec2(ball_trans.translation);
+    let ball_radius = BALL_RADIUS;
+
+    // 原点に限定して判定をする簡単なものをつくっておく
+    let rect_contains_origin =
+        |center: Vec2, extents: Vec2| rect_contains_point(center, extents, Vec2::ZERO);
+
+    // ボールを原点として, 矩形の角度を水平に補正した局所座標を定義する
+    // lcをつけたら局所座標での値とする
+    // block_centerは対角線の交点とする
+    let lc_block_center = rotate_vec2(
+        block_pos + rotate_vec2(block_origin, block_angle) - ball_pos,
+        -block_angle,
+    );
+    if rect_contains_origin(
+        lc_block_center,
+        block_extents + Vec2::splat(ball_radius * 2.0),
+    ) {
         // 辺が重なっているか判定
-        if (rect_local_coord.x.abs() < block.rect.extents.x / 2.0
-            && rect_local_coord.y.abs() < block.rect.extents.y / 2.0 + BALL_RADIUS)
-            || (rect_local_coord.x.abs() < block.rect.extents.x / 2.0 + BALL_RADIUS
-                && rect_local_coord.y.abs() < block.rect.extents.y / 2.0)
-        {
-            Some(rect_local_coord)
+        if rect_contains_origin(
+            lc_block_center,
+            block_extents + Vec2::new(ball_radius * 2.0, 0.0),
+        ) {
+            // 縦の辺で重なっているとき
+            // 貫通深度（めり込み度合いのスカラー）（計算はメモ30ページ）
+            // 衝突法線（衝突が解消されるのに一番距離が短い方向）
+            // 衝突法線の長さが貫通深度になるようにする
+            let lc_collide_normal = Vec2::new(
+                lc_block_center.x
+                    - lc_block_center.x.signum() * (block_extents.x / 2.0 + ball_radius),
+                0.0,
+            );
+            Some(lc_collide_normal)
+        } else if rect_contains_origin(
+            lc_block_center,
+            block_extents + Vec2::new(0.0, ball_radius * 2.0),
+        ) {
+            let lc_collide_normal = Vec2::new(
+                0.0,
+                lc_block_center.y
+                    - lc_block_center.y.signum() * (block_extents.y / 2.0 + ball_radius),
+            );
+            Some(lc_collide_normal)
         } else {
-            // 矩形として考えた円と矩形で重なっているが一辺では重なっていない場合, 目的の円との重なりは頂点付近で決まる.
             // 各頂点が円に含まれるかどうかを判定すればよい.
-            // 原点からの相対頂点座標リスト（回転基準点の補正付き）
-            let relative_vertex_list = {
-                let _x = block.rect.extents.x / 2.0;
-                let _y = block.rect.extents.y / 2.0;
-                vec![
-                    Vec2::new(_x, _y) + rect_origin,
-                    Vec2::new(-_x, _y) + rect_origin,
-                    Vec2::new(-_x, -_y) + rect_origin,
-                    Vec2::new(_x, -_y) + rect_origin,
-                ]
+            // 局所座標での頂点座標リスト. これらを中心とする半径が球と同じ領域のいずれかに原点が入っていればよい
+            // 原点からの距離が最も近い頂点を用いるのが妥当なので, それを探す
+            let nearest_vertex = {
+                let _x = block_extents.x / 2.0;
+                let _y = block_extents.y / 2.0;
+                let vertex_list = vec![
+                    Vec2::new(_x, _y) + lc_block_center,
+                    Vec2::new(-_x, _y) + lc_block_center,
+                    Vec2::new(-_x, -_y) + lc_block_center,
+                    Vec2::new(_x, -_y) + lc_block_center,
+                ];
+                vertex_list
+                    .into_iter()
+                    .min_by(|v1, v2| v1.length().partial_cmp(&v2.length()).unwrap())
+                    .unwrap()
             };
-            let vertex_list = relative_vertex_list
-                .iter()
-                .map(|rel_v| rotate_vec2(*rel_v, rect_angle) + rect_pos)
-                .collect::<Vec<Vec2>>();
-            if vertex_list
-                .iter()
-                .any(|v| v.distance(circ_pos) < BALL_RADIUS)
-            {
-                Some(rect_local_coord)
+            if nearest_vertex.length() < ball_radius {
+                // 局所座標で原点と頂点が重なっている場合lengthが0でおかしくなるが, とりあえず保留
+                let lc_collide_normal =
+                    nearest_vertex * (1.0 - ball_radius / nearest_vertex.length());
+                Some(lc_collide_normal)
             } else {
                 None
             }
@@ -86,57 +122,35 @@ fn rect_circle_collision(
 }
 
 fn block_ball_collision(
-    mut commands: Commands,
-    mut ball_query: Query<(&Transform, &mut Ball, Entity)>,
-    block_query: Query<(&Transform, &Block, &RectangleBlock)>,
+    mut ball_query: Query<(&Transform, &mut Position, &mut Velocity), With<Ball>>,
+    block_query: Query<(&Transform, &RectangleBlock), With<Block>>,
 ) {
-    for (ball_trans, mut ball, ent) in ball_query.iter_mut() {
-        for (trans, block, rect) in block_query.iter() {
-            if let Some(coord) = rect_circle_collision(
-                rect,
-                trans,
-                Vec2::new(ball_trans.translation.x, ball_trans.translation.y),
-            ) {
-                // とりあえず一旦動きを止めさせる
-                // commands.entity(ent).insert(BallNocking);
-                // 矩形の対角線の傾きと局所座標点の傾きの関係から反射位置を割り出し, 角度を使って反射軸を作成する.
-                // 傾きをa>0として|y|>|ax|の領域なら横辺, そうでなければ縦辺で反射している.
-                let tilt_coef = rect.rect.extents.y / rect.rect.extents.x;
-                // 反射面に対する法線方向の角度
-                let reflect_normal_angle = if coord.y.abs() > tilt_coef * coord.x.abs() {
-                    // 横辺で反射
-                    rect.angle + coord.y.signum() * FRAC_PI_2
-                } else {
-                    rect.angle + (if coord.x > 0.0 { 0.0 } else { PI })
-                };
-                // 入射角（水平面に対して左側から入る場合を正の入射とする）
-                let direction_angle = Vec2::X.angle_between(-ball.direction);
-                let incident_angle = direction_angle - reflect_normal_angle;
-                ball.direction = rotate_vec2(-ball.direction, -incident_angle * 2.0);
+    for (ball_trans, mut ball_pos, mut ball_vel) in ball_query.iter_mut() {
+        for (block_trans, block_rect) in block_query.iter() {
+            if let Some(lc_collide_normal) =
+                collision_between_block_and_ball((block_rect, block_trans), ball_trans)
+            {
+                // 局所座標を画面座標に修正
+                let collide_normal = rotate_vec2(lc_collide_normal, block_rect.angle);
+
+                ball_pos.0 += collide_normal;
+                // 質量も反発係数もすべて1とする
+                // 撃力は速度差の単位法線へ射影となり, 衝突後の速度はそれを単に足したものになる.
+                let prev_vel = ball_vel.0;
+                let impulsive_force = (-prev_vel).project_onto(collide_normal.normalize()) * 2.0;
+                ball_vel.0 += impulsive_force;
             }
         }
     }
 }
 
-#[test]
-fn angle() {
-    let direction_angle = (-Vec2::new(1.0, -1.0)).angle_between(Vec2::X) - FRAC_PI_2;
-    println!(
-        "{}",
-        (-Vec2::new(1.0, -1.0)).angle_between(Vec2::X) * 180.0 / PI
-    );
-    println!("{}", direction_angle * 180.0 / PI);
-}
-
-fn field_ball_collision(mut ball_query: Query<(&Transform, &mut Ball)>) {
-    for (trans, mut ball) in ball_query.iter_mut() {
-        let pos_x = trans.translation.x;
-        let pos_y = trans.translation.y;
-        if pos_x.abs() + BALL_RADIUS > FIELD_WIDTH / 2.0 {
-            ball.direction.x *= -1.0;
+fn field_ball_collision(mut ball_query: Query<(&Position, &mut Velocity), With<Ball>>) {
+    for (pos, mut vel) in ball_query.iter_mut() {
+        if pos.0.x.abs() + BALL_RADIUS > FIELD_WIDTH / 2.0 {
+            vel.0.x *= -1.0;
         }
-        if pos_y.abs() + BALL_RADIUS > FIELD_HEIGHT / 2.0 {
-            ball.direction.y *= -1.0;
+        if pos.0.y.abs() + BALL_RADIUS > FIELD_HEIGHT / 2.0 {
+            vel.0.y *= -1.0;
         }
     }
 }
