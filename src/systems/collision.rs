@@ -1,3 +1,5 @@
+use std::f32::EPSILON;
+
 use bevy::prelude::*;
 use bevy_prototype_lyon::prelude::RectangleOrigin;
 
@@ -109,8 +111,24 @@ fn collision_between_block_and_ball(
             };
             if nearest_vertex.length() < ball_radius {
                 // 局所座標で原点と頂点が重なっている場合lengthが0でおかしくなるが, とりあえず保留
-                let lc_collide_normal =
-                    nearest_vertex * (1.0 - ball_radius / nearest_vertex.length());
+                let lc_collide_normal = if nearest_vertex.length() < EPSILON {
+                    // めり込みがちょうど半径と一致する場合方向を決められないので, 45度っぽい角度にしておく
+                    // lc_block_centerがどの象限にあるかで方向を判別する
+                    let dir_vec = if lc_block_center.x > 0.0 {
+                        if lc_block_center.y > 0.0 {
+                            Vec2::new(-1.0, -1.0)
+                        } else {
+                            Vec2::new(-1.0, 1.0)
+                        }
+                    } else if lc_block_center.y > 0.0 {
+                        Vec2::new(1.0, -1.0)
+                    } else {
+                        Vec2::new(1.0, 1.0)
+                    };
+                    dir_vec / 2.0f32.sqrt() * ball_radius
+                } else {
+                    nearest_vertex * (1.0 - ball_radius / nearest_vertex.length())
+                };
                 Some(lc_collide_normal)
             } else {
                 None
