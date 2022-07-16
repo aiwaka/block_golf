@@ -54,10 +54,10 @@ fn rotate_launcher(key_in: Res<Input<KeyCode>>, mut query: Query<(&mut Transform
         } else if key_in.pressed(KeyCode::Left) {
             launcher.angle += LAUNCHER_ROTATE_ANGLE;
         }
-        if launcher.angle > FRAC_PI_2 {
-            launcher.angle = FRAC_PI_2;
-        } else if launcher.angle < 0.0 {
-            launcher.angle = 0.0;
+        if launcher.angle > FRAC_PI_2 * 1.2 {
+            launcher.angle = FRAC_PI_2 * 1.2;
+        } else if launcher.angle < FRAC_PI_2 * -0.2 {
+            launcher.angle = FRAC_PI_2 * -0.2;
         }
         trans.rotation = Quat::from_rotation_z(launcher.angle);
     }

@@ -4,6 +4,24 @@ use bevy::prelude::*;
 pub enum BallType {
     Normal,
 }
+impl BallType {
+    pub fn weight(&self) -> f32 {
+        match *self {
+            BallType::Normal => 1.0,
+        }
+    }
+    pub fn radius(&self) -> f32 {
+        match *self {
+            BallType::Normal => 20.0,
+        }
+    }
+    /// ボール同士の反発係数. 組み合わせで記述
+    pub fn ball_restitution(&self, other: &BallType) -> f32 {
+        match (*self, other) {
+            (BallType::Normal, BallType::Normal) => 1.0,
+        }
+    }
+}
 
 /// 待機状態のボールを表す
 #[derive(Component)]
