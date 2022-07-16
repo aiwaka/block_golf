@@ -9,10 +9,7 @@ use crate::components::{
     physics::{position::Position, velocity::Velocity},
 };
 
-use super::{
-    ball::BALL_RADIUS,
-    field::{FIELD_HEIGHT, FIELD_WIDTH},
-};
+use super::field::{FIELD_HEIGHT, FIELD_WIDTH};
 
 fn rotate_vec2(v: Vec2, angle: f32) -> Vec2 {
     Vec2::new(
@@ -36,7 +33,7 @@ fn rect_contains_point(center: Vec2, extents: Vec2, p: Vec2) -> bool {
 /// 当たり判定をして拘束解消に必要な情報を返す
 fn collision_between_block_and_ball(
     block_info: (&RectangleBlock, &Transform),
-    ball_trans: &Transform,
+    ball_info: (&Ball, &Transform),
 ) -> Option<Vec2> {
     // 矩形の回転軸からの相対位置ベクトル
     let block_origin = if let RectangleOrigin::CustomCenter(center) = block_info.0.rect.origin {
@@ -48,8 +45,8 @@ fn collision_between_block_and_ball(
     let block_extents = block_info.0.rect.extents;
     let block_pos = vec3_to_vec2(block_info.1.translation);
     let block_angle = block_info.0.angle;
-    let ball_pos = vec3_to_vec2(ball_trans.translation);
-    let ball_radius = BALL_RADIUS;
+    let ball_pos = vec3_to_vec2(ball_info.1.translation);
+    let ball_radius = ball_info.0.ball_type.radius();
 
     // 原点に限定して判定をする簡単なものをつくっておく
     let rect_contains_origin =
@@ -140,13 +137,13 @@ fn collision_between_block_and_ball(
 }
 
 fn block_ball_collision(
-    mut ball_query: Query<(&Transform, &mut Position, &mut Velocity), With<Ball>>,
+    mut ball_query: Query<(&Transform, &Ball, &mut Position, &mut Velocity)>,
     block_query: Query<(&Transform, &RectangleBlock), With<Block>>,
 ) {
-    for (ball_trans, mut ball_pos, mut ball_vel) in ball_query.iter_mut() {
+    for (ball_trans, ball, mut ball_pos, mut ball_vel) in ball_query.iter_mut() {
         for (block_trans, block_rect) in block_query.iter() {
             if let Some(lc_collide_normal) =
-                collision_between_block_and_ball((block_rect, block_trans), ball_trans)
+                collision_between_block_and_ball((block_rect, block_trans), (ball, ball_trans))
             {
                 // 局所座標を画面座標に修正
                 let collide_normal = rotate_vec2(lc_collide_normal, block_rect.angle);
@@ -162,12 +159,13 @@ fn block_ball_collision(
     }
 }
 
-fn field_ball_collision(mut ball_query: Query<(&Transform, &mut Velocity), With<Ball>>) {
-    for (pos, mut vel) in ball_query.iter_mut() {
-        if pos.translation.x.abs() + BALL_RADIUS > FIELD_WIDTH / 2.0 {
+fn field_ball_collision(mut ball_query: Query<(&Transform, &Ball, &mut Velocity), With<Ball>>) {
+    for (pos, ball, mut vel) in ball_query.iter_mut() {
+        let radius = ball.ball_type.radius();
+        if pos.translation.x.abs() + radius > FIELD_WIDTH / 2.0 {
             vel.0.x *= -1.0;
         }
-        if pos.translation.y.abs() + BALL_RADIUS > FIELD_HEIGHT / 2.0 {
+        if pos.translation.y.abs() + radius > FIELD_HEIGHT / 2.0 {
             vel.0.y *= -1.0;
         }
     }

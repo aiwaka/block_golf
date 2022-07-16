@@ -4,6 +4,18 @@ use bevy::prelude::*;
 pub enum BallType {
     Normal,
 }
+impl BallType {
+    pub fn weight(&self) -> f32 {
+        match *self {
+            BallType::Normal => 1.0,
+        }
+    }
+    pub fn radius(&self) -> f32 {
+        match *self {
+            BallType::Normal => 20.0,
+        }
+    }
+}
 
 /// 待機状態のボールを表す
 #[derive(Component)]
