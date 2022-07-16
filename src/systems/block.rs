@@ -7,9 +7,78 @@ use crate::components::block::{
 use bevy::prelude::*;
 use bevy_prototype_lyon::prelude::*;
 
-use super::block_slide_path::calc_orbit;
+use super::{
+    block_slide_path::calc_orbit,
+    field::{FIELD_HEIGHT, FIELD_WIDTH},
+};
 
 fn test_set_block(mut event_writer: EventWriter<SpawnBlockEvent>) {
+    let field_block_list = vec![
+        SpawnBlockEvent::from_type(
+            {
+                BlockType::Rect {
+                    pos: Vec2::new(FIELD_WIDTH / 2.0 + 30.0, 0.0),
+                    extents: Vec2::new(60.0, FIELD_HEIGHT),
+                    rect_origin: Vec2::ZERO,
+                    rotate_strategy: RotateStrategy::NoRotate,
+                    slide_strategy: SlideStrategy::NoSlide,
+                    weight: 1.0,
+                    friction: 0.0,
+                    restitution: 1.0,
+                }
+            },
+            0.0,
+            0.0,
+        ),
+        SpawnBlockEvent::from_type(
+            {
+                BlockType::Rect {
+                    pos: Vec2::new(-FIELD_WIDTH / 2.0 - 30.0, 0.0),
+                    extents: Vec2::new(60.0, FIELD_HEIGHT),
+                    rect_origin: Vec2::ZERO,
+                    rotate_strategy: RotateStrategy::NoRotate,
+                    slide_strategy: SlideStrategy::NoSlide,
+                    weight: 1.0,
+                    friction: 0.0,
+                    restitution: 1.0,
+                }
+            },
+            0.0,
+            0.0,
+        ),
+        SpawnBlockEvent::from_type(
+            {
+                BlockType::Rect {
+                    pos: Vec2::new(0.0, FIELD_HEIGHT / 2.0 + 30.0),
+                    extents: Vec2::new(FIELD_WIDTH, 60.0),
+                    rect_origin: Vec2::ZERO,
+                    rotate_strategy: RotateStrategy::NoRotate,
+                    slide_strategy: SlideStrategy::NoSlide,
+                    weight: 1.0,
+                    friction: 0.0,
+                    restitution: 1.0,
+                }
+            },
+            0.0,
+            0.0,
+        ),
+        SpawnBlockEvent::from_type(
+            {
+                BlockType::Rect {
+                    pos: Vec2::new(0.0, -FIELD_HEIGHT / 2.0 - 30.0),
+                    extents: Vec2::new(FIELD_WIDTH, 60.0),
+                    rect_origin: Vec2::ZERO,
+                    rotate_strategy: RotateStrategy::NoRotate,
+                    slide_strategy: SlideStrategy::NoSlide,
+                    weight: 1.0,
+                    friction: 0.0,
+                    restitution: 1.0,
+                }
+            },
+            0.0,
+            0.0,
+        ),
+    ];
     let block_list = vec![
         SpawnBlockEvent::from_type(
             {
@@ -88,6 +157,9 @@ fn test_set_block(mut event_writer: EventWriter<SpawnBlockEvent>) {
             -1.0,
         ),
     ];
+    for e in field_block_list {
+        event_writer.send(e)
+    }
     for e in block_list {
         event_writer.send(e)
     }

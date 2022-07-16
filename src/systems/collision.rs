@@ -9,8 +9,6 @@ use crate::components::{
     physics::{position::Position, velocity::Velocity},
 };
 
-use super::field::{FIELD_HEIGHT, FIELD_WIDTH};
-
 fn rotate_vec2(v: Vec2, angle: f32) -> Vec2 {
     Vec2::new(
         v.x * angle.cos() - v.y * angle.sin(),
@@ -159,23 +157,10 @@ fn block_ball_collision(
     }
 }
 
-fn field_ball_collision(mut ball_query: Query<(&Transform, &Ball, &mut Velocity), With<Ball>>) {
-    for (pos, ball, mut vel) in ball_query.iter_mut() {
-        let radius = ball.ball_type.radius();
-        if pos.translation.x.abs() + radius > FIELD_WIDTH / 2.0 {
-            vel.0.x *= -1.0;
-        }
-        if pos.translation.y.abs() + radius > FIELD_HEIGHT / 2.0 {
-            vel.0.y *= -1.0;
-        }
-    }
-}
-
 pub struct CollisionPlugin;
 impl Plugin for CollisionPlugin {
     fn build(&self, app: &mut App) {
         app.add_system(block_ball_collision);
-        app.add_system(field_ball_collision);
     }
 }
 
