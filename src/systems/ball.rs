@@ -7,12 +7,10 @@ use bevy_prototype_lyon::prelude::*;
 
 use super::field::{FIELD_HEIGHT, FIELD_WIDTH};
 
-pub const BALL_RADIUS: f32 = 20.0;
-
 fn spawn_ball(mut commands: Commands, mut event_listener: EventReader<SpawnBallEvent>) {
     for ev in event_listener.iter() {
         let ball_shape = shapes::Circle {
-            radius: BALL_RADIUS,
+            radius: ev.ball_type.radius(),
             ..Default::default()
         };
         let default_pos = Vec2::new(-FIELD_WIDTH / 2.0 + 60.0, -FIELD_HEIGHT / 2.0 + 60.0);
