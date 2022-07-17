@@ -1,8 +1,11 @@
 use std::f32::consts::{FRAC_PI_2, PI};
 
-use crate::components::block::{
-    Block, BlockSlidePath, BlockType, RectangleBlock, RotateStrategy, SlideStrategy,
-    SpawnBlockEvent,
+use crate::{
+    components::block::{
+        Block, BlockSlidePath, BlockType, RectangleBlock, RotateStrategy, SlideStrategy,
+        SpawnBlockEvent,
+    },
+    stages::{debug::debug_stage, sample::sample_stage},
 };
 use bevy::prelude::*;
 use bevy_prototype_lyon::prelude::*;
@@ -13,153 +16,10 @@ use super::{
 };
 
 fn test_set_block(mut event_writer: EventWriter<SpawnBlockEvent>) {
-    let field_block_list = vec![
-        SpawnBlockEvent::from_type(
-            {
-                BlockType::Rect {
-                    pos: Vec2::new(FIELD_WIDTH / 2.0 + 30.0, 0.0),
-                    extents: Vec2::new(60.0, FIELD_HEIGHT),
-                    rect_origin: Vec2::ZERO,
-                    rotate_strategy: RotateStrategy::NoRotate,
-                    slide_strategy: SlideStrategy::NoSlide,
-                    weight: 1.0,
-                    friction: 0.0,
-                    restitution: 1.0,
-                }
-            },
-            0.0,
-            0.0,
-        ),
-        SpawnBlockEvent::from_type(
-            {
-                BlockType::Rect {
-                    pos: Vec2::new(-FIELD_WIDTH / 2.0 - 30.0, 0.0),
-                    extents: Vec2::new(60.0, FIELD_HEIGHT),
-                    rect_origin: Vec2::ZERO,
-                    rotate_strategy: RotateStrategy::NoRotate,
-                    slide_strategy: SlideStrategy::NoSlide,
-                    weight: 1.0,
-                    friction: 0.0,
-                    restitution: 1.0,
-                }
-            },
-            0.0,
-            0.0,
-        ),
-        SpawnBlockEvent::from_type(
-            {
-                BlockType::Rect {
-                    pos: Vec2::new(0.0, FIELD_HEIGHT / 2.0 + 30.0),
-                    extents: Vec2::new(FIELD_WIDTH, 60.0),
-                    rect_origin: Vec2::ZERO,
-                    rotate_strategy: RotateStrategy::NoRotate,
-                    slide_strategy: SlideStrategy::NoSlide,
-                    weight: 1.0,
-                    friction: 0.0,
-                    restitution: 1.0,
-                }
-            },
-            0.0,
-            0.0,
-        ),
-        SpawnBlockEvent::from_type(
-            {
-                BlockType::Rect {
-                    pos: Vec2::new(0.0, -FIELD_HEIGHT / 2.0 - 30.0),
-                    extents: Vec2::new(FIELD_WIDTH, 60.0),
-                    rect_origin: Vec2::ZERO,
-                    rotate_strategy: RotateStrategy::NoRotate,
-                    slide_strategy: SlideStrategy::NoSlide,
-                    weight: 1.0,
-                    friction: 0.0,
-                    restitution: 1.0,
-                }
-            },
-            0.0,
-            0.0,
-        ),
-    ];
-    let block_list = vec![
-        SpawnBlockEvent::from_type(
-            {
-                BlockType::Rect {
-                    pos: Vec2::new(-240.0, 70.0),
-                    extents: Vec2::new(90.0, 120.0),
-                    rect_origin: Vec2::ZERO,
-                    rotate_strategy: RotateStrategy::NoRotate,
-                    slide_strategy: SlideStrategy::Manual {
-                        speed: 0.08,
-                        path: BlockSlidePath::StandardLine {
-                            theta: PI,
-                            width: 50.0,
-                        },
-                    },
-                    weight: 1.0,
-                    friction: 0.0,
-                    restitution: 1.0,
-                }
-            },
-            2.0,
-            0.0,
-        ),
-        SpawnBlockEvent::from_type(
-            {
-                BlockType::Rect {
-                    pos: Vec2::ZERO,
-                    extents: Vec2::new(120.0, 80.0),
-                    rect_origin: Vec2::new(30.0, 20.0),
-                    rotate_strategy: RotateStrategy::Manual(0.025),
-                    slide_strategy: SlideStrategy::NoSlide,
-                    weight: 1.0,
-                    friction: 0.0,
-                    restitution: 1.0,
-                }
-            },
-            0.0,
-            0.0,
-        ),
-        SpawnBlockEvent::from_type(
-            {
-                BlockType::Rect {
-                    pos: Vec2::new(200.0, 50.0),
-                    extents: Vec2::new(120.0, 80.0),
-                    rect_origin: Vec2::new(80.0, 0.0),
-                    rotate_strategy: RotateStrategy::Auto(0.02),
-                    slide_strategy: SlideStrategy::NoSlide,
-                    weight: 1.0,
-                    friction: 0.0,
-                    restitution: 1.0,
-                }
-            },
-            1.0,
-            0.0,
-        ),
-        SpawnBlockEvent::from_type(
-            {
-                BlockType::Rect {
-                    pos: Vec2::new(300.0, -120.0),
-                    extents: Vec2::new(80.0, 30.0),
-                    rect_origin: Vec2::new(35.0, 0.0),
-                    rotate_strategy: RotateStrategy::Manual(0.1),
-                    slide_strategy: SlideStrategy::AutoWrap {
-                        speed: 0.1,
-                        path: BlockSlidePath::StandardLine {
-                            theta: FRAC_PI_2,
-                            width: 40.0,
-                        },
-                    },
-                    weight: 0.5,
-                    friction: 0.0,
-                    restitution: 1.0,
-                }
-            },
-            0.0,
-            -1.0,
-        ),
-    ];
-    for e in field_block_list {
-        event_writer.send(e)
-    }
+    let stage_info = debug_stage();
+    // let stage_info = sample_stage();
+    let block_list = stage_info.blocks;
+
     for e in block_list {
         event_writer.send(e)
     }
