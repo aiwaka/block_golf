@@ -16,8 +16,8 @@ use super::{
 };
 
 fn test_set_block(mut event_writer: EventWriter<SpawnBlockEvent>) {
-    let stage_info = debug_stage();
-    // let stage_info = sample_stage();
+    // let stage_info = debug_stage();
+    let stage_info = sample_stage();
     let block_list = stage_info.blocks;
 
     for e in block_list {

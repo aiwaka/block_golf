@@ -9,7 +9,7 @@ pub fn debug_stage() -> StageInfo {
         {
             BlockType::Rect {
                 pos: Vec2::new(0.0, 0.0),
-                extents: Vec2::new(50.0, 200.0),
+                extents: Vec2::new(50.0, 600.0),
                 rect_origin: Vec2::ZERO,
                 rotate_strategy: RotateStrategy::NoRotate,
                 slide_strategy: SlideStrategy::NoSlide,

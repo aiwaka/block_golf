@@ -70,16 +70,14 @@ pub fn sample_stage() -> StageInfo {
                     pos: Vec2::new(300.0, -160.0),
                     extents: Vec2::new(80.0, 30.0),
                     rect_origin: Vec2::new(35.0, 0.0),
-                    // rotate_strategy: RotateStrategy::Manual(0.1),
-                    rotate_strategy: RotateStrategy::NoRotate,
-                    slide_strategy: SlideStrategy::NoSlide,
-                    // slide_strategy: SlideStrategy::AutoWrap {
-                    //     speed: 0.1,
-                    //     path: BlockSlidePath::StandardLine {
-                    //         theta: FRAC_PI_2,
-                    //         width: 40.0,
-                    //     },
-                    // },
+                    rotate_strategy: RotateStrategy::Manual(0.1),
+                    slide_strategy: SlideStrategy::AutoWrap {
+                        speed: 0.1,
+                        path: BlockSlidePath::StandardLine {
+                            theta: FRAC_PI_2,
+                            width: 40.0,
+                        },
+                    },
                     weight: 0.5,
                     friction: 0.0,
                     restitution: 1.0,
