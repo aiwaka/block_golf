@@ -33,6 +33,6 @@ fn spawn_goal(mut commands: Commands, mut event_listener: EventReader<SpawnGoalE
 pub struct GoalPlugin;
 impl Plugin for GoalPlugin {
     fn build(&self, app: &mut App) {
-        app.add_startup_system(spawn_goal);
+        app.add_startup_system(spawn_goal.after("stage_setup"));
     }
 }

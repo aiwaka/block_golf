@@ -43,8 +43,8 @@ fn main() {
     app.add_system(bevy::input::system::exit_on_esc_system);
     app.add_plugin(ShapePlugin);
     add_events(&mut app);
-    app.add_startup_system(global_setup);
-    app.add_startup_system(stage_setup);
+    app.add_startup_system(global_setup.label("global_setup"));
+    app.add_startup_system(stage_setup.label("stage_setup").after("global_setup"));
     app.add_plugin(FieldPlugin);
     app.add_plugin(GoalPlugin);
     app.add_plugin(BallPlugin);

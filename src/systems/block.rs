@@ -131,7 +131,7 @@ fn slide_block(
 pub struct BlockPlugin;
 impl Plugin for BlockPlugin {
     fn build(&self, app: &mut App) {
-        app.add_system(set_block);
+        app.add_startup_system(set_block.after("stage_setup"));
         app.add_system(rotate_block);
         app.add_system(slide_block);
     }
