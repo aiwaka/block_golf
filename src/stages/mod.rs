@@ -1,7 +1,6 @@
-use bevy::prelude::{Color, Vec2};
 // use heron::PhysicMaterial;
 
-use crate::components::block::SpawnBlockEvent;
+use crate::components::{block::SpawnBlockEvent, goal::SpawnGoalEvent};
 
 pub mod debug;
 mod field_blocks;
@@ -10,7 +9,7 @@ pub mod sample;
 pub struct StageInfo {
     pub blocks: Vec<SpawnBlockEvent>,
     pub ball_num: u32,
-    pub hole_pos: Vec2,
+    pub goal_pos: Vec<SpawnGoalEvent>,
 }
 
 // struct StageInfo {

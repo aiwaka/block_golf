@@ -2,7 +2,10 @@ use bevy::prelude::*;
 
 use super::field_blocks::field_block;
 use super::StageInfo;
-use crate::components::block::{BlockType, RotateStrategy, SlideStrategy, SpawnBlockEvent};
+use crate::components::{
+    block::{BlockType, RotateStrategy, SlideStrategy, SpawnBlockEvent},
+    goal::SpawnGoalEvent,
+};
 
 pub fn debug_stage() -> StageInfo {
     let block_list = vec![SpawnBlockEvent::from_type(
@@ -22,12 +25,14 @@ pub fn debug_stage() -> StageInfo {
         0.0,
     )];
 
+    let goal_list = vec![SpawnGoalEvent::new(Vec2::new(200.0, 150.0), 20.0, 1)];
+
     StageInfo {
         blocks: field_block()
             .into_iter()
             .chain(block_list)
             .collect::<Vec<SpawnBlockEvent>>(),
         ball_num: 1,
-        hole_pos: Vec2::ZERO,
+        goal_pos: goal_list,
     }
 }
