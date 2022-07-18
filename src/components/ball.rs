@@ -52,6 +52,9 @@ impl Ball {
     }
 }
 
+#[derive(Component)]
+pub struct GoalinBall;
+
 // ボールを出現させる. 待機状態になる.
 pub struct SpawnBallEvent {
     pub ball_type: BallType,

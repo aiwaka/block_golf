@@ -1,29 +1,11 @@
-use std::f32::consts::{FRAC_PI_2, PI};
-
-use crate::{
-    components::block::{
-        Block, BlockSlidePath, BlockType, RectangleBlock, RotateStrategy, SlideStrategy,
-        SpawnBlockEvent,
-    },
-    stages::{debug::debug_stage, sample::sample_stage},
-};
 use bevy::prelude::*;
 use bevy_prototype_lyon::prelude::*;
 
-use super::{
-    block_slide_path::calc_orbit,
-    field::{FIELD_HEIGHT, FIELD_WIDTH},
+use super::block_slide_path::calc_orbit;
+use crate::components::block::{
+    Block, BlockSlidePath, BlockType, RectangleBlock, RotateStrategy, SlideStrategy,
+    SpawnBlockEvent,
 };
-
-fn test_set_block(mut event_writer: EventWriter<SpawnBlockEvent>) {
-    // let stage_info = debug_stage();
-    let stage_info = sample_stage();
-    let block_list = stage_info.blocks;
-
-    for e in block_list {
-        event_writer.send(e)
-    }
-}
 
 /// キューに入っているブロックを追加する（開始時実行）
 fn set_block(mut commands: Commands, mut event_listener: EventReader<SpawnBlockEvent>) {
@@ -149,9 +131,7 @@ fn slide_block(
 pub struct BlockPlugin;
 impl Plugin for BlockPlugin {
     fn build(&self, app: &mut App) {
-        app.add_event::<SpawnBlockEvent>();
-        app.add_startup_system(test_set_block);
-        app.add_system(set_block);
+        app.add_startup_system(set_block.after("stage_setup"));
         app.add_system(rotate_block);
         app.add_system(slide_block);
     }
