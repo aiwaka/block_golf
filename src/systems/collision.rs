@@ -4,8 +4,9 @@ use bevy::prelude::*;
 use bevy_prototype_lyon::prelude::RectangleOrigin;
 
 use crate::components::{
-    ball::{Ball, BallNocking},
+    ball::{Ball, BallNocking, GoalinBall},
     block::{Block, RectangleBlock},
+    goal::GoalHole,
     physics::{position::Position, velocity::Velocity},
 };
 
@@ -140,7 +141,7 @@ fn collision_between_block_and_ball(
 }
 
 fn block_ball_collision(
-    mut ball_query: Query<(&Transform, &Ball, &mut Position, &mut Velocity)>,
+    mut ball_query: Query<(&Transform, &Ball, &mut Position, &mut Velocity), Without<GoalinBall>>,
     block_query: Query<(&Transform, &RectangleBlock), With<Block>>,
 ) {
     for (ball_trans, ball, mut ball_pos, mut ball_vel) in ball_query.iter_mut() {
@@ -186,7 +187,9 @@ fn collision_of_balls(ball1: (&Ball, &Transform), ball2: (&Ball, &Transform)) ->
     }
 }
 
-fn balls_collision(mut ball_query: Query<(&Transform, &Ball, &mut Position, &mut Velocity)>) {
+fn balls_collision(
+    mut ball_query: Query<(&Transform, &Ball, &mut Position, &mut Velocity), Without<GoalinBall>>,
+) {
     let mut ball_combination_iter = ball_query.iter_combinations_mut();
     while let Some([ball1_info, ball2_info]) = ball_combination_iter.fetch_next() {
         let (ball1_trans, ball1, mut ball1_pos, mut ball1_vel) = ball1_info;
@@ -210,11 +213,43 @@ fn balls_collision(mut ball_query: Query<(&Transform, &Ball, &mut Position, &mut
     }
 }
 
+fn collision_between_goal_and_ball(ball: (&Ball, &Transform), goal: &GoalHole) -> Option<Vec2> {
+    let ball_radius = ball.0.ball_type.radius();
+    let ball_pos = vec3_to_vec2(ball.1.translation);
+    let goal_radius = goal.radius;
+    let goal_pos = goal.pos;
+    let diff = ball_pos - goal_pos;
+    // 球同士が完全に重なっている場合lengthが0でおかしくなるが, とりあえず保留
+    if diff.length_squared() < (ball_radius + goal_radius) * (ball_radius + goal_radius) {
+        Some(diff)
+    } else {
+        None
+    }
+}
+
+fn goal_and_ball_collision(
+    mut commands: Commands,
+    mut ball_query: Query<(&Transform, &Ball, &mut Velocity, Entity), Without<GoalinBall>>,
+    goal_query: Query<(&Transform, &GoalHole)>,
+) {
+    for (ball_trans, ball, mut velocity, ball_ent) in ball_query.iter_mut() {
+        for (_, goal) in goal_query.iter() {
+            if let Some(diff_vec) = collision_between_goal_and_ball((ball, ball_trans), goal) {
+                if diff_vec.length() < goal.radius * 0.9 {
+                    velocity.0 = Vec2::ZERO;
+                    commands.entity(ball_ent).insert(GoalinBall);
+                }
+            }
+        }
+    }
+}
+
 pub struct CollisionPlugin;
 impl Plugin for CollisionPlugin {
     fn build(&self, app: &mut App) {
         app.add_system(block_ball_collision);
         app.add_system(balls_collision);
+        app.add_system(goal_and_ball_collision);
     }
 }
 
