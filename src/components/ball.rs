@@ -22,6 +22,17 @@ impl BallType {
         }
     }
 }
+pub trait SetBall {
+    fn set_balls(&mut self, ball_type: BallType, num: u32) -> &mut Self;
+}
+impl SetBall for Vec<SetBallEvent> {
+    fn set_balls(&mut self, ball_type: BallType, num: u32) -> &mut Self {
+        for _ in 0..num {
+            self.push(SetBallEvent { ball_type })
+        }
+        self
+    }
+}
 
 /// 待機状態のボールを表す
 #[derive(Component)]
@@ -54,6 +65,11 @@ impl Ball {
 
 #[derive(Component)]
 pub struct GoalinBall;
+
+// ステージ情報とランチャーを受け渡すイベント
+pub struct SetBallEvent {
+    pub ball_type: BallType,
+}
 
 // ボールを出現させる. 待機状態になる.
 pub struct SpawnBallEvent {

@@ -6,7 +6,7 @@ use bevy::prelude::*;
 use bevy_prototype_lyon::prelude::*;
 
 use components::{
-    ball::{LaunchBallEvent, SpawnBallEvent},
+    ball::{LaunchBallEvent, SetBallEvent, SpawnBallEvent},
     block::SpawnBlockEvent,
     goal::SpawnGoalEvent,
 };
@@ -29,6 +29,7 @@ fn add_events(app: &mut App) {
     app.add_event::<LaunchBallEvent>();
     app.add_event::<SpawnBlockEvent>();
     app.add_event::<SpawnGoalEvent>();
+    app.add_event::<SetBallEvent>();
 }
 
 fn main() {

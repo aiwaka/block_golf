@@ -92,7 +92,7 @@ fn launch_ball(
 pub struct LauncherPlugin;
 impl Plugin for LauncherPlugin {
     fn build(&self, app: &mut App) {
-        app.add_startup_system(spawn_launcher);
+        app.add_startup_system(spawn_launcher.after("stage_setup"));
         app.add_system(rotate_launcher);
         app.add_system(launch_ball);
     }
