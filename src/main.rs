@@ -16,6 +16,7 @@ use systems::{
     collision::CollisionPlugin,
     field::FieldPlugin,
     goal::GoalPlugin,
+    info_board::InfoBoardPlugin,
     launcher::LauncherPlugin,
     physics::motion_dynamics::MotionDynamicsPlugin,
     setup::{global_setup, stage_setup},
@@ -53,5 +54,6 @@ fn main() {
     app.add_plugin(CollisionPlugin);
     app.add_plugin(LauncherPlugin);
     app.add_plugin(MotionDynamicsPlugin);
+    app.add_plugin(InfoBoardPlugin);
     app.run();
 }

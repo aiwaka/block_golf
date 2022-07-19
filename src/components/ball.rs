@@ -21,6 +21,11 @@ impl BallType {
             (BallType::Normal, BallType::Normal) => 1.0,
         }
     }
+    pub fn color(&self) -> Color {
+        match *self {
+            BallType::Normal => Color::BLUE,
+        }
+    }
 }
 pub trait SetBall {
     fn set_balls(&mut self, ball_type: BallType, num: u32) -> &mut Self;

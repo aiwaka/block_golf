@@ -8,8 +8,12 @@ pub enum LauncherState {
 }
 
 #[derive(Component, Debug)]
+pub struct BallMagazine {
+    pub balls: Vec<BallType>,
+}
+
+#[derive(Component, Debug)]
 pub struct Launcher {
     pub state: LauncherState,
-    pub balls: Vec<BallType>,
     pub angle: f32,
 }

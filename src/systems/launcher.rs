@@ -1,7 +1,7 @@
 use super::field::{FIELD_HEIGHT, FIELD_WIDTH};
 use crate::components::{
-    ball::{BallType, LaunchBallEvent, SpawnBallEvent},
-    launcher::{Launcher, LauncherState},
+    ball::{BallType, LaunchBallEvent, SetBallEvent, SpawnBallEvent},
+    launcher::{BallMagazine, Launcher, LauncherState},
 };
 use bevy::prelude::*;
 use bevy_prototype_lyon::{prelude::*, shapes::Polygon};
@@ -25,6 +25,14 @@ fn construct_launcher_shape() -> Polygon {
     }
 }
 
+fn spawn_ball_magazine(mut commands: Commands, mut ball_event_reader: EventReader<SetBallEvent>) {
+    let balls = ball_event_reader
+        .iter()
+        .map(|ev| ev.ball_type)
+        .collect::<Vec<BallType>>();
+    commands.spawn().insert(BallMagazine { balls });
+}
+
 fn spawn_launcher(mut commands: Commands) {
     let shape = construct_launcher_shape();
     commands
@@ -41,7 +49,6 @@ fn spawn_launcher(mut commands: Commands) {
         ))
         .insert(Launcher {
             state: LauncherState::Waiting,
-            balls: vec![],
             angle: 0.0,
         });
 }
@@ -68,15 +75,22 @@ fn launch_ball(
     mut spawn_ball_event_writer: EventWriter<SpawnBallEvent>,
     mut launch_ball_event_writer: EventWriter<LaunchBallEvent>,
     mut query: Query<&mut Launcher>,
+    magazine_query: Query<&BallMagazine>,
 ) {
     if key_in.just_pressed(KeyCode::Z) {
         for mut launcher in query.iter_mut() {
             match launcher.state {
                 LauncherState::Waiting => {
+                    // 待機状態ならボールを一つ読み取ってボール出現イベントを送信
+                    let magazine = magazine_query.single();
+                    let ball_type = if let Some(ball_type) = magazine.balls.get(0) {
+                        *ball_type
+                    } else {
+                        // 残りボールが無い状態. 効果音とか鳴らすようにするとよさそう
+                        continue;
+                    };
                     launcher.state = LauncherState::Nocking;
-                    spawn_ball_event_writer.send(SpawnBallEvent {
-                        ball_type: BallType::Normal,
-                    });
+                    spawn_ball_event_writer.send(SpawnBallEvent { ball_type });
                 }
                 LauncherState::Nocking => {
                     launcher.state = LauncherState::Waiting;
@@ -89,11 +103,29 @@ fn launch_ball(
     }
 }
 
+/// ボールをセットしたときのイベントを検知して残りボールを減らす処理をする
+fn pop_ball_from_magazine(
+    mut spawn_ball_event_reader: EventReader<SpawnBallEvent>,
+    mut magazine_query: Query<&mut BallMagazine>,
+) {
+    for _ in spawn_ball_event_reader.iter() {
+        let mut magazine = magazine_query.single_mut();
+        if !magazine.balls.is_empty() {
+            // TODO: ここはballsをvecDequeに変更すべき.
+            magazine.balls.remove(0);
+        }
+        // info!("{:?}", ev.ball_type);
+        // info!("{:?}", magazine);
+    }
+}
+
 pub struct LauncherPlugin;
 impl Plugin for LauncherPlugin {
     fn build(&self, app: &mut App) {
         app.add_startup_system(spawn_launcher.after("stage_setup"));
+        app.add_startup_system(spawn_ball_magazine.after("stage_setup"));
         app.add_system(rotate_launcher);
         app.add_system(launch_ball);
+        app.add_system(pop_ball_from_magazine);
     }
 }
