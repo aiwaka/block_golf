@@ -18,7 +18,7 @@ fn spawn_ball(mut commands: Commands, mut event_listener: EventReader<SpawnBallE
             .spawn_bundle(GeometryBuilder::build_as(
                 &ball_shape,
                 DrawMode::Outlined {
-                    fill_mode: FillMode::color(Color::BLUE),
+                    fill_mode: FillMode::color(ev.ball_type.color()),
                     outline_mode: StrokeMode::new(Color::DARK_GRAY, 2.0),
                 },
                 Transform {
