@@ -1,5 +1,5 @@
 use super::ball::BallType;
-use bevy::prelude::Component;
+use bevy::prelude::{Component, Entity};
 
 #[derive(Debug)]
 pub enum LauncherState {
@@ -9,7 +9,7 @@ pub enum LauncherState {
 
 #[derive(Component, Debug)]
 pub struct BallMagazine {
-    pub balls: Vec<BallType>,
+    pub balls: Vec<(BallType, Entity)>,
 }
 
 #[derive(Component, Debug)]

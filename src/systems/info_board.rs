@@ -4,7 +4,7 @@ use bevy_prototype_lyon::prelude::*;
 
 use crate::components::{
     ball::{SetBallEvent, SpawnBallEvent},
-    info::{NextBall, RemainingBall},
+    info::{ConsumingBall, MagazineUpdating, RemainingBall},
     launcher::{BallMagazine, Launcher},
 };
 
@@ -39,43 +39,49 @@ use crate::components::{
 //     });
 // }
 
-fn remaining_balls_info(
+/// ボール出現時に箱に更新中マーカーを付与する
+fn insert_updateing_marker(
     mut commands: Commands,
-    remaining_ball_query: Query<(&RemainingBall, Entity)>,
-    changed_magazine_query: Query<&BallMagazine, Changed<BallMagazine>>,
+    magazine_query: Query<(&BallMagazine, Entity)>,
+    mut spawn_ball_event_reader: EventReader<SpawnBallEvent>,
 ) {
-    for mag in changed_magazine_query.iter() {
-        // 変化があったとき
-        for (_, ent) in remaining_ball_query.iter() {
+    for _ in spawn_ball_event_reader.iter() {
+        let (mag, ent) = magazine_query.single();
+        commands.entity(ent).insert(MagazineUpdating);
+        // 1つ目に消費中マーカーをつける
+        commands.entity(mag.balls[0].1).insert(ConsumingBall);
+    }
+}
+
+fn update_remaining_balls_info(
+    mut commands: Commands,
+    mut remaining_ball_query: Query<
+        (&mut Transform, Option<&ConsumingBall>, Entity),
+        With<RemainingBall>,
+    >,
+    mut magazine_query: Query<(&mut BallMagazine, Entity), With<MagazineUpdating>>,
+) {
+    if magazine_query.iter().next().is_none() {
+        return;
+    }
+    if let Some((mut trans, _, ent)) = remaining_ball_query.iter_mut().find(|q| q.1.is_some()) {
+        // consumingballが存在していたらその処理だけ行う
+        trans.scale *= 0.8;
+        if trans.scale.x < 0.01 {
             commands.entity(ent).despawn();
         }
-        for (idx, ball_type) in mag.balls.iter().enumerate() {
-            let ball_shape = shapes::Circle {
-                radius: 10.0,
-                ..Default::default()
-            };
-            let show_pos = Vec2::new(-200.0 + idx as f32 * 40.0, -350.0);
-            commands
-                .spawn_bundle(GeometryBuilder::build_as(
-                    &ball_shape,
-                    DrawMode::Outlined {
-                        fill_mode: FillMode::color(ball_type.color()),
-                        outline_mode: StrokeMode::new(Color::DARK_GRAY, 1.0),
-                    },
-                    Transform {
-                        translation: show_pos.extend(11.0),
-                        ..Default::default()
-                    },
-                ))
-                .insert(RemainingBall);
-        }
+    } else {
+        let (mut mag, ent) = magazine_query.single_mut();
+        // TODO: VecDequeを使うと計算量を減らせる
+        mag.balls.remove(0);
+        commands.entity(ent).remove::<MagazineUpdating>();
     }
 }
 
 pub struct InfoBoardPlugin;
 impl Plugin for InfoBoardPlugin {
     fn build(&self, app: &mut App) {
-        // app.add_startup_system(ui_setup);
-        app.add_system(remaining_balls_info);
+        app.add_system(insert_updateing_marker);
+        app.add_system(update_remaining_balls_info);
     }
 }
