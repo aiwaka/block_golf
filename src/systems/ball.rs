@@ -1,6 +1,6 @@
 use crate::components::{
     ball::{Ball, BallNocking, LaunchBallEvent, SpawnBallEvent},
-    physics::{position::Position, velocity::Velocity},
+    physics::{material::PhysicMaterial, position::Position, velocity::Velocity},
 };
 use bevy::{math::vec2, prelude::*};
 use bevy_prototype_lyon::prelude::*;
@@ -27,6 +27,11 @@ fn spawn_ball(mut commands: Commands, mut event_listener: EventReader<SpawnBallE
                 },
             ))
             .insert(Ball::new(default_pos, vec2(0.0, 0.0), ev.ball_type))
+            .insert(PhysicMaterial::new(
+                ev.ball_type.restitution(),
+                ev.ball_type.density(),
+                0.0,
+            ))
             .insert(Position(default_pos))
             .insert(Velocity(Vec2::new(0.0, 0.0)))
             .insert(BallNocking);

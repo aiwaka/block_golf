@@ -4,10 +4,10 @@ use bevy::prelude::*;
 use bevy_prototype_lyon::prelude::RectangleOrigin;
 
 use crate::components::{
-    ball::{Ball, BallNocking, GoalinBall},
+    ball::{Ball, GoalinBall},
     block::{Block, RectangleBlock},
     goal::GoalHole,
-    physics::{position::Position, velocity::Velocity},
+    physics::{material::PhysicMaterial, position::Position, velocity::Velocity},
 };
 
 fn rotate_vec2(v: Vec2, angle: f32) -> Vec2 {
@@ -141,20 +141,31 @@ fn collision_between_block_and_ball(
 }
 
 fn block_ball_collision(
-    mut ball_query: Query<(&Transform, &Ball, &mut Position, &mut Velocity), Without<GoalinBall>>,
-    block_query: Query<(&Transform, &RectangleBlock), With<Block>>,
+    mut ball_query: Query<
+        (
+            &Transform,
+            &Ball,
+            &PhysicMaterial,
+            &mut Position,
+            &mut Velocity,
+        ),
+        Without<GoalinBall>,
+    >,
+    block_query: Query<(&Transform, &RectangleBlock, &PhysicMaterial), With<Block>>,
 ) {
-    for (ball_trans, ball, mut ball_pos, mut ball_vel) in ball_query.iter_mut() {
-        for (block_trans, block_rect) in block_query.iter() {
+    for (ball_trans, ball, ball_material, mut ball_pos, mut ball_vel) in ball_query.iter_mut() {
+        for (block_trans, block_rect, block_material) in block_query.iter() {
             if let Some((lc_collide_normal, penetrate_depth)) =
                 collision_between_block_and_ball((block_rect, block_trans), (ball, ball_trans))
             {
                 // 局所座標を画面座標に修正
                 let collide_normal = rotate_vec2(lc_collide_normal, block_rect.angle);
                 ball_pos.0 += collide_normal * penetrate_depth;
-                let restitution = block_rect.restitution;
-                let friction = block_rect.friction;
-                let block_weight = block_rect.weight;
+                let restitution = block_material.restitution * ball_material.restitution;
+                let friction = block_material.friction;
+                let block_weight =
+                    block_material.density * block_rect.rect.extents.x * block_rect.rect.extents.y;
+                // TODO: ボールタイプを保持するかどうか
                 let ball_weight = ball.ball_type.weight();
                 // 換算質量
                 let reduced_mass = block_weight * ball_weight / (block_weight + ball_weight);
@@ -188,17 +199,27 @@ fn collision_of_balls(ball1: (&Ball, &Transform), ball2: (&Ball, &Transform)) ->
 }
 
 fn balls_collision(
-    mut ball_query: Query<(&Transform, &Ball, &mut Position, &mut Velocity), Without<GoalinBall>>,
+    mut ball_query: Query<
+        (
+            &Transform,
+            &Ball,
+            &PhysicMaterial,
+            &mut Position,
+            &mut Velocity,
+        ),
+        Without<GoalinBall>,
+    >,
 ) {
     let mut ball_combination_iter = ball_query.iter_combinations_mut();
     while let Some([ball1_info, ball2_info]) = ball_combination_iter.fetch_next() {
-        let (ball1_trans, ball1, mut ball1_pos, mut ball1_vel) = ball1_info;
-        let (ball2_trans, ball2, mut ball2_pos, mut ball2_vel) = ball2_info;
+        let (ball1_trans, ball1, ball1_material, mut ball1_pos, mut ball1_vel) = ball1_info;
+        let (ball2_trans, ball2, ball2_material, mut ball2_pos, mut ball2_vel) = ball2_info;
         if let Some(collide_normal) = collision_of_balls((ball1, ball1_trans), (ball2, ball2_trans))
         {
             ball1_pos.0 += collide_normal / 2.0;
             ball2_pos.0 -= collide_normal / 2.0;
-            let restitution = ball1.ball_type.ball_restitution(&ball2.ball_type);
+            let restitution = ball1_material.restitution * ball2_material.restitution;
+            // TODO: 今後ボールタイプを保持するかどうかは考える
             let ball1_weight = ball1.ball_type.weight();
             let ball2_weight = ball2.ball_type.weight();
             // 換算質量

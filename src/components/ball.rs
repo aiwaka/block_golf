@@ -1,3 +1,5 @@
+use std::f32::consts::PI;
+
 use bevy::prelude::*;
 
 #[derive(Clone, Copy, Debug)]
@@ -10,15 +12,22 @@ impl BallType {
             BallType::Normal => 1.0,
         }
     }
+    pub fn density(&self) -> f32 {
+        self.weight() / self.volume()
+    }
+    /// 二次元体積（面積）を返す
+    pub fn volume(&self) -> f32 {
+        self.radius() * self.radius() * PI
+    }
     pub fn radius(&self) -> f32 {
         match *self {
             BallType::Normal => 20.0,
         }
     }
-    /// ボール同士の反発係数. 組み合わせで記述
-    pub fn ball_restitution(&self, other: &BallType) -> f32 {
-        match (*self, other) {
-            (BallType::Normal, BallType::Normal) => 1.0,
+    /// ボールの反発係数. 2つをかけ合わせたものを衝突の際の反発係数として使う
+    pub fn restitution(&self) -> f32 {
+        match *self {
+            BallType::Normal => 1.0,
         }
     }
     pub fn color(&self) -> Color {

@@ -1,6 +1,7 @@
 use bevy::prelude::*;
 use bevy_prototype_lyon::shapes::Rectangle;
 
+/// ブロックであることを示す. これを使って衝突判定を行う
 #[derive(Component)]
 pub struct Block;
 // Rectangleをあとで使うためのコンポーネント
@@ -10,9 +11,6 @@ pub struct RectangleBlock {
     pub rect: Rectangle,
     pub angle: f32,
     pub pos_param: f32, // 位置を計算するためのパラメータ. Manualの場合[-1, 1]をとるとする.
-    pub weight: f32,
-    pub friction: f32,
-    pub restitution: f32,
 }
 
 /// 回転の方法

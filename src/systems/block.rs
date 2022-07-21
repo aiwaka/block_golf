@@ -2,9 +2,12 @@ use bevy::prelude::*;
 use bevy_prototype_lyon::prelude::*;
 
 use super::block_slide_path::calc_orbit;
-use crate::components::block::{
-    Block, BlockSlidePath, BlockType, RectangleBlock, RotateStrategy, SlideStrategy,
-    SpawnBlockEvent,
+use crate::components::{
+    block::{
+        Block, BlockSlidePath, BlockType, RectangleBlock, RotateStrategy, SlideStrategy,
+        SpawnBlockEvent,
+    },
+    physics::material::PhysicMaterial,
 };
 
 /// キューに入っているブロックを追加する（開始時実行）
@@ -44,10 +47,12 @@ fn set_block(mut commands: Commands, mut event_listener: EventReader<SpawnBlockE
                         rect: block_shape,
                         angle: ev.default_angle,
                         pos_param: ev.default_pos_param,
-                        weight: *weight,
-                        friction: *friction,
-                        restitution: *restitution,
                     })
+                    .insert(PhysicMaterial::new(
+                        *restitution,
+                        *weight / extents.x / extents.y,
+                        *friction,
+                    ))
                     .insert(rotate_strategy.clone())
                     .insert(slide_strategy.clone());
                 commands.spawn_bundle(GeometryBuilder::build_as(
@@ -60,7 +65,7 @@ fn set_block(mut commands: Commands, mut event_listener: EventReader<SpawnBlockE
                         translation: Vec3::new(pos.x, pos.y, 120.0),
                         ..Default::default()
                     },
-                ))
+                ));
             }
         };
     }
