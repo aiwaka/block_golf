@@ -1,7 +1,7 @@
 use super::ball::BallType;
 use bevy::prelude::{Component, Entity};
 
-#[derive(Debug)]
+#[derive(Component, Clone, Copy, Debug)]
 pub enum LauncherState {
     Waiting,
     Nocking,
@@ -14,6 +14,5 @@ pub struct BallMagazine {
 
 #[derive(Component, Debug)]
 pub struct Launcher {
-    pub state: LauncherState,
     pub angle: f32,
 }

@@ -91,7 +91,7 @@ pub fn sample_stage() -> StageInfo {
     ];
 
     let mut ball_list = Vec::<SetBallEvent>::new();
-    ball_list.set_balls(BallType::Normal, 3);
+    ball_list.set_balls(BallType::Normal, 10);
 
     let goal_list = vec![SpawnGoalEvent::new(Vec2::new(350.0, 150.0), 30.0, 1)];
 

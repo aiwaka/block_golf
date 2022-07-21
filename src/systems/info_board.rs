@@ -5,39 +5,8 @@ use bevy_prototype_lyon::prelude::*;
 use crate::components::{
     ball::{SetBallEvent, SpawnBallEvent},
     info::{ConsumingBall, MagazineUpdating, RemainingBall},
-    launcher::{BallMagazine, Launcher},
+    launcher::BallMagazine,
 };
-
-// fn ui_setup(mut commands: Commands, asset_server: Res<AssetServer>) {
-//     commands.spawn_bundle(TextBundle {
-//         style: Style {
-//             align_self: AlignSelf::FlexEnd,
-//             position_type: PositionType::Absolute,
-//             position: Rect {
-//                 bottom: Val::Px(5.0),
-//                 right: Val::Px(15.0),
-//                 ..default()
-//             },
-//             ..default()
-//         },
-//         // Use the `Text::with_section` constructor
-//         text: Text::with_section(
-//             // Accepts a `String` or any type that converts into a `String`, such as `&str`
-//             "hello\nbevy!",
-//             TextStyle {
-//                 font: asset_server.load("fonts/FiraSans-Bold.ttf"),
-//                 font_size: 100.0,
-//                 color: Color::BLACK,
-//             },
-//             // Note: You can use `Default::default()` in place of the `TextAlignment`
-//             TextAlignment {
-//                 horizontal: HorizontalAlign::Center,
-//                 ..default()
-//             },
-//         ),
-//         ..default()
-//     });
-// }
 
 /// ボール出現時に箱に更新中マーカーを付与する
 fn insert_updateing_marker(
