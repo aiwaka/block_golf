@@ -38,6 +38,13 @@ pub enum BlockSlidePath {
 
 /// ブロックのタイプ. 矩形, 円形, 中空等
 pub enum BlockType {
+    Wall {
+        pos: Vec2,
+        extents: Vec2,
+        weight: f32,      // 質量
+        friction: f32,    // 摩擦係数
+        restitution: f32, // 反発係数
+    },
     Rect {
         pos: Vec2,         // 位置
         extents: Vec2,     // xyの大きさ
@@ -53,6 +60,13 @@ pub enum BlockType {
 impl From<&BlockType> for Color {
     fn from(t: &BlockType) -> Self {
         match *t {
+            BlockType::Wall {
+                pos: _,
+                extents: _,
+                weight: _,
+                friction: _,
+                restitution: _,
+            } => Color::BLACK,
             BlockType::Rect {
                 pos: _,
                 extents: _,

@@ -14,6 +14,39 @@ use crate::components::{
 fn set_block(mut commands: Commands, mut event_listener: EventReader<SpawnBlockEvent>) {
     for ev in event_listener.iter() {
         match &ev.block_type {
+            BlockType::Wall {
+                pos,
+                extents,
+                weight,
+                friction,
+                restitution,
+            } => {
+                let block_shape = shapes::Rectangle {
+                    extents: *extents,
+                    origin: RectangleOrigin::CustomCenter(Vec2::ZERO),
+                };
+                commands
+                    .spawn_bundle(GeometryBuilder::build_as(
+                        &block_shape.clone(),
+                        DrawMode::Fill(FillMode::color(Color::rgba_u8(0, 0, 0, 0))),
+                        Transform {
+                            translation: Vec3::new(pos.x, pos.y, 12.0),
+                            ..Default::default()
+                        },
+                    ))
+                    .insert(Block)
+                    .insert(RectangleBlock {
+                        original_pos: *pos,
+                        rect: block_shape,
+                        angle: 0.0,
+                        pos_param: 0.0,
+                    })
+                    .insert(PhysicMaterial::new(
+                        *restitution,
+                        *weight / extents.x / extents.y,
+                        *friction,
+                    ));
+            }
             BlockType::Rect {
                 pos,
                 extents,

@@ -7,12 +7,9 @@ pub fn field_block() -> Vec<SpawnBlockEvent> {
     let field_block_list = vec![
         SpawnBlockEvent::from_type(
             {
-                BlockType::Rect {
+                BlockType::Wall {
                     pos: Vec2::new(FIELD_WIDTH / 2.0 + 30.0, 0.0),
                     extents: Vec2::new(60.0, FIELD_HEIGHT),
-                    rect_origin: Vec2::ZERO,
-                    rotate_strategy: RotateStrategy::NoRotate,
-                    slide_strategy: SlideStrategy::NoSlide,
                     weight: 1.0,
                     friction: 0.0,
                     restitution: 1.0,
@@ -23,12 +20,9 @@ pub fn field_block() -> Vec<SpawnBlockEvent> {
         ),
         SpawnBlockEvent::from_type(
             {
-                BlockType::Rect {
+                BlockType::Wall {
                     pos: Vec2::new(-FIELD_WIDTH / 2.0 - 30.0, 0.0),
                     extents: Vec2::new(60.0, FIELD_HEIGHT),
-                    rect_origin: Vec2::ZERO,
-                    rotate_strategy: RotateStrategy::NoRotate,
-                    slide_strategy: SlideStrategy::NoSlide,
                     weight: 1.0,
                     friction: 0.0,
                     restitution: 1.0,
@@ -39,12 +33,9 @@ pub fn field_block() -> Vec<SpawnBlockEvent> {
         ),
         SpawnBlockEvent::from_type(
             {
-                BlockType::Rect {
+                BlockType::Wall {
                     pos: Vec2::new(0.0, FIELD_HEIGHT / 2.0 + 30.0),
                     extents: Vec2::new(FIELD_WIDTH, 60.0),
-                    rect_origin: Vec2::ZERO,
-                    rotate_strategy: RotateStrategy::NoRotate,
-                    slide_strategy: SlideStrategy::NoSlide,
                     weight: 1.0,
                     friction: 0.0,
                     restitution: 1.0,
@@ -55,12 +46,9 @@ pub fn field_block() -> Vec<SpawnBlockEvent> {
         ),
         SpawnBlockEvent::from_type(
             {
-                BlockType::Rect {
+                BlockType::Wall {
                     pos: Vec2::new(0.0, -FIELD_HEIGHT / 2.0 - 30.0),
                     extents: Vec2::new(FIELD_WIDTH, 60.0),
-                    rect_origin: Vec2::ZERO,
-                    rotate_strategy: RotateStrategy::NoRotate,
-                    slide_strategy: SlideStrategy::NoSlide,
                     weight: 1.0,
                     friction: 0.0,
                     restitution: 1.0,
