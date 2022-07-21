@@ -8,3 +8,4 @@ pub mod info_board;
 pub mod launcher;
 pub mod physics;
 pub mod setup;
+pub mod timer;

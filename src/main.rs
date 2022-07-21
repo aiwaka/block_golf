@@ -20,6 +20,7 @@ use systems::{
     launcher::LauncherPlugin,
     physics::motion_dynamics::MotionDynamicsPlugin,
     setup::{global_setup, stage_setup},
+    timer::TimersPlugin,
 };
 
 const SCREEN_WIDTH: f32 = 1280.0;
@@ -55,5 +56,6 @@ fn main() {
     app.add_plugin(LauncherPlugin);
     app.add_plugin(MotionDynamicsPlugin);
     app.add_plugin(InfoBoardPlugin);
+    app.add_plugin(TimersPlugin);
     app.run();
 }
