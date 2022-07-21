@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Debug)]
 pub enum BallType {
     Normal,
 }
@@ -20,6 +20,22 @@ impl BallType {
         match (*self, other) {
             (BallType::Normal, BallType::Normal) => 1.0,
         }
+    }
+    pub fn color(&self) -> Color {
+        match *self {
+            BallType::Normal => Color::BLUE,
+        }
+    }
+}
+pub trait SetBall {
+    fn set_balls(&mut self, ball_type: BallType, num: u32) -> &mut Self;
+}
+impl SetBall for Vec<SetBallEvent> {
+    fn set_balls(&mut self, ball_type: BallType, num: u32) -> &mut Self {
+        for _ in 0..num {
+            self.push(SetBallEvent { ball_type })
+        }
+        self
     }
 }
 
@@ -54,6 +70,11 @@ impl Ball {
 
 #[derive(Component)]
 pub struct GoalinBall;
+
+// ステージ情報とランチャーを受け渡すイベント
+pub struct SetBallEvent {
+    pub ball_type: BallType,
+}
 
 // ボールを出現させる. 待機状態になる.
 pub struct SpawnBallEvent {

@@ -6,7 +6,7 @@ use bevy::prelude::*;
 use bevy_prototype_lyon::prelude::*;
 
 use components::{
-    ball::{LaunchBallEvent, SpawnBallEvent},
+    ball::{LaunchBallEvent, SetBallEvent, SpawnBallEvent},
     block::SpawnBlockEvent,
     goal::SpawnGoalEvent,
 };
@@ -16,9 +16,11 @@ use systems::{
     collision::CollisionPlugin,
     field::FieldPlugin,
     goal::GoalPlugin,
+    info_board::InfoBoardPlugin,
     launcher::LauncherPlugin,
     physics::motion_dynamics::MotionDynamicsPlugin,
     setup::{global_setup, stage_setup},
+    timer::TimersPlugin,
 };
 
 const SCREEN_WIDTH: f32 = 1280.0;
@@ -29,6 +31,7 @@ fn add_events(app: &mut App) {
     app.add_event::<LaunchBallEvent>();
     app.add_event::<SpawnBlockEvent>();
     app.add_event::<SpawnGoalEvent>();
+    app.add_event::<SetBallEvent>();
 }
 
 fn main() {
@@ -52,5 +55,7 @@ fn main() {
     app.add_plugin(CollisionPlugin);
     app.add_plugin(LauncherPlugin);
     app.add_plugin(MotionDynamicsPlugin);
+    app.add_plugin(InfoBoardPlugin);
+    app.add_plugin(TimersPlugin);
     app.run();
 }

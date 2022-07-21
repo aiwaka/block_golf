@@ -1,14 +1,18 @@
-use super::ball::Ball;
-use bevy::prelude::Component;
+use super::ball::BallType;
+use bevy::prelude::{Component, Entity};
 
+#[derive(Component, Clone, Copy, Debug)]
 pub enum LauncherState {
     Waiting,
     Nocking,
 }
 
-#[derive(Component)]
+#[derive(Component, Debug)]
+pub struct BallMagazine {
+    pub balls: Vec<(BallType, Entity)>,
+}
+
+#[derive(Component, Debug)]
 pub struct Launcher {
-    pub state: LauncherState,
-    pub balls: Vec<Ball>,
     pub angle: f32,
 }
