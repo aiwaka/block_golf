@@ -163,19 +163,15 @@ fn block_ball_collision(
                 ball_pos.0 += collide_normal * penetrate_depth;
                 let restitution = block_material.restitution * ball_material.restitution;
                 let friction = block_material.friction;
-                let block_weight =
-                    block_material.density * block_rect.rect.extents.x * block_rect.rect.extents.y;
                 // TODO: ボールタイプを保持するかどうか
                 let ball_weight = ball.ball_type.weight();
-                // 換算質量
-                let reduced_mass = block_weight * ball_weight / (block_weight + ball_weight);
                 // 質量も反発係数もすべて1とする
                 // 撃力は速度差の単位法線へ射影となり, 衝突後の速度はそれを単に足したものになる.
                 let prev_vel = ball_vel.0;
                 let impulsive_force = (1.0 + restitution)
-                    * reduced_mass
-                    * (-prev_vel).project_onto(collide_normal)
-                    * 2.0;
+                    // * reduced_mass
+                    * ball_weight
+                    * (-prev_vel).project_onto(collide_normal);
                 ball_vel.0 += impulsive_force;
             }
         }
