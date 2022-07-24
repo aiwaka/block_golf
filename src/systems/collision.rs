@@ -272,9 +272,6 @@ impl Plugin for CollisionPlugin {
         app.add_system_set(
             SystemSet::on_update(AppState::Game).with_system(goal_and_ball_collision),
         );
-        // app.add_system(block_ball_collision);
-        // app.add_system(balls_collision);
-        // app.add_system(goal_and_ball_collision);
     }
 }
 

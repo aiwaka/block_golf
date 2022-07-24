@@ -156,10 +156,5 @@ impl Plugin for LauncherPlugin {
         app.add_system_set(SystemSet::on_update(AppState::Game).with_system(rotate_launcher));
         app.add_system_set(SystemSet::on_update(AppState::Game).with_system(nock_ball));
         app.add_system_set(SystemSet::on_update(AppState::Game).with_system(launch_ball));
-        // app.add_startup_system(spawn_launcher.after("stage_setup"));
-        // app.add_startup_system(spawn_ball_magazine.after("stage_setup"));
-        // app.add_system(rotate_launcher);
-        // app.add_system(nock_ball);
-        // app.add_system(launch_ball);
     }
 }

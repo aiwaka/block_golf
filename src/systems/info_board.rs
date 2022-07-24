@@ -50,7 +50,5 @@ impl Plugin for InfoBoardPlugin {
         app.add_system_set(
             SystemSet::on_update(AppState::Game).with_system(update_remaining_balls_info),
         );
-        // app.add_system(pop_ball_from_magazine);
-        // app.add_system(update_remaining_balls_info);
     }
 }

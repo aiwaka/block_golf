@@ -26,7 +26,5 @@ impl Plugin for MotionDynamicsPlugin {
             SystemSet::on_update(AppState::Game)
                 .with_system(move_position.after("accelerate").label("move_pos")),
         );
-        // app.add_system(accelerate.label("accelerate"));
-        // app.add_system(move_position.after("accelerate").label("move_pos"));
     }
 }

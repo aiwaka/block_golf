@@ -71,8 +71,5 @@ impl Plugin for BallPlugin {
             SystemSet::on_update(AppState::Game).with_system(reflect_ball_pos.after("move_pos")),
         );
         app.add_system_set(SystemSet::on_update(AppState::Game).with_system(launch_ball));
-        // app.add_system(spawn_ball);
-        // app.add_system(reflect_ball_pos.after("move_pos"));
-        // app.add_system(launch_ball);
     }
 }

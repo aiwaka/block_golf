@@ -56,7 +56,5 @@ impl Plugin for GoalPlugin {
         app.add_system_set(
             SystemSet::on_update(AppState::Game).with_system(execute_goaled_in_ball),
         );
-        // app.add_startup_system(spawn_goal.after("stage_setup"));
-        // app.add_system(execute_goaled_in_ball);
     }
 }

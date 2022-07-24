@@ -177,8 +177,5 @@ impl Plugin for BlockPlugin {
         );
         app.add_system_set(SystemSet::on_update(AppState::Game).with_system(rotate_block));
         app.add_system_set(SystemSet::on_update(AppState::Game).with_system(slide_block));
-        // app.add_startup_system(set_block.after("stage_setup"));
-        // app.add_system(rotate_block);
-        // app.add_system(slide_block);
     }
 }
