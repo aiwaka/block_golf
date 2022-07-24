@@ -1,5 +1,7 @@
 use bevy::prelude::*;
 
+use crate::GameRule;
+
 #[derive(Component, Clone, Copy, Debug)]
 pub enum MenuOptions {
     Start,
@@ -21,6 +23,21 @@ impl MenuOptions {
     }
 }
 
+impl From<GameRule> for String {
+    fn from(r: GameRule) -> Self {
+        match r {
+            GameRule::BallScore => "BallScore".to_string(),
+            GameRule::LittleOperation => "LittleOperation".to_string(),
+            GameRule::TimeAttack => "TimeAttack".to_string(),
+        }
+    }
+}
+
+/// 選択肢のテキストであることを表す.
+#[derive(Component)]
+pub struct OptionText;
 /// 選択中オプション
 #[derive(Component)]
 pub struct CurrentOption;
+#[derive(Component)]
+pub struct GameRuleOption(pub GameRule);
