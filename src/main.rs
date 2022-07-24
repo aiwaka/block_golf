@@ -15,6 +15,7 @@ use systems::{
     ball::BallPlugin,
     block::BlockPlugin,
     collision::CollisionPlugin,
+    effects::EffectPlugin,
     field::FieldPlugin,
     game::GameManagePlugin,
     goal::GoalPlugin,
@@ -64,6 +65,7 @@ fn main() {
 
     app.add_startup_system(global_setup.label("global_setup"));
     app.add_plugin(MainMenuPlugin);
+    app.add_plugin(EffectPlugin);
     app.add_system_set(
         SystemSet::on_enter(AppState::Game).with_system(stage_setup.label("stage_setup")),
     );
