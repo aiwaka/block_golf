@@ -1,10 +1,13 @@
 //! プレイヤーに見えるゲーム情報を表示するシステム等
 use bevy::prelude::*;
 
-use crate::components::{
-    ball::SpawnBallEvent,
-    info::{ConsumingBall, RemainingBall},
-    launcher::BallMagazine,
+use crate::{
+    components::{
+        ball::SpawnBallEvent,
+        info::{ConsumingBall, RemainingBall},
+        launcher::BallMagazine,
+    },
+    AppState,
 };
 
 /// ボール出現時に箱の先頭のボールに更新中マーカーを付与し, 箱から取り出す
@@ -41,7 +44,13 @@ fn update_remaining_balls_info(
 pub struct InfoBoardPlugin;
 impl Plugin for InfoBoardPlugin {
     fn build(&self, app: &mut App) {
-        app.add_system(pop_ball_from_magazine);
-        app.add_system(update_remaining_balls_info);
+        app.add_system_set(
+            SystemSet::on_update(AppState::Game).with_system(pop_ball_from_magazine),
+        );
+        app.add_system_set(
+            SystemSet::on_update(AppState::Game).with_system(update_remaining_balls_info),
+        );
+        // app.add_system(pop_ball_from_magazine);
+        // app.add_system(update_remaining_balls_info);
     }
 }

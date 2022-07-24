@@ -1,10 +1,13 @@
 use bevy::prelude::*;
 use bevy_prototype_lyon::prelude::*;
 
-use crate::components::{
-    ball::GoalinBall,
-    goal::{GoalHole, SpawnGoalEvent},
-    physics::{position::Position, velocity::Velocity},
+use crate::{
+    components::{
+        ball::GoalinBall,
+        goal::{GoalHole, SpawnGoalEvent},
+        physics::{position::Position, velocity::Velocity},
+    },
+    AppState,
 };
 
 fn spawn_goal(mut commands: Commands, mut event_listener: EventReader<SpawnGoalEvent>) {
@@ -47,7 +50,13 @@ fn execute_goaled_in_ball(
 pub struct GoalPlugin;
 impl Plugin for GoalPlugin {
     fn build(&self, app: &mut App) {
-        app.add_startup_system(spawn_goal.after("stage_setup"));
-        app.add_system(execute_goaled_in_ball);
+        app.add_system_set(
+            SystemSet::on_enter(AppState::Game).with_system(spawn_goal.after("stage_setup")),
+        );
+        app.add_system_set(
+            SystemSet::on_update(AppState::Game).with_system(execute_goaled_in_ball),
+        );
+        // app.add_startup_system(spawn_goal.after("stage_setup"));
+        // app.add_system(execute_goaled_in_ball);
     }
 }

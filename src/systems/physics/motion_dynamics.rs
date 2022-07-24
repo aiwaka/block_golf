@@ -1,5 +1,6 @@
-use crate::components::physics::{
-    acceleration::Acceleration, position::Position, velocity::Velocity,
+use crate::{
+    components::physics::{acceleration::Acceleration, position::Position, velocity::Velocity},
+    AppState,
 };
 use bevy::prelude::*;
 
@@ -18,7 +19,14 @@ pub fn move_position(mut q: Query<(&Velocity, &mut Position)>) {
 pub struct MotionDynamicsPlugin;
 impl Plugin for MotionDynamicsPlugin {
     fn build(&self, app: &mut App) {
-        app.add_system(accelerate.label("accelerate"));
-        app.add_system(move_position.after("accelerate").label("move_pos"));
+        app.add_system_set(
+            SystemSet::on_update(AppState::Game).with_system(accelerate.label("accelerate")),
+        );
+        app.add_system_set(
+            SystemSet::on_update(AppState::Game)
+                .with_system(move_position.after("accelerate").label("move_pos")),
+        );
+        // app.add_system(accelerate.label("accelerate"));
+        // app.add_system(move_position.after("accelerate").label("move_pos"));
     }
 }

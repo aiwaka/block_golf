@@ -15,6 +15,7 @@ pub fn stage_setup(
     mut goal_event_writer: EventWriter<SpawnGoalEvent>,
     mut ball_event_writer: EventWriter<SetBallEvent>,
 ) {
+    info!("stage setup");
     // let stage_info = debug_stage();
     let stage_info = sample_stage();
     let block_list = stage_info.blocks;
