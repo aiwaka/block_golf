@@ -48,8 +48,9 @@ fn init_timer(mut commands: Commands, asset_server: Res<AssetServer>) {
 
 /// タイマー表示
 fn show_remaining_time(mut timer_text: Query<(&mut Text, &CountDownTimer), With<RemainingTime>>) {
-    let (mut text, timer) = timer_text.single_mut();
-    text.sections[0].value = frame_to_second(timer.0);
+    if let Ok((mut text, timer)) = timer_text.get_single_mut() {
+        text.sections[0].value = frame_to_second(timer.0);
+    }
 }
 
 /// ボール出現時に箱の先頭のボールに更新中マーカーを付与し, 箱から取り出す

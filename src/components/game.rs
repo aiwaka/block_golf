@@ -20,5 +20,13 @@ pub struct GoaledBall(pub u32);
 /// 最初のボールの総数
 pub struct InitialBallNum(pub u32);
 
+/// 経過時間（フレーム）
+pub struct PassedTime(pub u32);
+/// 矢印キーを操作した量
+pub struct OperationAmount(pub u32);
+pub struct Score(pub u32);
+/// 最終的なスコアをゲームオーバーの時点で保存するためのもの
+pub struct ResultScore(pub u32);
+
 /// ゲーム全体から参照できるグローバルデータ（主にフラグ）
 pub struct GlobalData {}

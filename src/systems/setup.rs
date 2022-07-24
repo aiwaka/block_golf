@@ -4,7 +4,7 @@ use crate::{
     components::{
         ball::SetBallEvent,
         block::SpawnBlockEvent,
-        game::{GoaledBall, InitialBallNum},
+        game::{GoaledBall, InitialBallNum, OperationAmount, PassedTime, Score},
         goal::SpawnGoalEvent,
     },
     stages::sample::sample_stage,
@@ -23,6 +23,9 @@ pub fn stage_setup(
     mut ball_event_writer: EventWriter<SetBallEvent>,
 ) {
     commands.insert_resource(GoaledBall(0));
+    commands.insert_resource(Score(0));
+    commands.insert_resource(OperationAmount(0));
+    commands.insert_resource(PassedTime(0));
 
     info!("stage setup");
     // let stage_info = debug_stage();

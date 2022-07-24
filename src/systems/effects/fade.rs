@@ -4,7 +4,7 @@ use crate::components::effects::fade::FadeEffect;
 use crate::{SCREEN_HEIGHT, SCREEN_WIDTH};
 
 /// これで登録すれば勝手に動く
-fn register(commands: &mut Commands, delta: f32) {
+pub fn register_fade(commands: &mut Commands, delta: f32) {
     if delta == 0.0 {
         panic!("cannot regist no-move fade");
     }
