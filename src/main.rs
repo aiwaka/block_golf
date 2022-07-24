@@ -26,6 +26,13 @@ use systems::{
 const SCREEN_WIDTH: f32 = 1280.0;
 const SCREEN_HEIGHT: f32 = 720.0;
 
+#[derive(Clone, Eq, PartialEq, Debug, Hash)]
+pub enum AppState {
+    Loading,
+    Game,
+    Result,
+}
+
 fn add_events(app: &mut App) {
     app.add_event::<SpawnBallEvent>();
     app.add_event::<LaunchBallEvent>();
@@ -35,13 +42,15 @@ fn add_events(app: &mut App) {
 }
 
 fn main() {
-    let mut app = App::new();
-    app.insert_resource(WindowDescriptor {
+    let window = WindowDescriptor {
+        title: "Block Golf".to_string(),
         width: SCREEN_WIDTH,
         height: SCREEN_HEIGHT,
-        title: "Block Golf".to_string(),
+        resizable: false,
         ..Default::default()
-    });
+    };
+    let mut app = App::new();
+    app.insert_resource(window);
     app.add_plugins(DefaultPlugins);
     app.add_system(bevy::input::system::exit_on_esc_system);
     app.add_plugin(ShapePlugin);
@@ -57,5 +66,5 @@ fn main() {
     app.add_plugin(MotionDynamicsPlugin);
     app.add_plugin(InfoBoardPlugin);
     app.add_plugin(TimersPlugin);
-    app.run();
+    app.add_state(AppState::Game).run();
 }
