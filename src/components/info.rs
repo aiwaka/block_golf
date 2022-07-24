@@ -1,5 +1,8 @@
 use bevy::prelude::*;
 
+#[derive(Component)]
+pub struct RemainingTime;
+
 /// 変更があって更新を行っていることを表す
 #[derive(Component)]
 pub struct MagazineUpdating;

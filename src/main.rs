@@ -8,6 +8,7 @@ use bevy_prototype_lyon::prelude::*;
 use components::{
     ball::{LaunchBallEvent, SetBallEvent, SpawnBallEvent},
     block::SpawnBlockEvent,
+    game::GameOverEvent,
     goal::SpawnGoalEvent,
 };
 use systems::{
@@ -15,6 +16,7 @@ use systems::{
     block::BlockPlugin,
     collision::CollisionPlugin,
     field::FieldPlugin,
+    game::GameManagePlugin,
     goal::GoalPlugin,
     info_board::InfoBoardPlugin,
     launcher::LauncherPlugin,
@@ -41,6 +43,7 @@ fn add_events(app: &mut App) {
     app.add_event::<SpawnBlockEvent>();
     app.add_event::<SpawnGoalEvent>();
     app.add_event::<SetBallEvent>();
+    app.add_event::<GameOverEvent>();
 }
 
 fn main() {
@@ -62,8 +65,7 @@ fn main() {
     app.add_startup_system(global_setup.label("global_setup"));
     app.add_plugin(MainMenuPlugin);
     app.add_system_set(
-        SystemSet::on_enter(AppState::Game)
-            .with_system(stage_setup.label("stage_setup").after("global_setup")),
+        SystemSet::on_enter(AppState::Game).with_system(stage_setup.label("stage_setup")),
     );
     app.add_plugin(FieldPlugin);
     app.add_plugin(GoalPlugin);
@@ -74,5 +76,6 @@ fn main() {
     app.add_plugin(MotionDynamicsPlugin);
     app.add_plugin(InfoBoardPlugin);
     app.add_plugin(TimersPlugin);
+    app.add_plugin(GameManagePlugin);
     app.run();
 }
