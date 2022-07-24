@@ -18,6 +18,7 @@ use systems::{
     goal::GoalPlugin,
     info_board::InfoBoardPlugin,
     launcher::LauncherPlugin,
+    main_menu::MainMenuPlugin,
     physics::motion_dynamics::MotionDynamicsPlugin,
     setup::{global_setup, stage_setup},
     timer::TimersPlugin,
@@ -42,13 +43,6 @@ fn add_events(app: &mut App) {
     app.add_event::<SetBallEvent>();
 }
 
-/// メニューからゲームへの遷移をテストするためのもの
-fn temp_move_to_game(mut state: ResMut<State<AppState>>, key: Res<Input<KeyCode>>) {
-    if key.just_pressed(KeyCode::Z) {
-        state.set(AppState::Game).unwrap();
-    }
-}
-
 fn main() {
     let window = WindowDescriptor {
         title: "Block Golf".to_string(),
@@ -64,8 +58,9 @@ fn main() {
     app.add_plugin(ShapePlugin);
     add_events(&mut app);
     app.add_state(AppState::Menu);
+
     app.add_startup_system(global_setup.label("global_setup"));
-    app.add_system_set(SystemSet::on_update(AppState::Menu).with_system(temp_move_to_game));
+    app.add_plugin(MainMenuPlugin);
     app.add_system_set(
         SystemSet::on_enter(AppState::Game)
             .with_system(stage_setup.label("stage_setup").after("global_setup")),

@@ -6,6 +6,7 @@ pub mod field;
 pub mod goal;
 pub mod info_board;
 pub mod launcher;
+pub mod main_menu;
 pub mod physics;
 pub mod setup;
 pub mod timer;
