@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 
-use crate::GameRule;
+use super::game::GameRule;
 
 #[derive(Component, Clone, Copy, Debug)]
 pub enum MenuOptions {

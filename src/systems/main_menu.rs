@@ -1,8 +1,9 @@
 use bevy::app::AppExit;
 use bevy::prelude::*;
 
+use crate::components::game::GameRule;
 use crate::components::main_menu::{CurrentOption, GameRuleOption, MenuOptions, OptionText};
-use crate::{AppState, GameRule};
+use crate::AppState;
 
 /// これらはMenu状態におけるリソースとして使用する
 struct MenuOptionEntities(Vec<Entity>);
