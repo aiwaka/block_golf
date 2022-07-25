@@ -9,7 +9,7 @@ use crate::{
         launcher::BallMagazine,
         timer::CountDownTimer,
     },
-    AppState, SCREEN_HEIGHT, SCREEN_WIDTH,
+    AppState,
 };
 
 /// フレーム数を秒数の文字列に変換
@@ -17,10 +17,14 @@ fn frame_to_second(frame: u32) -> String {
     format!("{:>02}", frame / 60)
 }
 
-fn init_timer(mut commands: Commands, asset_server: Res<AssetServer>) {
-    const TIME_LIMIT_SEC: u32 = 10;
-    commands
-        .spawn_bundle(TextBundle {
+fn init_timer_display(
+    mut commands: Commands,
+    timer_query: Query<(&CountDownTimer, Entity), Added<RemainingTime>>,
+    asset_server: Res<AssetServer>,
+) {
+    // Addedでクエリを見て一度だけ実行されるようにする
+    if let Ok((timer, timer_ent)) = timer_query.get_single() {
+        commands.entity(timer_ent).insert_bundle(TextBundle {
             style: Style {
                 position_type: PositionType::Absolute,
                 position: Rect {
@@ -30,7 +34,7 @@ fn init_timer(mut commands: Commands, asset_server: Res<AssetServer>) {
                 ..default()
             },
             text: Text::with_section(
-                format!("{}", TIME_LIMIT_SEC),
+                frame_to_second(timer.0),
                 TextStyle {
                     font: asset_server.load("fonts/ume-tgs5.ttf"),
                     font_size: 40.0,
@@ -42,9 +46,8 @@ fn init_timer(mut commands: Commands, asset_server: Res<AssetServer>) {
                 },
             ),
             ..default()
-        })
-        .insert(RemainingTime)
-        .insert(CountDownTimer(60 * TIME_LIMIT_SEC));
+        });
+    }
 }
 
 /// タイマー表示
@@ -87,25 +90,16 @@ fn update_remaining_balls_info(
 
 fn spawn_result_score(
     mut commands: Commands,
-    wait_timer: Query<&CountDownTimer, With<WaitForResultDisplay>>,
+    wait_timer: Query<(&CountDownTimer, Entity), With<WaitForResultDisplay>>,
     is_gameover: Option<Res<NowGameOver>>,
     result_info: Option<Res<ResultInfoStorage>>,
     asset_server: Res<AssetServer>,
 ) {
-    if let Ok(wait_timer) = wait_timer.get_single() {
+    if let Ok((wait_timer, timer_ent)) = wait_timer.get_single() {
         if is_gameover.is_some() && wait_timer.is_finished() {
             if let Some(result_info) = result_info {
                 let display_contents = result_info.to_vector();
                 // ゲームオーバー中にタイマーが終了したら演出を開始させる
-                // commands.spawn_bundle(SpriteBundle {
-                //     sprite: Sprite {
-                //         color: Color::rgba(0., 0., 0., 0.2),
-                //         custom_size: Some(Vec2::new(SCREEN_WIDTH, SCREEN_HEIGHT)),
-                //         ..Default::default()
-                //     },
-                //     transform: Transform::from_translation(Vec3::new(0.0, 0.0, 99.9)),
-                //     ..Default::default()
-                // });
                 for (title, value) in display_contents.into_iter() {
                     commands
                         .spawn_bundle(TextBundle {
@@ -134,6 +128,7 @@ fn spawn_result_score(
                         .insert(ResultText);
                 }
             };
+            commands.entity(timer_ent).despawn();
         }
     }
 }
@@ -142,7 +137,8 @@ pub struct InfoBoardPlugin;
 impl Plugin for InfoBoardPlugin {
     fn build(&self, app: &mut App) {
         app.add_system_set(
-            SystemSet::on_enter(AppState::Game).with_system(init_timer.after("stage_setup")),
+            SystemSet::on_update(AppState::Game)
+                .with_system(init_timer_display.after("stage_setup")),
         );
         app.add_system_set(SystemSet::on_update(AppState::Game).with_system(show_remaining_time));
         app.add_system_set(

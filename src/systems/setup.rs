@@ -6,8 +6,10 @@ use crate::{
         block::SpawnBlockEvent,
         game::{GoaledBall, InitialBallNum, OperationAmount, PassedTime, Score},
         goal::SpawnGoalEvent,
+        info::RemainingTime,
+        timer::CountDownTimer,
     },
-    stages::sample::sample_stage,
+    stages::{debug::debug_stage, sample::sample_stage},
 };
 
 pub fn global_setup(mut commands: Commands) {
@@ -28,12 +30,18 @@ pub fn stage_setup(
     commands.insert_resource(PassedTime(0));
 
     info!("stage setup");
-    // let stage_info = debug_stage();
-    let stage_info = sample_stage();
+    let stage_info = debug_stage();
+    // let stage_info = sample_stage();
     let block_list = stage_info.blocks;
     let goal_list = stage_info.goal_pos;
     let ball_list = stage_info.balls;
     commands.insert_resource(InitialBallNum(ball_list.len() as u32));
+
+    // 残り時間タイマー用意
+    commands
+        .spawn()
+        .insert(RemainingTime)
+        .insert(CountDownTimer(stage_info.time));
 
     for block in block_list {
         block_event_writer.send(block)

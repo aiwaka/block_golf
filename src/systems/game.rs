@@ -71,7 +71,7 @@ fn game_over(
             .spawn()
             .insert(WaitForResultDisplay)
             .insert(CountDownTimer(60));
-        register_fade(&mut commands, 0.01, Color::rgba(0.0, 0.0, 0.0, 0.9));
+        register_fade(&mut commands, 0.01, Color::rgba(0.0, 0.0, 0.0, 0.8));
     }
 }
 
