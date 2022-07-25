@@ -3,10 +3,10 @@ use bevy::prelude::*;
 use crate::{
     components::{
         game::{
-            GameOverEvent, GameRule, GoaledBall, InitialBallNum, OperationAmount, PassedTime,
-            ResultScore, Score,
+            GameOverEvent, GameRule, GoaledBall, InitialBallNum, NowGameOver, OperationAmount,
+            PassedTime, ResultInfoStorage, Score,
         },
-        info::RemainingTime,
+        info::{RemainingTime, WaitForResultDisplay},
         timer::CountDownTimer,
     },
     AppState,
@@ -51,10 +51,14 @@ fn save_result_score(
             GameRule::LittleOperation => operation_amount.0,
             GameRule::TimeAttack => passed_time.0,
         };
-        commands.insert_resource(ResultScore(result_score));
+        // commands.insert_resource(ResultScore(result_score));
+        commands.insert_resource(ResultInfoStorage {
+            score: result_score,
+        });
         info!("result score: {}", result_score);
     }
 }
+/// 実際にゲームオーバーのフラグ立て等の処理を行う（チェックと同時にやってもいいがクエリが煩雑なので分けた）
 fn game_over(
     mut commands: Commands,
     mut game_over_event_reader: EventReader<GameOverEvent>,
@@ -62,7 +66,12 @@ fn game_over(
 ) {
     for _ in game_over_event_reader.iter() {
         commands.entity(timer_ent.single()).despawn();
-        register_fade(&mut commands, 0.1);
+        commands.insert_resource(NowGameOver);
+        commands
+            .spawn()
+            .insert(WaitForResultDisplay)
+            .insert(CountDownTimer(60));
+        register_fade(&mut commands, 0.01, Color::rgba(0.0, 0.0, 0.0, 0.9));
     }
 }
 

@@ -1,7 +1,3 @@
-use bevy::prelude::*;
-
-use super::timer::CountDownTimer;
-
 /// ゲームのルールを表す. グローバルなリソースとして使う.
 #[derive(Clone, Copy, Debug)]
 pub enum GameRule {
@@ -25,8 +21,15 @@ pub struct PassedTime(pub u32);
 /// 矢印キーを操作した量
 pub struct OperationAmount(pub u32);
 pub struct Score(pub u32);
-/// 最終的なスコアをゲームオーバーの時点で保存するためのもの
-pub struct ResultScore(pub u32);
+/// ResultScoreの拡張, 様々な情報を保存しておく
+pub struct ResultInfoStorage {
+    pub score: u32,
+}
+impl ResultInfoStorage {
+    pub fn to_vector(&self) -> std::vec::Vec<(&str, u32)> {
+        vec![("score", self.score)]
+    }
+}
 
-/// ゲーム全体から参照できるグローバルデータ（主にフラグ）
-pub struct GlobalData {}
+/// ゲームオーバー状態かどうかを表すフラグ用リソース
+pub struct NowGameOver;

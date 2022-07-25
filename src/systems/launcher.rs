@@ -2,6 +2,7 @@ use super::field::{FIELD_HEIGHT, FIELD_WIDTH};
 use crate::{
     components::{
         ball::{BallType, LaunchBallEvent, SetBallEvent, SpawnBallEvent},
+        game::NowGameOver,
         info::RemainingBall,
         launcher::{BallMagazine, Launcher, LauncherState},
     },
@@ -97,7 +98,11 @@ fn nock_ball(
     mut spawn_ball_event_writer: EventWriter<SpawnBallEvent>,
     query: Query<(&Launcher, &LauncherState, Entity)>,
     magazine_query: Query<&BallMagazine>,
+    is_gameover: Option<Res<NowGameOver>>,
 ) {
+    if is_gameover.is_some() {
+        return;
+    }
     if key_in.just_pressed(KeyCode::Z) {
         for (_, state, ent) in query.iter() {
             if let LauncherState::Waiting = *state {
@@ -124,7 +129,11 @@ fn launch_ball(
     key_in: Res<Input<KeyCode>>,
     mut launch_ball_event_writer: EventWriter<LaunchBallEvent>,
     query: Query<(&Launcher, &LauncherState, Entity)>,
+    is_gameover: Option<Res<NowGameOver>>,
 ) {
+    if is_gameover.is_some() {
+        return;
+    }
     if key_in.just_pressed(KeyCode::Z) {
         for (launcher, state, ent) in query.iter() {
             match *state {
