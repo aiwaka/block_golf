@@ -30,8 +30,8 @@ pub fn stage_setup(
     commands.insert_resource(PassedTime(0));
 
     info!("stage setup");
-    let stage_info = debug_stage();
-    // let stage_info = sample_stage();
+    // let stage_info = debug_stage();
+    let stage_info = sample_stage();
     let block_list = stage_info.blocks;
     let goal_list = stage_info.goal_pos;
     let ball_list = stage_info.balls;

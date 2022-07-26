@@ -267,8 +267,13 @@ fn goal_and_ball_collision(
 pub struct CollisionPlugin;
 impl Plugin for CollisionPlugin {
     fn build(&self, app: &mut App) {
-        app.add_system_set(SystemSet::on_update(AppState::Game).with_system(block_ball_collision));
-        app.add_system_set(SystemSet::on_update(AppState::Game).with_system(balls_collision));
+        app.add_system_set(
+            SystemSet::on_update(AppState::Game)
+                .with_system(block_ball_collision.before("move_pos")),
+        );
+        app.add_system_set(
+            SystemSet::on_update(AppState::Game).with_system(balls_collision.before("move_pos")),
+        );
         app.add_system_set(
             SystemSet::on_update(AppState::Game).with_system(goal_and_ball_collision),
         );
