@@ -1,6 +1,9 @@
-use crate::components::{
-    ball::{Ball, BallNocking, LaunchBallEvent, SpawnBallEvent},
-    physics::{material::PhysicMaterial, position::Position, velocity::Velocity},
+use crate::{
+    components::{
+        ball::{Ball, BallNocking, LaunchBallEvent, SpawnBallEvent},
+        physics::{material::PhysicMaterial, position::Position, velocity::Velocity},
+    },
+    AppState,
 };
 use bevy::{math::vec2, prelude::*};
 use bevy_prototype_lyon::prelude::*;
@@ -63,8 +66,10 @@ fn reflect_ball_pos(mut query: Query<(&Position, &mut Transform), MarkerMovingBa
 pub struct BallPlugin;
 impl Plugin for BallPlugin {
     fn build(&self, app: &mut App) {
-        app.add_system(spawn_ball);
-        app.add_system(reflect_ball_pos.after("move_pos"));
-        app.add_system(launch_ball);
+        app.add_system_set(SystemSet::on_update(AppState::Game).with_system(spawn_ball));
+        app.add_system_set(
+            SystemSet::on_update(AppState::Game).with_system(reflect_ball_pos.after("move_pos")),
+        );
+        app.add_system_set(SystemSet::on_update(AppState::Game).with_system(launch_ball));
     }
 }

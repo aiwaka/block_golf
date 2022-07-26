@@ -1,11 +1,61 @@
 //! プレイヤーに見えるゲーム情報を表示するシステム等
 use bevy::prelude::*;
 
-use crate::components::{
-    ball::SpawnBallEvent,
-    info::{ConsumingBall, RemainingBall},
-    launcher::BallMagazine,
+use crate::{
+    components::{
+        ball::SpawnBallEvent,
+        game::{NowGameOver, ResultInfoStorage},
+        info::{ConsumingBall, RemainingBall, RemainingTime, ResultText, WaitForResultDisplay},
+        launcher::BallMagazine,
+        timer::CountDownTimer,
+    },
+    AppState,
 };
+
+/// フレーム数を秒数の文字列に変換
+fn frame_to_second(frame: u32) -> String {
+    format!("{:>02}", frame / 60)
+}
+
+fn init_timer_display(
+    mut commands: Commands,
+    timer_query: Query<(&CountDownTimer, Entity), Added<RemainingTime>>,
+    asset_server: Res<AssetServer>,
+) {
+    // Addedでクエリを見て一度だけ実行されるようにする
+    if let Ok((timer, timer_ent)) = timer_query.get_single() {
+        commands.entity(timer_ent).insert_bundle(TextBundle {
+            style: Style {
+                position_type: PositionType::Absolute,
+                position: Rect {
+                    top: Val::Px(20.0),
+                    ..default()
+                },
+                ..default()
+            },
+            text: Text::with_section(
+                frame_to_second(timer.count()),
+                TextStyle {
+                    font: asset_server.load("fonts/ume-tgs5.ttf"),
+                    font_size: 40.0,
+                    color: Color::WHITE,
+                },
+                TextAlignment {
+                    horizontal: HorizontalAlign::Center,
+                    ..default()
+                },
+            ),
+            ..default()
+        });
+    }
+}
+
+/// タイマー表示
+fn show_remaining_time(mut timer_text: Query<(&mut Text, &CountDownTimer), With<RemainingTime>>) {
+    if let Ok((mut text, timer)) = timer_text.get_single_mut() {
+        text.sections[0].value = frame_to_second(timer.count());
+    }
+}
 
 /// ボール出現時に箱の先頭のボールに更新中マーカーを付与し, 箱から取り出す
 fn pop_ball_from_magazine(
@@ -38,10 +88,93 @@ fn update_remaining_balls_info(
     }
 }
 
+fn spawn_result_score(
+    mut commands: Commands,
+    wait_timer: Query<&CountDownTimer, With<WaitForResultDisplay>>,
+    is_gameover: Option<Res<NowGameOver>>,
+    result_info: Option<Res<ResultInfoStorage>>,
+    asset_server: Res<AssetServer>,
+) {
+    if let Ok(wait_timer) = wait_timer.get_single() {
+        if is_gameover.is_some() && wait_timer.is_finished() {
+            if let Some(result_info) = result_info {
+                let display_contents = result_info.to_vector();
+                // ゲームオーバー中にタイマーが終了したら演出を開始させる
+                for (title, value) in display_contents.into_iter() {
+                    commands
+                        .spawn_bundle(TextBundle {
+                            style: Style {
+                                position_type: PositionType::Absolute,
+                                position: Rect {
+                                    top: Val::Px(20.0),
+                                    ..default()
+                                },
+                                ..default()
+                            },
+                            text: Text::with_section(
+                                format!("{}: {}", title, value),
+                                TextStyle {
+                                    font: asset_server.load("fonts/ume-tgs5.ttf"),
+                                    font_size: 40.0,
+                                    color: Color::WHITE,
+                                },
+                                TextAlignment {
+                                    horizontal: HorizontalAlign::Center,
+                                    ..default()
+                                },
+                            ),
+                            ..default()
+                        })
+                        .insert(ResultText);
+                }
+            };
+            commands
+                .spawn_bundle(TextBundle {
+                    style: Style {
+                        position_type: PositionType::Absolute,
+                        position: Rect {
+                            bottom: Val::Px(20.0),
+                            right: Val::Px(40.0),
+                            ..default()
+                        },
+                        ..default()
+                    },
+                    text: Text::with_section(
+                        "press Z to back.",
+                        TextStyle {
+                            font: asset_server.load("fonts/ume-tgs5.ttf"),
+                            font_size: 40.0,
+                            color: Color::WHITE,
+                        },
+                        TextAlignment {
+                            horizontal: HorizontalAlign::Center,
+                            ..default()
+                        },
+                    ),
+                    ..default()
+                })
+                .insert(ResultText);
+        }
+    }
+}
+
 pub struct InfoBoardPlugin;
 impl Plugin for InfoBoardPlugin {
     fn build(&self, app: &mut App) {
-        app.add_system(pop_ball_from_magazine);
-        app.add_system(update_remaining_balls_info);
+        app.add_system_set(
+            SystemSet::on_update(AppState::Game)
+                .with_system(init_timer_display.after("stage_setup")),
+        );
+        app.add_system_set(SystemSet::on_update(AppState::Game).with_system(show_remaining_time));
+        app.add_system_set(
+            SystemSet::on_update(AppState::Game).with_system(pop_ball_from_magazine),
+        );
+        app.add_system_set(
+            SystemSet::on_update(AppState::Game).with_system(update_remaining_balls_info),
+        );
+        app.add_system_set(
+            SystemSet::on_update(AppState::Game)
+                .with_system(spawn_result_score.after("count_down_update")),
+        );
     }
 }

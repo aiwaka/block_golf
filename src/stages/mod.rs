@@ -1,16 +1,13 @@
 // use heron::PhysicMaterial;
 
-use crate::components::{
-    ball::{BallType, SetBallEvent},
-    block::SpawnBlockEvent,
-    goal::SpawnGoalEvent,
-};
+use crate::components::{ball::SetBallEvent, block::SpawnBlockEvent, goal::SpawnGoalEvent};
 
 pub mod debug;
 mod field_blocks;
 pub mod sample;
 
 pub struct StageInfo {
+    pub time: u32, // フレーム数
     pub blocks: Vec<SpawnBlockEvent>,
     pub balls: Vec<SetBallEvent>,
     pub goal_pos: Vec<SpawnGoalEvent>,

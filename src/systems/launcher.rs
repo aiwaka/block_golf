@@ -1,8 +1,12 @@
 use super::field::{FIELD_HEIGHT, FIELD_WIDTH};
-use crate::components::{
-    ball::{BallType, LaunchBallEvent, SetBallEvent, SpawnBallEvent},
-    info::RemainingBall,
-    launcher::{BallMagazine, Launcher, LauncherState},
+use crate::{
+    components::{
+        ball::{BallType, LaunchBallEvent, SetBallEvent, SpawnBallEvent},
+        game::NowGameOver,
+        info::RemainingBall,
+        launcher::{BallMagazine, Launcher, LauncherState},
+    },
+    AppState,
 };
 use bevy::prelude::*;
 use bevy_prototype_lyon::{prelude::*, shapes::Polygon};
@@ -94,7 +98,11 @@ fn nock_ball(
     mut spawn_ball_event_writer: EventWriter<SpawnBallEvent>,
     query: Query<(&Launcher, &LauncherState, Entity)>,
     magazine_query: Query<&BallMagazine>,
+    is_gameover: Option<Res<NowGameOver>>,
 ) {
+    if is_gameover.is_some() {
+        return;
+    }
     if key_in.just_pressed(KeyCode::Z) {
         for (_, state, ent) in query.iter() {
             if let LauncherState::Waiting = *state {
@@ -121,7 +129,11 @@ fn launch_ball(
     key_in: Res<Input<KeyCode>>,
     mut launch_ball_event_writer: EventWriter<LaunchBallEvent>,
     query: Query<(&Launcher, &LauncherState, Entity)>,
+    is_gameover: Option<Res<NowGameOver>>,
 ) {
+    if is_gameover.is_some() {
+        return;
+    }
     if key_in.just_pressed(KeyCode::Z) {
         for (launcher, state, ent) in query.iter() {
             match *state {
@@ -143,10 +155,15 @@ fn launch_ball(
 pub struct LauncherPlugin;
 impl Plugin for LauncherPlugin {
     fn build(&self, app: &mut App) {
-        app.add_startup_system(spawn_launcher.after("stage_setup"));
-        app.add_startup_system(spawn_ball_magazine.after("stage_setup"));
-        app.add_system(rotate_launcher);
-        app.add_system(nock_ball);
-        app.add_system(launch_ball);
+        app.add_system_set(
+            SystemSet::on_enter(AppState::Game).with_system(spawn_launcher.after("stage_setup")),
+        );
+        app.add_system_set(
+            SystemSet::on_enter(AppState::Game)
+                .with_system(spawn_ball_magazine.after("stage_setup")),
+        );
+        app.add_system_set(SystemSet::on_update(AppState::Game).with_system(rotate_launcher));
+        app.add_system_set(SystemSet::on_update(AppState::Game).with_system(nock_ball));
+        app.add_system_set(SystemSet::on_update(AppState::Game).with_system(launch_ball));
     }
 }

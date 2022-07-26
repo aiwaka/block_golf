@@ -96,6 +96,7 @@ pub fn sample_stage() -> StageInfo {
     let goal_list = vec![SpawnGoalEvent::new(Vec2::new(350.0, 150.0), 30.0, 1)];
 
     StageInfo {
+        time: 60 * 60,
         blocks: field_block()
             .into_iter()
             .chain(block_list)

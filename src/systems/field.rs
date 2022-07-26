@@ -1,6 +1,8 @@
 use bevy::prelude::*;
 use bevy_prototype_lyon::prelude::*;
 
+use crate::AppState;
+
 pub const FIELD_WIDTH: f32 = 960.0;
 pub const FIELD_HEIGHT: f32 = 540.0;
 
@@ -25,6 +27,6 @@ fn set_field(mut commands: Commands, server: Res<AssetServer>) {
 pub struct FieldPlugin;
 impl Plugin for FieldPlugin {
     fn build(&self, app: &mut App) {
-        app.add_startup_system(set_field);
+        app.add_system_set(SystemSet::on_enter(AppState::Game).with_system(set_field));
     }
 }

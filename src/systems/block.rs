@@ -2,12 +2,15 @@ use bevy::prelude::*;
 use bevy_prototype_lyon::prelude::*;
 
 use super::block_slide_path::calc_orbit;
-use crate::components::{
-    block::{
-        Block, BlockSlidePath, BlockType, RectangleBlock, RotateStrategy, SlideStrategy,
-        SpawnBlockEvent,
+use crate::{
+    components::{
+        block::{
+            Block, BlockSlidePath, BlockType, RectangleBlock, RotateStrategy, SlideStrategy,
+            SpawnBlockEvent,
+        },
+        physics::material::PhysicMaterial,
     },
-    physics::material::PhysicMaterial,
+    AppState,
 };
 
 /// キューに入っているブロックを追加する（開始時実行）
@@ -169,8 +172,10 @@ fn slide_block(
 pub struct BlockPlugin;
 impl Plugin for BlockPlugin {
     fn build(&self, app: &mut App) {
-        app.add_startup_system(set_block.after("stage_setup"));
-        app.add_system(rotate_block);
-        app.add_system(slide_block);
+        app.add_system_set(
+            SystemSet::on_enter(AppState::Game).with_system(set_block.after("stage_setup")),
+        );
+        app.add_system_set(SystemSet::on_update(AppState::Game).with_system(rotate_block));
+        app.add_system_set(SystemSet::on_update(AppState::Game).with_system(slide_block));
     }
 }

@@ -3,11 +3,14 @@ use std::f32::EPSILON;
 use bevy::prelude::*;
 use bevy_prototype_lyon::prelude::RectangleOrigin;
 
-use crate::components::{
-    ball::{Ball, GoalinBall},
-    block::{Block, RectangleBlock},
-    goal::GoalHole,
-    physics::{material::PhysicMaterial, position::Position, velocity::Velocity},
+use crate::{
+    components::{
+        ball::{Ball, GoalinBall},
+        block::{Block, RectangleBlock},
+        goal::GoalHole,
+        physics::{material::PhysicMaterial, position::Position, velocity::Velocity},
+    },
+    AppState,
 };
 
 fn rotate_vec2(v: Vec2, angle: f32) -> Vec2 {
@@ -264,9 +267,11 @@ fn goal_and_ball_collision(
 pub struct CollisionPlugin;
 impl Plugin for CollisionPlugin {
     fn build(&self, app: &mut App) {
-        app.add_system(block_ball_collision);
-        app.add_system(balls_collision);
-        app.add_system(goal_and_ball_collision);
+        app.add_system_set(SystemSet::on_update(AppState::Game).with_system(block_ball_collision));
+        app.add_system_set(SystemSet::on_update(AppState::Game).with_system(balls_collision));
+        app.add_system_set(
+            SystemSet::on_update(AppState::Game).with_system(goal_and_ball_collision),
+        );
     }
 }
 

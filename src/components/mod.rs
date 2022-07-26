@@ -1,9 +1,12 @@
 //! components：Componentをつけた構造体や列挙体と, Eventを定義する
 pub mod ball;
 pub mod block;
+pub mod effects;
 pub mod field;
+pub mod game;
 pub mod goal;
 pub mod info;
 pub mod launcher;
+pub mod main_menu;
 pub mod physics;
 pub mod timer;

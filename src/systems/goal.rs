@@ -1,10 +1,14 @@
 use bevy::prelude::*;
 use bevy_prototype_lyon::prelude::*;
 
-use crate::components::{
-    ball::GoalinBall,
-    goal::{GoalHole, SpawnGoalEvent},
-    physics::{position::Position, velocity::Velocity},
+use crate::{
+    components::{
+        ball::GoalinBall,
+        game::GoaledBall,
+        goal::{GoalHole, SpawnGoalEvent},
+        physics::{position::Position, velocity::Velocity},
+    },
+    AppState,
 };
 
 fn spawn_goal(mut commands: Commands, mut event_listener: EventReader<SpawnGoalEvent>) {
@@ -34,11 +38,14 @@ fn spawn_goal(mut commands: Commands, mut event_listener: EventReader<SpawnGoalE
 fn execute_goaled_in_ball(
     mut commands: Commands,
     mut ball_query: Query<(&mut Transform, Entity), With<GoalinBall>>,
+    mut goaled_ball: ResMut<GoaledBall>,
 ) {
     for (mut trans, ent) in ball_query.iter_mut() {
         trans.scale *= 0.9;
         if trans.scale.x < 0.05 {
             commands.entity(ent).despawn();
+            goaled_ball.0 += 1;
+            info!("goaled ball: {}", goaled_ball.0);
             // ここでスコア処理等
         }
     }
@@ -47,7 +54,11 @@ fn execute_goaled_in_ball(
 pub struct GoalPlugin;
 impl Plugin for GoalPlugin {
     fn build(&self, app: &mut App) {
-        app.add_startup_system(spawn_goal.after("stage_setup"));
-        app.add_system(execute_goaled_in_ball);
+        app.add_system_set(
+            SystemSet::on_enter(AppState::Game).with_system(spawn_goal.after("stage_setup")),
+        );
+        app.add_system_set(
+            SystemSet::on_update(AppState::Game).with_system(execute_goaled_in_ball),
+        );
     }
 }
