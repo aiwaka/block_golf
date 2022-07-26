@@ -2,18 +2,33 @@ use bevy::prelude::*;
 
 /// 初期化したフレーム数減少するカウントダウン
 #[derive(Component)]
-pub struct CountDownTimer(pub u32);
+pub struct CountDownTimer {
+    count: u32,
+    pause: bool,
+}
 impl CountDownTimer {
     pub fn new(count: u32) -> Self {
-        Self(count)
-    }
-    pub fn tick(&mut self) {
-        if self.0 > 0 {
-            self.0 -= 1;
+        Self {
+            count,
+            pause: false,
         }
     }
+    pub fn tick(&mut self) {
+        if !self.pause && self.count > 0 {
+            self.count -= 1;
+        }
+    }
+    pub fn count(&self) -> u32 {
+        self.count
+    }
     pub fn is_finished(&self) -> bool {
-        self.0 == 0
+        self.count == 0
+    }
+    pub fn stop(&mut self) {
+        self.pause = true;
+    }
+    pub fn toggle_pause(&mut self) {
+        self.pause = !self.pause;
     }
 }
 

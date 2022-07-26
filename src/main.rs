@@ -10,6 +10,7 @@ use components::{
     block::SpawnBlockEvent,
     game::GameOverEvent,
     goal::SpawnGoalEvent,
+    timer::CountDownTimer,
 };
 use systems::{
     ball::BallPlugin,
@@ -35,6 +36,7 @@ pub enum AppState {
     Menu,
     Loading,
     Game,
+    BackToMenu,
     Result,
 }
 
@@ -66,6 +68,7 @@ fn main() {
     app.add_startup_system(global_setup.label("global_setup"));
     app.add_plugin(MainMenuPlugin);
     app.add_plugin(EffectPlugin);
+    app.add_plugin(BackToMenuPlugin);
     app.add_system_set(
         SystemSet::on_enter(AppState::Game).with_system(stage_setup.label("stage_setup")),
     );
@@ -80,4 +83,34 @@ fn main() {
     app.add_plugin(TimersPlugin);
     app.add_plugin(GameManagePlugin);
     app.run();
+}
+
+/// Zを押してメニューに戻ったときに同一フレームでZが押されていると判定されてループしてしまうのを防ぐ
+#[derive(Component)]
+struct BackToMenuFlag;
+struct BackToMenuPlugin;
+impl Plugin for BackToMenuPlugin {
+    fn build(&self, app: &mut App) {
+        app.add_system_set(SystemSet::on_enter(AppState::BackToMenu).with_system(
+            |mut commands: Commands| {
+                commands
+                    .spawn()
+                    .insert(BackToMenuFlag)
+                    .insert(CountDownTimer::new(30));
+            },
+        ));
+        app.add_system_set(
+            SystemSet::on_update(AppState::BackToMenu).with_system(
+                (|mut state: ResMut<State<crate::AppState>>,
+                  timer: Query<&CountDownTimer, With<BackToMenuFlag>>| {
+                    if let Ok(timer) = timer.get_single() {
+                        if timer.is_finished() {
+                            state.set(AppState::Menu).unwrap();
+                        }
+                    }
+                })
+                .after("count_down_update"),
+            ),
+        );
+    }
 }

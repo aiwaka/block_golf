@@ -34,7 +34,7 @@ fn init_timer_display(
                 ..default()
             },
             text: Text::with_section(
-                frame_to_second(timer.0),
+                frame_to_second(timer.count()),
                 TextStyle {
                     font: asset_server.load("fonts/ume-tgs5.ttf"),
                     font_size: 40.0,
@@ -53,7 +53,7 @@ fn init_timer_display(
 /// タイマー表示
 fn show_remaining_time(mut timer_text: Query<(&mut Text, &CountDownTimer), With<RemainingTime>>) {
     if let Ok((mut text, timer)) = timer_text.get_single_mut() {
-        text.sections[0].value = frame_to_second(timer.0);
+        text.sections[0].value = frame_to_second(timer.count());
     }
 }
 
@@ -90,12 +90,12 @@ fn update_remaining_balls_info(
 
 fn spawn_result_score(
     mut commands: Commands,
-    wait_timer: Query<(&CountDownTimer, Entity), With<WaitForResultDisplay>>,
+    wait_timer: Query<&CountDownTimer, With<WaitForResultDisplay>>,
     is_gameover: Option<Res<NowGameOver>>,
     result_info: Option<Res<ResultInfoStorage>>,
     asset_server: Res<AssetServer>,
 ) {
-    if let Ok((wait_timer, timer_ent)) = wait_timer.get_single() {
+    if let Ok(wait_timer) = wait_timer.get_single() {
         if is_gameover.is_some() && wait_timer.is_finished() {
             if let Some(result_info) = result_info {
                 let display_contents = result_info.to_vector();
@@ -128,7 +128,32 @@ fn spawn_result_score(
                         .insert(ResultText);
                 }
             };
-            commands.entity(timer_ent).despawn();
+            commands
+                .spawn_bundle(TextBundle {
+                    style: Style {
+                        position_type: PositionType::Absolute,
+                        position: Rect {
+                            bottom: Val::Px(20.0),
+                            right: Val::Px(40.0),
+                            ..default()
+                        },
+                        ..default()
+                    },
+                    text: Text::with_section(
+                        "press Z to back.",
+                        TextStyle {
+                            font: asset_server.load("fonts/ume-tgs5.ttf"),
+                            font_size: 40.0,
+                            color: Color::WHITE,
+                        },
+                        TextAlignment {
+                            horizontal: HorizontalAlign::Center,
+                            ..default()
+                        },
+                    ),
+                    ..default()
+                })
+                .insert(ResultText);
         }
     }
 }
@@ -147,6 +172,9 @@ impl Plugin for InfoBoardPlugin {
         app.add_system_set(
             SystemSet::on_update(AppState::Game).with_system(update_remaining_balls_info),
         );
-        app.add_system_set(SystemSet::on_update(AppState::Game).with_system(spawn_result_score));
+        app.add_system_set(
+            SystemSet::on_update(AppState::Game)
+                .with_system(spawn_result_score.after("count_down_update")),
+        );
     }
 }

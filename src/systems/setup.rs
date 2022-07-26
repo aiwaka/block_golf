@@ -41,7 +41,7 @@ pub fn stage_setup(
     commands
         .spawn()
         .insert(RemainingTime)
-        .insert(CountDownTimer(stage_info.time));
+        .insert(CountDownTimer::new(stage_info.time));
 
     for block in block_list {
         block_event_writer.send(block)
