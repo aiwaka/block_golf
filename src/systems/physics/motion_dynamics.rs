@@ -10,11 +10,27 @@ use crate::{
 };
 use bevy::prelude::*;
 
+/// ボールにはたらく力による影響を計算する.
+/// 力が加わっていれば加速度をセットし, 加わっていなければ加速度を0にする
 /// 現状ボールしか使えないようになっている.
 /// TODO: lyonのShapeBundleから体積を計算できないか
-pub fn execute_force(mut q: Query<(&mut Acceleration, &Force, &PhysicMaterial, &Ball)>) {
-    for (mut a, f, _, ball) in q.iter_mut() {
-        a.0 += f.0 / ball.ball_type.weight();
+pub fn execute_force(
+    mut commands: Commands,
+    mut q: Query<(
+        Option<&Force>,
+        &mut Acceleration,
+        &PhysicMaterial,
+        &Ball,
+        Entity,
+    )>,
+) {
+    for (f, mut a, _, ball, ent) in q.iter_mut() {
+        if let Some(f) = f {
+            a.0 = f.0 / ball.ball_type.weight();
+            commands.entity(ent).remove::<Force>();
+        } else {
+            a.0 = Vec2::ZERO;
+        };
     }
 }
 

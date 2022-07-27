@@ -5,10 +5,10 @@ use bevy_prototype_lyon::prelude::RectangleOrigin;
 
 use crate::{
     components::{
-        ball::{Ball, GoalinBall},
+        ball::{Ball, BallNocking, GoalinBall},
         block::{Block, RectangleBlock},
         goal::GoalHole,
-        physics::{material::PhysicMaterial, position::Position, velocity::Velocity},
+        physics::{force::Force, material::PhysicMaterial, position::Position, velocity::Velocity},
     },
     AppState,
 };
@@ -197,7 +197,9 @@ fn collision_of_balls(ball1: (&Ball, &Transform), ball2: (&Ball, &Transform)) ->
     }
 }
 
+#[allow(clippy::type_complexity)]
 fn balls_collision(
+    mut commands: Commands,
     mut ball_query: Query<
         (
             &Transform,
@@ -205,18 +207,42 @@ fn balls_collision(
             &PhysicMaterial,
             &mut Position,
             &mut Velocity,
+            Option<&BallNocking>,
+            Entity,
         ),
         Without<GoalinBall>,
     >,
 ) {
     let mut ball_combination_iter = ball_query.iter_combinations_mut();
     while let Some([ball1_info, ball2_info]) = ball_combination_iter.fetch_next() {
-        let (ball1_trans, ball1, ball1_material, mut ball1_pos, mut ball1_vel) = ball1_info;
-        let (ball2_trans, ball2, ball2_material, mut ball2_pos, mut ball2_vel) = ball2_info;
+        let (
+            ball1_trans,
+            ball1,
+            ball1_material,
+            mut ball1_pos,
+            mut ball1_vel,
+            ball1_nocking,
+            ball1_ent,
+        ) = ball1_info;
+        let (
+            ball2_trans,
+            ball2,
+            ball2_material,
+            mut ball2_pos,
+            mut ball2_vel,
+            ball2_nocking,
+            ball2_ent,
+        ) = ball2_info;
         if let Some(collide_normal) = collision_of_balls((ball1, ball1_trans), (ball2, ball2_trans))
         {
-            ball1_pos.0 += collide_normal / 2.0;
-            ball2_pos.0 -= collide_normal / 2.0;
+            if ball1_nocking.is_some() {
+                ball2_pos.0 -= collide_normal;
+            } else if ball2_nocking.is_some() {
+                ball1_pos.0 += collide_normal;
+            } else {
+                ball1_pos.0 += collide_normal / 2.0;
+                ball2_pos.0 -= collide_normal / 2.0;
+            }
             let restitution = ball1_material.restitution * ball2_material.restitution;
             // TODO: 今後ボールタイプを保持するかどうかは考える
             let ball1_weight = ball1.ball_type.weight();
@@ -227,8 +253,11 @@ fn balls_collision(
             let impulsive_force = (1.0 + restitution)
                 * reduced_mass
                 * vel_diff.project_onto(collide_normal.normalize());
-            ball1_vel.0 += impulsive_force;
-            ball2_vel.0 -= impulsive_force;
+            // info!("ent: {:?}, force: {}", ball1_ent, impulsive_force);
+            commands.entity(ball1_ent).insert(Force(impulsive_force));
+            commands.entity(ball2_ent).insert(Force(-impulsive_force));
+            // ball1_vel.0 += impulsive_force;
+            // ball2_vel.0 -= impulsive_force;
         }
     }
 }

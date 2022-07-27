@@ -1,7 +1,10 @@
 use crate::{
     components::{
         ball::{Ball, BallNocking, LaunchBallEvent, SpawnBallEvent},
-        physics::{material::PhysicMaterial, position::Position, velocity::Velocity},
+        physics::{
+            acceleration::Acceleration, material::PhysicMaterial, position::Position,
+            velocity::Velocity,
+        },
     },
     AppState,
 };
@@ -37,6 +40,7 @@ fn spawn_ball(mut commands: Commands, mut event_listener: EventReader<SpawnBallE
             ))
             .insert(Position(default_pos))
             .insert(Velocity(Vec2::new(0.0, 0.0)))
+            .insert(Acceleration(Vec2::ZERO))
             .insert(BallNocking);
     }
 }
@@ -51,9 +55,15 @@ fn launch_ball(
 ) {
     for ev in event_listener.iter() {
         for (mut vel, ent) in query.iter_mut() {
-            vel.0 = ev.direction;
             commands.entity(ent).remove::<BallNocking>();
+            vel.0 = ev.direction;
         }
+    }
+}
+
+fn fix_nocking_ball(mut query: Query<&mut Velocity, MarkerNotMovingBall>) {
+    for mut vel in query.iter_mut() {
+        vel.0 = Vec2::ZERO;
     }
 }
 
@@ -70,6 +80,16 @@ impl Plugin for BallPlugin {
         app.add_system_set(
             SystemSet::on_update(AppState::Game).with_system(reflect_ball_pos.after("move_pos")),
         );
-        app.add_system_set(SystemSet::on_update(AppState::Game).with_system(launch_ball));
+        app.add_system_set(
+            SystemSet::on_update(AppState::Game).with_system(
+                fix_nocking_ball
+                    .after("accelerate")
+                    .before("move_pos")
+                    .label("fix_ball"),
+            ),
+        );
+        app.add_system_set(
+            SystemSet::on_update(AppState::Game).with_system(launch_ball.after("fix_ball")),
+        );
     }
 }
