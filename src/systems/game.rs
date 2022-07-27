@@ -27,17 +27,20 @@ fn game_over_check(
     goaled_ball: Res<GoaledBall>,
     init_ball_num: Res<InitialBallNum>,
     mut game_over_event_writer: EventWriter<GameOverEvent>,
+    is_gameover: Option<Res<NowGameOver>>,
 ) {
-    if let Ok(timer) = timer_query.get_single() {
-        if timer.is_finished()
-            || match *rule {
-                GameRule::BallScore => init_ball_num.0 == goaled_ball.0,
-                GameRule::LittleOperation => goaled_ball.0 != 0,
-                GameRule::TimeAttack => goaled_ball.0 != 0,
+    if is_gameover.is_none() {
+        if let Ok(timer) = timer_query.get_single() {
+            if timer.is_finished()
+                || match *rule {
+                    GameRule::BallScore => init_ball_num.0 == goaled_ball.0,
+                    GameRule::LittleOperation => goaled_ball.0 != 0,
+                    GameRule::TimeAttack => goaled_ball.0 != 0,
+                }
+            {
+                info!("send game over event");
+                game_over_event_writer.send(GameOverEvent);
             }
-        {
-            info!("send game over event");
-            game_over_event_writer.send(GameOverEvent);
         }
     }
 }
