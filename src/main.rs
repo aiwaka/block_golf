@@ -2,7 +2,7 @@ mod components;
 mod stages;
 mod systems;
 
-use bevy::prelude::*;
+use bevy::{ecs::schedule::ReportExecutionOrderAmbiguities, prelude::*};
 use bevy_prototype_lyon::prelude::*;
 
 use components::{
@@ -64,6 +64,7 @@ fn main() {
     app.add_plugin(ShapePlugin);
     add_events(&mut app);
     app.add_state(AppState::Menu);
+    app.insert_resource(ReportExecutionOrderAmbiguities);
 
     app.add_startup_system(global_setup.label("global_setup"));
     app.add_plugin(MainMenuPlugin);
