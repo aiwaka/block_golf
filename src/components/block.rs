@@ -23,7 +23,7 @@ impl RectangleBlock {
         self.angle - self.prev_angle
     }
     /// そのフレームでの重心の並進速度
-    pub fn pos_diff(&self, path: BlockSlidePath) -> Vec2 {
+    pub fn pos_diff(&self, path: &BlockSlidePath) -> Vec2 {
         path.calc_orbit(self.pos_param) - path.calc_orbit(self.prev_param)
     }
 }

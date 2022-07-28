@@ -116,6 +116,8 @@ fn rotate_block(
     mut block_query: Query<(&mut Transform, &mut RectangleBlock, &RotateStrategy), With<Block>>,
 ) {
     for (mut trans, mut rect, strategy) in block_query.iter_mut() {
+        // ひとつ前のパラメータとして現在の値を保存
+        rect.prev_angle = rect.angle;
         match strategy {
             RotateStrategy::NoRotate => {}
             RotateStrategy::Manual(angle) => {
@@ -139,6 +141,8 @@ fn slide_block(
     mut block_query: Query<(&mut Transform, &mut RectangleBlock, &SlideStrategy), With<Block>>,
 ) {
     for (mut trans, mut rect, strategy) in block_query.iter_mut() {
+        // ひとつ前のパラメータとして現在の値を保存
+        rect.prev_param = rect.pos_param;
         let path = match strategy {
             SlideStrategy::NoSlide => &BlockSlidePath::NoPath,
             SlideStrategy::Manual { speed, path } => {
@@ -172,6 +176,16 @@ fn slide_block(
     }
 }
 
+// fn temp(q: Query<(&RectangleBlock, &SlideStrategy, &RotateStrategy), With<Block>>) {
+//     for (rec, sl, ro) in q.iter() {
+//         if let SlideStrategy::NoSlide = sl {
+//             if let RotateStrategy::Manual(angle) = ro {
+//                 info!("current ang vel: {}", rec.angle_diff());
+//             }
+//         }
+//     }
+// }
+
 pub struct BlockPlugin;
 impl Plugin for BlockPlugin {
     fn build(&self, app: &mut App) {
@@ -180,5 +194,6 @@ impl Plugin for BlockPlugin {
         );
         app.add_system_set(SystemSet::on_update(AppState::Game).with_system(rotate_block));
         app.add_system_set(SystemSet::on_update(AppState::Game).with_system(slide_block));
+        // app.add_system_set(SystemSet::on_update(AppState::Game).with_system(temp));
     }
 }
