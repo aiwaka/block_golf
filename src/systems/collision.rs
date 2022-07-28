@@ -5,10 +5,10 @@ use bevy_prototype_lyon::prelude::RectangleOrigin;
 
 use crate::{
     components::{
-        ball::{Ball, GoalinBall},
-        block::{Block, RectangleBlock},
+        ball::{Ball, BallNocking, GoalinBall},
+        block::{Block, BlockSlidePath, RectangleBlock, SlideStrategy},
         goal::GoalHole,
-        physics::{material::PhysicMaterial, position::Position, velocity::Velocity},
+        physics::{force::Force, material::PhysicMaterial, position::Position, velocity::Velocity},
     },
     AppState,
 };
@@ -143,21 +143,32 @@ fn collision_between_block_and_ball(
     }
 }
 
+#[allow(clippy::type_complexity)]
 fn block_ball_collision(
+    mut commands: Commands,
     mut ball_query: Query<
         (
             &Transform,
             &Ball,
             &PhysicMaterial,
             &mut Position,
-            &mut Velocity,
+            &Velocity,
+            Entity,
         ),
         Without<GoalinBall>,
     >,
-    block_query: Query<(&Transform, &RectangleBlock, &PhysicMaterial), With<Block>>,
+    block_query: Query<
+        (
+            &Transform,
+            &RectangleBlock,
+            &PhysicMaterial,
+            Option<&SlideStrategy>,
+        ),
+        With<Block>,
+    >,
 ) {
-    for (ball_trans, ball, ball_material, mut ball_pos, mut ball_vel) in ball_query.iter_mut() {
-        for (block_trans, block_rect, block_material) in block_query.iter() {
+    for (ball_trans, ball, ball_material, mut ball_pos, ball_vel, ent) in ball_query.iter_mut() {
+        for (block_trans, block_rect, block_material, slide_strategy) in block_query.iter() {
             if let Some((lc_collide_normal, penetrate_depth)) =
                 collision_between_block_and_ball((block_rect, block_trans), (ball, ball_trans))
             {
@@ -168,14 +179,28 @@ fn block_ball_collision(
                 let friction = block_material.friction;
                 // TODO: ボールタイプを保持するかどうか
                 let ball_weight = ball.ball_type.weight();
-                // 質量も反発係数もすべて1とする
+
+                // let [block_x, block_y] = block_rect.rect.extents.to_array();
+                // let block_mass = block_material.density * block_x * block_y;
+                // 慣性モーメント（[0, 0, z]のようなベクトルなのでスカラーで保持する）
+                // let inertia_moment = block_mass * (block_x * block_x + block_y * block_y) / 12.0;
+                // (I^{-1}(r\times n))\times r：方向はrを90度回転させた向き.
+                // |n|=1なので大きさは |r|^2\sin(rからみたnの角度)となる.
+                // 衝突点までの位置ベクトルは, 球形なので, 拘束方向ベクトルと半径の積.
+                // 球が衝突する場合rとnの向きが平行なのでこの項は0になる.
+
                 // 撃力は速度差の単位法線へ射影となり, 衝突後の速度はそれを単に足したものになる.
-                let prev_vel = ball_vel.0;
-                let impulsive_force = (1.0 + restitution)
-                    // * reduced_mass
-                    * ball_weight
-                    * (-prev_vel).project_onto(collide_normal);
-                ball_vel.0 += impulsive_force;
+                // ブロックが止まっているときを考えたいので相対速度補正
+                let path = if let Some(slide_strategy) = slide_strategy {
+                    slide_strategy.get_path()
+                } else {
+                    BlockSlidePath::NoPath
+                };
+                let prev_vel = ball_vel.0 - block_rect.pos_diff(&path);
+                // let prev_vel = ball_vel.0;
+                let impulsive_force =
+                    (1.0 + restitution) * ball_weight * (-prev_vel).project_onto(collide_normal);
+                commands.entity(ent).insert(Force(impulsive_force));
             }
         }
     }
@@ -183,6 +208,7 @@ fn block_ball_collision(
 
 /// 衝突応答としてball1にかかるべき力を返す（ball2は向きを反転させた力を使う）
 /// ...力を扱うシステムを実装していないので, とりあえず貫通深度を返す
+/// TODO: -> 実装したのでそのように変更しても良さそう
 fn collision_of_balls(ball1: (&Ball, &Transform), ball2: (&Ball, &Transform)) -> Option<Vec2> {
     let ball1_radius = ball1.0.ball_type.radius();
     let ball1_pos = vec3_to_vec2(ball1.1.translation);
@@ -197,7 +223,9 @@ fn collision_of_balls(ball1: (&Ball, &Transform), ball2: (&Ball, &Transform)) ->
     }
 }
 
+#[allow(clippy::type_complexity)]
 fn balls_collision(
+    mut commands: Commands,
     mut ball_query: Query<
         (
             &Transform,
@@ -205,18 +233,39 @@ fn balls_collision(
             &PhysicMaterial,
             &mut Position,
             &mut Velocity,
+            Option<&BallNocking>,
+            Entity,
         ),
         Without<GoalinBall>,
     >,
 ) {
     let mut ball_combination_iter = ball_query.iter_combinations_mut();
     while let Some([ball1_info, ball2_info]) = ball_combination_iter.fetch_next() {
-        let (ball1_trans, ball1, ball1_material, mut ball1_pos, mut ball1_vel) = ball1_info;
-        let (ball2_trans, ball2, ball2_material, mut ball2_pos, mut ball2_vel) = ball2_info;
+        // nocking状態のボールは常にball2であるようにする.
+        let [ball1_info, ball2_info] = if ball1_info.5.is_some() && ball2_info.5.is_none() {
+            [ball2_info, ball1_info]
+        } else {
+            [ball1_info, ball2_info]
+        };
+        let (ball1_trans, ball1, ball1_material, mut ball1_pos, ball1_vel, _, ball1_ent) =
+            ball1_info;
+        let (
+            ball2_trans,
+            ball2,
+            ball2_material,
+            mut ball2_pos,
+            ball2_vel,
+            ball2_nocking,
+            ball2_ent,
+        ) = ball2_info;
         if let Some(collide_normal) = collision_of_balls((ball1, ball1_trans), (ball2, ball2_trans))
         {
-            ball1_pos.0 += collide_normal / 2.0;
-            ball2_pos.0 -= collide_normal / 2.0;
+            if ball2_nocking.is_some() {
+                ball1_pos.0 += collide_normal;
+            } else {
+                ball1_pos.0 += collide_normal / 2.0;
+                ball2_pos.0 -= collide_normal / 2.0;
+            }
             let restitution = ball1_material.restitution * ball2_material.restitution;
             // TODO: 今後ボールタイプを保持するかどうかは考える
             let ball1_weight = ball1.ball_type.weight();
@@ -227,8 +276,11 @@ fn balls_collision(
             let impulsive_force = (1.0 + restitution)
                 * reduced_mass
                 * vel_diff.project_onto(collide_normal.normalize());
-            ball1_vel.0 += impulsive_force;
-            ball2_vel.0 -= impulsive_force;
+            // info!("ent: {:?}, force: {}", ball1_ent, impulsive_force);
+            commands.entity(ball1_ent).insert(Force(impulsive_force));
+            commands.entity(ball2_ent).insert(Force(-impulsive_force));
+            // ball1_vel.0 += impulsive_force;
+            // ball2_vel.0 -= impulsive_force;
         }
     }
 }
@@ -269,13 +321,15 @@ impl Plugin for CollisionPlugin {
     fn build(&self, app: &mut App) {
         app.add_system_set(
             SystemSet::on_update(AppState::Game)
-                .with_system(block_ball_collision.before("move_pos")),
+                .with_system(block_ball_collision.before("execute_force")),
         );
         app.add_system_set(
-            SystemSet::on_update(AppState::Game).with_system(balls_collision.before("move_pos")),
+            SystemSet::on_update(AppState::Game)
+                .with_system(balls_collision.before("execute_force")),
         );
         app.add_system_set(
-            SystemSet::on_update(AppState::Game).with_system(goal_and_ball_collision),
+            SystemSet::on_update(AppState::Game)
+                .with_system(goal_and_ball_collision.before("execute_force")),
         );
     }
 }

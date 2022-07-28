@@ -1,7 +1,6 @@
 use bevy::prelude::*;
 use bevy_prototype_lyon::prelude::*;
 
-use super::block_slide_path::calc_orbit;
 use crate::{
     components::{
         block::{
@@ -43,6 +42,8 @@ fn set_block(mut commands: Commands, mut event_listener: EventReader<SpawnBlockE
                         rect: block_shape,
                         angle: 0.0,
                         pos_param: 0.0,
+                        prev_angle: 0.0,
+                        prev_param: 0.0,
                     })
                     .insert(PhysicMaterial::new(
                         *restitution,
@@ -83,6 +84,8 @@ fn set_block(mut commands: Commands, mut event_listener: EventReader<SpawnBlockE
                         rect: block_shape,
                         angle: ev.default_angle,
                         pos_param: ev.default_pos_param,
+                        prev_angle: ev.default_angle,
+                        prev_param: ev.default_pos_param,
                     })
                     .insert(PhysicMaterial::new(
                         *restitution,
@@ -98,7 +101,7 @@ fn set_block(mut commands: Commands, mut event_listener: EventReader<SpawnBlockE
                     },
                     DrawMode::Fill(FillMode::color(Color::RED)),
                     Transform {
-                        translation: Vec3::new(pos.x, pos.y, 120.0),
+                        translation: Vec3::new(pos.x, pos.y, 80.0),
                         ..Default::default()
                     },
                 ));
@@ -113,6 +116,8 @@ fn rotate_block(
     mut block_query: Query<(&mut Transform, &mut RectangleBlock, &RotateStrategy), With<Block>>,
 ) {
     for (mut trans, mut rect, strategy) in block_query.iter_mut() {
+        // ひとつ前のパラメータとして現在の値を保存
+        rect.prev_angle = rect.angle;
         match strategy {
             RotateStrategy::NoRotate => {}
             RotateStrategy::Manual(angle) => {
@@ -136,6 +141,8 @@ fn slide_block(
     mut block_query: Query<(&mut Transform, &mut RectangleBlock, &SlideStrategy), With<Block>>,
 ) {
     for (mut trans, mut rect, strategy) in block_query.iter_mut() {
+        // ひとつ前のパラメータとして現在の値を保存
+        rect.prev_param = rect.pos_param;
         let path = match strategy {
             SlideStrategy::NoSlide => &BlockSlidePath::NoPath,
             SlideStrategy::Manual { speed, path } => {
@@ -164,10 +171,20 @@ fn slide_block(
                 path
             }
         };
-        let new_pos = calc_orbit(path, rect.pos_param) + rect.original_pos;
+        let new_pos = path.calc_orbit(rect.pos_param) + rect.original_pos;
         trans.translation = Vec3::new(new_pos.x, new_pos.y, 12.0);
     }
 }
+
+// fn temp(q: Query<(&RectangleBlock, &SlideStrategy, &RotateStrategy), With<Block>>) {
+//     for (rec, sl, ro) in q.iter() {
+//         if let SlideStrategy::NoSlide = sl {
+//             if let RotateStrategy::Manual(angle) = ro {
+//                 info!("current ang vel: {}", rec.angle_diff());
+//             }
+//         }
+//     }
+// }
 
 pub struct BlockPlugin;
 impl Plugin for BlockPlugin {
@@ -177,5 +194,6 @@ impl Plugin for BlockPlugin {
         );
         app.add_system_set(SystemSet::on_update(AppState::Game).with_system(rotate_block));
         app.add_system_set(SystemSet::on_update(AppState::Game).with_system(slide_block));
+        // app.add_system_set(SystemSet::on_update(AppState::Game).with_system(temp));
     }
 }
