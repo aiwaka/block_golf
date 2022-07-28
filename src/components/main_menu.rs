@@ -2,6 +2,38 @@ use bevy::prelude::*;
 
 use super::game::GameRule;
 
+/// 各種オプションをゲームステートに受け渡すためのリソース
+pub struct MenuSettings;
+
+/// メニューとして表示される選択肢セットの識別番号
+#[derive(Component)]
+pub struct MenuLayer(pub u32);
+
+// リソースとして使う？
+pub struct MenuOptionSets {
+    pub option_set: Vec<MenuOptionSet>,
+    pub current_layer: u32,
+}
+
+pub struct MenuOptionSet {
+    pub options: Vec<MenuOption>,
+    pub layer_num: u32,
+}
+
+// TODO: enumをこれに変換するマクロとかあったらよさそう
+pub struct MenuOption {
+    pub name: &'static str,
+    pub disabled: bool,
+}
+impl MenuOption {
+    pub fn new(name: &'static str) -> Self {
+        Self {
+            name,
+            disabled: false,
+        }
+    }
+}
+
 #[derive(Component, Clone, Copy, Debug)]
 pub enum MenuOptions {
     Start,

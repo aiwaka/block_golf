@@ -2,13 +2,78 @@ use bevy::app::AppExit;
 use bevy::prelude::*;
 
 use crate::components::game::GameRule;
-use crate::components::main_menu::{CurrentOption, GameRuleOption, MenuOptions, OptionText};
+use crate::components::main_menu::{
+    CurrentOption, GameRuleOption, MenuOption, MenuOptionSet, MenuOptionSets, MenuOptions,
+    OptionText,
+};
 use crate::AppState;
 
 /// これらはMenu状態におけるリソースとして使用する
 struct MenuOptionEntities(Vec<Entity>);
 struct GameRuleOptionEntities(Vec<Entity>);
 struct ResidentEntities(Vec<Entity>);
+
+fn menu_options_settings() -> MenuOptionSets {
+    let main_option = MenuOptionSet {
+        options: vec![
+            MenuOption::new("Start"),
+            MenuOption::new("Set Rule"),
+            MenuOption::new("Exit"),
+        ],
+        layer_num: 0,
+    };
+    let stage_option = MenuOptionSet {
+        options: vec![MenuOption::new("1")],
+        layer_num: 1,
+    };
+    let set_rule_option = MenuOptionSet {
+        options: vec![
+            MenuOption::new("BallScore"),
+            MenuOption::new("LittleOperation"),
+            MenuOption::new("TimeAttack"),
+        ],
+        layer_num: 2,
+    };
+    MenuOptionSets {
+        option_set: vec![main_option, stage_option, set_rule_option],
+        current_layer: 0,
+    }
+}
+
+fn init_option2(mut commands: Commands, entities: Query<Entity>, asset_server: Res<AssetServer>) {
+    // 最初に存在しているentityをすべて保存しておく.
+    commands.insert_resource(ResidentEntities(entities.iter().collect::<Vec<Entity>>()));
+    let menu = menu_options_settings();
+    let mut option_entities = Vec::<Entity>::new();
+    for option_set in menu.option_set.iter() {
+        for option in option_set.options.iter() {
+            let ent = commands
+                .spawn_bundle(TextBundle {
+                    style: Style {
+                        // position_type: PositionType::Absolute,
+                        ..default()
+                    },
+                    text: Text::with_section(
+                        option.name,
+                        TextStyle {
+                            font: asset_server.load("fonts/FiraSans-Bold.ttf"),
+                            font_size: 40.0,
+                            color: Color::WHITE,
+                        },
+                        TextAlignment {
+                            horizontal: HorizontalAlign::Center,
+                            ..default()
+                        },
+                    ),
+                    ..default()
+                })
+                .insert(Visibility { is_visible: false })
+                .insert(OptionText)
+                .id();
+            option_entities.push(ent);
+        }
+    }
+}
 
 fn init_option(mut commands: Commands, entities: Query<Entity>, asset_server: Res<AssetServer>) {
     // 最初に存在しているentityをすべて保存しておく.
@@ -189,16 +254,16 @@ fn deconstruct_menu(
 pub struct MainMenuPlugin;
 impl Plugin for MainMenuPlugin {
     fn build(&self, app: &mut App) {
-        app.add_system_set(SystemSet::on_enter(AppState::Menu).with_system(init_option));
-        app.add_system_set(SystemSet::on_update(AppState::Menu).with_system(move_cursor));
-        app.add_system_set(SystemSet::on_update(AppState::Menu).with_system(move_game_rule_cursor));
-        app.add_system_set(SystemSet::on_update(AppState::Menu).with_system(text_color));
-        app.add_system_set(SystemSet::on_update(AppState::Menu).with_system(select_option));
-        app.add_system_set(
-            SystemSet::on_exit(AppState::Menu).with_system(set_game_rule.before("deconstruct")),
-        );
-        app.add_system_set(
-            SystemSet::on_exit(AppState::Menu).with_system(deconstruct_menu.label("deconstruct")),
-        );
+        app.add_system_set(SystemSet::on_enter(AppState::Menu).with_system(init_option2));
+        // app.add_system_set(SystemSet::on_update(AppState::Menu).with_system(move_cursor));
+        // app.add_system_set(SystemSet::on_update(AppState::Menu).with_system(move_game_rule_cursor));
+        // app.add_system_set(SystemSet::on_update(AppState::Menu).with_system(text_color));
+        // app.add_system_set(SystemSet::on_update(AppState::Menu).with_system(select_option));
+        // app.add_system_set(
+        //     SystemSet::on_exit(AppState::Menu).with_system(set_game_rule.before("deconstruct")),
+        // );
+        // app.add_system_set(
+        //     SystemSet::on_exit(AppState::Menu).with_system(deconstruct_menu.label("deconstruct")),
+        // );
     }
 }
