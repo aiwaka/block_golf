@@ -215,29 +215,26 @@ fn balls_collision(
 ) {
     let mut ball_combination_iter = ball_query.iter_combinations_mut();
     while let Some([ball1_info, ball2_info]) = ball_combination_iter.fetch_next() {
-        let (
-            ball1_trans,
-            ball1,
-            ball1_material,
-            mut ball1_pos,
-            mut ball1_vel,
-            ball1_nocking,
-            ball1_ent,
-        ) = ball1_info;
+        // nocking状態のボールは常にball2であるようにする.
+        let [ball1_info, ball2_info] = if ball1_info.5.is_some() && ball2_info.5.is_none() {
+            [ball2_info, ball1_info]
+        } else {
+            [ball1_info, ball2_info]
+        };
+        let (ball1_trans, ball1, ball1_material, mut ball1_pos, ball1_vel, _, ball1_ent) =
+            ball1_info;
         let (
             ball2_trans,
             ball2,
             ball2_material,
             mut ball2_pos,
-            mut ball2_vel,
+            ball2_vel,
             ball2_nocking,
             ball2_ent,
         ) = ball2_info;
         if let Some(collide_normal) = collision_of_balls((ball1, ball1_trans), (ball2, ball2_trans))
         {
-            if ball1_nocking.is_some() {
-                ball2_pos.0 -= collide_normal;
-            } else if ball2_nocking.is_some() {
+            if ball2_nocking.is_some() {
                 ball1_pos.0 += collide_normal;
             } else {
                 ball1_pos.0 += collide_normal / 2.0;
