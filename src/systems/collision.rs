@@ -6,7 +6,7 @@ use bevy_prototype_lyon::prelude::RectangleOrigin;
 use crate::{
     components::{
         ball::{Ball, BallNocking, GoalinBall},
-        block::{Block, RectangleBlock},
+        block::{Block, BlockSlidePath, RectangleBlock, SlideStrategy},
         goal::GoalHole,
         physics::{force::Force, material::PhysicMaterial, position::Position, velocity::Velocity},
     },
@@ -157,10 +157,18 @@ fn block_ball_collision(
         ),
         Without<GoalinBall>,
     >,
-    block_query: Query<(&Transform, &RectangleBlock, &PhysicMaterial), With<Block>>,
+    block_query: Query<
+        (
+            &Transform,
+            &RectangleBlock,
+            &PhysicMaterial,
+            Option<&SlideStrategy>,
+        ),
+        With<Block>,
+    >,
 ) {
     for (ball_trans, ball, ball_material, mut ball_pos, ball_vel, ent) in ball_query.iter_mut() {
-        for (block_trans, block_rect, block_material) in block_query.iter() {
+        for (block_trans, block_rect, block_material, slide_strategy) in block_query.iter() {
             if let Some((lc_collide_normal, penetrate_depth)) =
                 collision_between_block_and_ball((block_rect, block_trans), (ball, ball_trans))
             {
@@ -171,9 +179,25 @@ fn block_ball_collision(
                 let friction = block_material.friction;
                 // TODO: ボールタイプを保持するかどうか
                 let ball_weight = ball.ball_type.weight();
-                // 質量も反発係数もすべて1とする
+
+                // let [block_x, block_y] = block_rect.rect.extents.to_array();
+                // let block_mass = block_material.density * block_x * block_y;
+                // 慣性モーメント（[0, 0, z]のようなベクトルなのでスカラーで保持する）
+                // let inertia_moment = block_mass * (block_x * block_x + block_y * block_y) / 12.0;
+                // (I^{-1}(r\times n))\times r：方向はrを90度回転させた向き.
+                // |n|=1なので大きさは |r|^2\sin(rからみたnの角度)となる.
+                // 衝突点までの位置ベクトルは, 球形なので, 拘束方向ベクトルと半径の積.
+                // 球が衝突する場合rとnの向きが平行なのでこの項は0になる.
+
                 // 撃力は速度差の単位法線へ射影となり, 衝突後の速度はそれを単に足したものになる.
-                let prev_vel = ball_vel.0;
+                // ブロックが止まっているときを考えたいので相対速度補正
+                let path = if let Some(slide_strategy) = slide_strategy {
+                    slide_strategy.get_path()
+                } else {
+                    BlockSlidePath::NoPath
+                };
+                let prev_vel = ball_vel.0 - block_rect.pos_diff(&path);
+                // let prev_vel = ball_vel.0;
                 let impulsive_force =
                     (1.0 + restitution) * ball_weight * (-prev_vel).project_onto(collide_normal);
                 commands.entity(ent).insert(Force(impulsive_force));

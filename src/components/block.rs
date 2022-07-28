@@ -1,7 +1,7 @@
 use std::f32::consts::{FRAC_2_PI, FRAC_PI_2};
 
 use bevy::prelude::*;
-use bevy_prototype_lyon::shapes::Rectangle;
+use bevy_prototype_lyon::{prelude::RectangleOrigin, shapes::Rectangle};
 
 /// ブロックであることを示す. これを使って衝突判定を行う
 #[derive(Component)]
@@ -24,7 +24,15 @@ impl RectangleBlock {
     }
     /// そのフレームでの重心の並進速度
     pub fn pos_diff(&self, path: &BlockSlidePath) -> Vec2 {
-        path.calc_orbit(self.pos_param) - path.calc_orbit(self.prev_param)
+        if let RectangleOrigin::CustomCenter(delta) = self.rect.origin {
+            let current_pos = path.calc_orbit(self.pos_param)
+                + delta * Vec2::new(self.angle.cos(), self.angle.sin());
+            let prev_pos = path.calc_orbit(self.prev_param)
+                + delta * Vec2::new(self.prev_angle.cos(), self.prev_angle.sin());
+            current_pos - prev_pos
+        } else {
+            panic!("not customed center");
+        }
     }
 }
 
@@ -43,6 +51,17 @@ pub enum SlideStrategy {
     Manual { speed: f32, path: BlockSlidePath }, // キー入力で移動
     AutoWrap { speed: f32, path: BlockSlidePath }, // キー入力で移動, 自動で折り返し
     Auto { speed: f32, path: BlockSlidePath },   // 自動で移動
+}
+
+impl SlideStrategy {
+    pub fn get_path(&self) -> BlockSlidePath {
+        match self {
+            SlideStrategy::NoSlide => BlockSlidePath::NoPath,
+            SlideStrategy::Manual { speed: _, path } => path.clone(),
+            SlideStrategy::AutoWrap { speed: _, path } => path.clone(),
+            SlideStrategy::Auto { speed: _, path } => path.clone(),
+        }
+    }
 }
 
 #[derive(Clone)]
