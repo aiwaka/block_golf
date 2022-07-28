@@ -143,20 +143,23 @@ fn collision_between_block_and_ball(
     }
 }
 
+#[allow(clippy::type_complexity)]
 fn block_ball_collision(
+    mut commands: Commands,
     mut ball_query: Query<
         (
             &Transform,
             &Ball,
             &PhysicMaterial,
             &mut Position,
-            &mut Velocity,
+            &Velocity,
+            Entity,
         ),
         Without<GoalinBall>,
     >,
     block_query: Query<(&Transform, &RectangleBlock, &PhysicMaterial), With<Block>>,
 ) {
-    for (ball_trans, ball, ball_material, mut ball_pos, mut ball_vel) in ball_query.iter_mut() {
+    for (ball_trans, ball, ball_material, mut ball_pos, ball_vel, ent) in ball_query.iter_mut() {
         for (block_trans, block_rect, block_material) in block_query.iter() {
             if let Some((lc_collide_normal, penetrate_depth)) =
                 collision_between_block_and_ball((block_rect, block_trans), (ball, ball_trans))
@@ -171,11 +174,9 @@ fn block_ball_collision(
                 // 質量も反発係数もすべて1とする
                 // 撃力は速度差の単位法線へ射影となり, 衝突後の速度はそれを単に足したものになる.
                 let prev_vel = ball_vel.0;
-                let impulsive_force = (1.0 + restitution)
-                    // * reduced_mass
-                    * ball_weight
-                    * (-prev_vel).project_onto(collide_normal);
-                ball_vel.0 += impulsive_force;
+                let impulsive_force =
+                    (1.0 + restitution) * ball_weight * (-prev_vel).project_onto(collide_normal);
+                commands.entity(ent).insert(Force(impulsive_force));
             }
         }
     }
@@ -183,6 +184,7 @@ fn block_ball_collision(
 
 /// 衝突応答としてball1にかかるべき力を返す（ball2は向きを反転させた力を使う）
 /// ...力を扱うシステムを実装していないので, とりあえず貫通深度を返す
+/// TODO: -> 実装したのでそのように変更しても良さそう
 fn collision_of_balls(ball1: (&Ball, &Transform), ball2: (&Ball, &Transform)) -> Option<Vec2> {
     let ball1_radius = ball1.0.ball_type.radius();
     let ball1_pos = vec3_to_vec2(ball1.1.translation);
