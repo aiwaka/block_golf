@@ -8,6 +8,15 @@ pub enum GameRule {
     /// 1つ目のボールを入れるまでの時間を競う
     TimeAttack,
 }
+impl From<u32> for GameRule {
+    fn from(n: u32) -> Self {
+        match n {
+            0 => Self::BallScore,
+            1 => Self::LittleOperation,
+            _ => Self::TimeAttack,
+        }
+    }
+}
 
 pub struct GameOverEvent;
 
