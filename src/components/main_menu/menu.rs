@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use bevy::prelude::*;
 
-use super::game::GameRule;
+use super::super::game::GameRule;
 
 /// 各種オプションをゲームステートに受け渡すためのリソース
 #[derive(Default)]

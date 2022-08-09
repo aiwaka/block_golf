@@ -10,7 +10,7 @@ use components::{
     block::SpawnBlockEvent,
     game::GameOverEvent,
     goal::SpawnGoalEvent,
-    main_menu::ChangeMenuLayerEvent,
+    main_menu::menu::ChangeMenuLayerEvent,
     timer::CountDownTimer,
 };
 use systems::{
@@ -23,7 +23,7 @@ use systems::{
     goal::GoalPlugin,
     info_board::InfoBoardPlugin,
     launcher::LauncherPlugin,
-    main_menu::MainMenuPlugin,
+    main_menu::menu::MainMenuPlugin,
     physics::motion_dynamics::MotionDynamicsPlugin,
     setup::{global_setup, stage_setup},
     timer::TimersPlugin,

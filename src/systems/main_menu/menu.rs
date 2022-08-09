@@ -4,7 +4,7 @@ use bevy::app::AppExit;
 use bevy::prelude::*;
 
 use crate::components::game::GameRule;
-use crate::components::main_menu::{
+use crate::components::main_menu::menu::{
     ChangeMenuLayerEvent, CurrentOption, MenuLayerOptionEntities, MenuLayerPos, MenuOption,
     MenuOptionResource, MenuOptionSet, MenuOptionSets, OptionText,
 };
@@ -172,9 +172,7 @@ fn each_option_processing(
         let pos = menu_res.current_option_num;
         match layer {
             0 => match pos {
-                0 => {
-                    app_state.set(AppState::Game).unwrap();
-                }
+                0 => event_writer.send(ChangeMenuLayerEvent(1)),
                 1 => event_writer.send(ChangeMenuLayerEvent(2)),
                 2 => {
                     app_exit_events.send_default();
@@ -182,6 +180,7 @@ fn each_option_processing(
                 _ => {}
             },
             1 => {
+                app_state.set(AppState::Game).unwrap();
                 info!("{}", pos);
             }
             _ => {}
