@@ -28,10 +28,16 @@ fn init_menu_scene(
     init_option2(&mut commands, &asset_server);
 }
 
+/// メニューの初期化
 fn init_option2(commands: &mut Commands, asset_server: &Res<AssetServer>) {
     let menu = menu_options_settings();
-    // let mut option_entities = Vec::<Entity>::new();
+    // レイヤーにおける設定保存用ハッシュマップ. 最初にすべて0で初期化しておく
+    let mut layer_choice_table = HashMap::<u32, u32>::new();
+    // レイヤー内のエンティティ保存用ハッシュマップ. 最初にすべて空ベクトルで初期化しておく
     let mut layer_option_entities = HashMap::<u32, Vec<Entity>>::new();
+    for option_set in menu.option_set.iter() {
+        layer_option_entities.insert(option_set.layer_num, vec![]);
+    }
     for option_set in menu.option_set.iter() {
         for option in option_set.options.iter() {
             let ent = commands
@@ -58,18 +64,22 @@ fn init_option2(commands: &mut Commands, asset_server: &Res<AssetServer>) {
                 .insert(MenuLayerPos(option_set.layer_num))
                 .insert(OptionText)
                 .id();
-            // 初めて見る階層番号なら配列を作成, すでにあるならそこに追加
-            if let Some(option_entities) = layer_option_entities.get_mut(&option_set.layer_num) {
-                option_entities.push(ent);
-            } else {
-                layer_option_entities.insert(option_set.layer_num, vec![ent]);
-            }
+            // レイヤー番号のところの配列にエンティティを追加
+            layer_option_entities
+                .get_mut(&option_set.layer_num)
+                .unwrap()
+                .push(ent);
+            layer_choice_table.insert(option_set.layer_num, 0u32);
         }
     }
     commands.insert_resource(MenuOptionResource {
         current_layer: 0,
+        layer_choice_table,
         ..default()
     });
+    commands
+        .entity(layer_option_entities[&0u32][0])
+        .insert(CurrentOption);
     commands.insert_resource(MenuLayerOptionEntities(layer_option_entities));
 }
 
@@ -104,28 +114,32 @@ fn select_options(
 fn layer_changed(
     mut commands: Commands,
     mut event_reader: EventReader<ChangeMenuLayerEvent>,
+    current_option_query: Query<Entity, With<CurrentOption>>,
     mut menu_res: ResMut<MenuOptionResource>,
     layer_option_entities: Res<MenuLayerOptionEntities>,
 ) {
     for ev in event_reader.iter() {
-        let option_entities = &layer_option_entities.0[&menu_res.current_layer];
+        // 新旧のレイヤーを取得
         let current_layer = menu_res.current_layer;
         let next_layer = ev.0;
-        // 選択番号を保存する処理
+        // 新レイヤーのエンティティのセットを取得
+        let option_entities = &layer_option_entities.0[&next_layer];
+        // 現在の選択肢番号を保存する処理
         let current_option = menu_res.current_option_num;
         menu_res
             .layer_choice_table
             .insert(current_layer, current_option);
-        // 階層スタックに追加
+        // レイヤースタックに追加
         menu_res.layer_stack.push(current_layer);
-        // すでに選択番号が保存されていたら取得
-        let next_init_option = if let Some(opt) = menu_res.layer_choice_table.get(&next_layer) {
-            *opt
-        } else {
-            0
-        };
+        // 新レイヤーの選択肢番号を取得
+        let next_init_option = *menu_res.layer_choice_table.get(&next_layer).unwrap();
+        for ent in current_option_query.iter() {
+            commands.entity(ent).remove::<CurrentOption>();
+        }
+        // 更新処理
         menu_res.current_layer = next_layer;
         menu_res.current_option_num = next_init_option;
+        // ここでCurrentOptionを挿入（FIXME: うまく動かない）
         commands
             .entity(option_entities[next_init_option as usize])
             .insert(CurrentOption);
@@ -139,6 +153,7 @@ fn back_to_upper_layer(
     mut menu_res: ResMut<MenuOptionResource>,
 ) {
     if key_in.just_pressed(KeyCode::X) {
+        // popできたなら移動処理, できなければ無視でOK
         if let Some(last_layer) = menu_res.layer_stack.pop() {
             event_writer.send(ChangeMenuLayerEvent(last_layer));
         }
@@ -174,7 +189,7 @@ fn each_option_processing(
     }
 }
 
-/// 現在のレイヤーの選択肢を表示させる. レイヤーは外部から変更すればよい
+/// 現在のレイヤーの選択肢を表示させる.
 fn show_current_layer(
     mut query: Query<(&mut Visibility, &MenuLayerPos)>,
     menu_res: Res<MenuOptionResource>,
@@ -184,6 +199,7 @@ fn show_current_layer(
     }
 }
 
+/// 現在選択されているオプションにのみ緑色を表示しほかは白色に戻す処理
 fn text_color(
     mut text_query: Query<&mut Text, (With<OptionText>, Without<CurrentOption>)>,
     mut current_query: Query<&mut Text, With<CurrentOption>>,
@@ -196,7 +212,7 @@ fn text_color(
     }
 }
 
-// /// ゲームルールをグローバルリソースとしてセット
+/// ゲームルールをグローバルリソースとしてセット
 fn set_game_rule(mut commands: Commands, menu_res: Res<MenuOptionResource>) {
     let rule_num = if let Some(layer_choice) = menu_res.layer_choice_table.get(&1) {
         *layer_choice
