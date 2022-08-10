@@ -71,19 +71,15 @@ fn init_option2(commands: &mut Commands, asset_server: &Res<AssetServer>) {
                 ),
                 ..default()
             };
-            let text_width = 40.0 * option.name.len() as f32;
+            let text_width = 30.0 * option.name.len() as f32;
 
-            println!("{}", text_width);
             if text_width_sum + text_width > SCREEN_WIDTH * 0.8 {
                 // 次を置いたら画面外に出てしまうなら更新してからスタイルを設定
                 text_width_sum = SCREEN_WIDTH * 0.1;
                 text_height_sum += 50.0;
-                text_bundle.style = text_style_from_pos(text_width_sum, text_height_sum);
-            } else {
-                // 大丈夫なら配置してから更新する
-                text_bundle.style = text_style_from_pos(text_width_sum, text_height_sum);
-                text_width_sum += text_width;
             }
+            text_bundle.style = text_style_from_pos(text_width_sum, text_height_sum);
+            text_width_sum += text_width;
 
             let ent = commands
                 .spawn_bundle(text_bundle)
