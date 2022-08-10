@@ -36,7 +36,7 @@ fn init_option2(commands: &mut Commands, asset_server: &Res<AssetServer>) {
     // レイヤー内のエンティティ保存用ハッシュマップ. 最初にすべて空ベクトルで初期化しておく
     let mut layer_option_entities = HashMap::<u32, Vec<Entity>>::new();
     for option_set in menu.option_set.iter() {
-        layer_option_entities.insert(option_set.layer_num, vec![]);
+        layer_option_entities.insert(option_set.layer_id, vec![]);
     }
     for option_set in menu.option_set.iter() {
         for option in option_set.options.iter() {
@@ -61,15 +61,15 @@ fn init_option2(commands: &mut Commands, asset_server: &Res<AssetServer>) {
                     ..default()
                 })
                 .insert(Visibility { is_visible: false })
-                .insert(MenuLayerPos(option_set.layer_num))
+                .insert(MenuLayerPos(option_set.layer_id))
                 .insert(OptionText)
                 .id();
             // レイヤー番号のところの配列にエンティティを追加
             layer_option_entities
-                .get_mut(&option_set.layer_num)
+                .get_mut(&option_set.layer_id)
                 .unwrap()
                 .push(ent);
-            layer_choice_table.insert(option_set.layer_num, 0u32);
+            layer_choice_table.insert(option_set.layer_id, 0u32);
         }
     }
     commands.insert_resource(MenuOptionResource {

@@ -29,7 +29,7 @@ pub struct MenuOptionSets {
 
 pub struct MenuOptionSet {
     pub options: Vec<MenuOption>,
-    pub layer_num: u32,
+    pub layer_id: u32,
 }
 
 // TODO: enumをこれに変換するマクロとかあったらよさそう

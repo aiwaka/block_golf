@@ -9,11 +9,11 @@ pub fn menu_options_settings() -> MenuOptionSets {
             MenuOption::new("Set Rule"),
             MenuOption::new("Exit"),
         ],
-        layer_num: 0,
+        layer_id: 0,
     };
     let stage_option = MenuOptionSet {
         options: vec![MenuOption::new("0")],
-        layer_num: 1,
+        layer_id: 1,
     };
     let set_rule_option = MenuOptionSet {
         options: vec![
@@ -21,7 +21,7 @@ pub fn menu_options_settings() -> MenuOptionSets {
             MenuOption::new("LittleOperation"),
             MenuOption::new("TimeAttack"),
         ],
-        layer_num: 2,
+        layer_id: 2,
     };
     MenuOptionSets {
         option_set: vec![main_option, stage_option, set_rule_option],
