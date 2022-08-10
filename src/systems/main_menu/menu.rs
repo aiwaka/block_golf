@@ -8,7 +8,7 @@ use crate::components::main_menu::menu::{
     ChangeMenuLayerEvent, CurrentOption, MenuLayerOptionEntities, MenuLayerPos, MenuOptionResource,
     OptionText,
 };
-use crate::AppState;
+use crate::{AppState, SCREEN_HEIGHT, SCREEN_WIDTH};
 
 use super::menu_contents::menu_options_settings;
 
@@ -28,6 +28,18 @@ fn init_menu_scene(
     init_option2(&mut commands, &asset_server);
 }
 
+fn text_style_from_pos(left: f32, top: f32) -> Style {
+    Style {
+        position_type: PositionType::Absolute,
+        position: Rect {
+            left: Val::Px(left),
+            top: Val::Px(top),
+            ..Default::default()
+        },
+        ..default()
+    }
+}
+
 /// メニューの初期化
 fn init_option2(commands: &mut Commands, asset_server: &Res<AssetServer>) {
     let menu = menu_options_settings();
@@ -38,28 +50,43 @@ fn init_option2(commands: &mut Commands, asset_server: &Res<AssetServer>) {
     for option_set in menu.option_set.iter() {
         layer_option_entities.insert(option_set.layer_id, vec![]);
     }
+    let text_style = TextStyle {
+        font: asset_server.load("fonts/FiraSans-Bold.ttf"),
+        font_size: 40.0,
+        color: Color::WHITE,
+    };
     for option_set in menu.option_set.iter() {
-        for option in option_set.options.iter() {
-            let ent = commands
-                .spawn_bundle(TextBundle {
-                    style: Style {
-                        // position_type: PositionType::Absolute,
+        // テキストの配置位置を決定するための変数
+        let mut text_width_sum = SCREEN_WIDTH * 0.1;
+        let mut text_height_sum = SCREEN_HEIGHT * 0.2;
+        for (opt_idx, option) in option_set.options.iter().enumerate() {
+            let mut text_bundle = TextBundle {
+                text: Text::with_section(
+                    option.name,
+                    text_style.clone(),
+                    TextAlignment {
+                        horizontal: HorizontalAlign::Center,
                         ..default()
                     },
-                    text: Text::with_section(
-                        option.name,
-                        TextStyle {
-                            font: asset_server.load("fonts/FiraSans-Bold.ttf"),
-                            font_size: 40.0,
-                            color: Color::WHITE,
-                        },
-                        TextAlignment {
-                            horizontal: HorizontalAlign::Center,
-                            ..default()
-                        },
-                    ),
-                    ..default()
-                })
+                ),
+                ..default()
+            };
+            let text_width = 40.0 * option.name.len() as f32;
+
+            println!("{}", text_width);
+            if text_width_sum + text_width > SCREEN_WIDTH * 0.8 {
+                // 次を置いたら画面外に出てしまうなら更新してからスタイルを設定
+                text_width_sum = SCREEN_WIDTH * 0.1;
+                text_height_sum += 50.0;
+                text_bundle.style = text_style_from_pos(text_width_sum, text_height_sum);
+            } else {
+                // 大丈夫なら配置してから更新する
+                text_bundle.style = text_style_from_pos(text_width_sum, text_height_sum);
+                text_width_sum += text_width;
+            }
+
+            let ent = commands
+                .spawn_bundle(text_bundle)
                 .insert(Visibility { is_visible: false })
                 .insert(MenuLayerPos(option_set.layer_id))
                 .insert(OptionText)
