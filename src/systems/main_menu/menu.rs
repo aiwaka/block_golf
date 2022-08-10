@@ -16,10 +16,19 @@ use super::menu_contents::menu_options_settings;
 /// （抜けるときにここに入っていないエンティティを削除する）
 struct ResidentEntities(Vec<Entity>);
 
-fn init_option2(mut commands: Commands, entities: Query<Entity>, asset_server: Res<AssetServer>) {
+/// シーン進入時の初期化システム
+fn init_menu_scene(
+    mut commands: Commands,
+    entities: Query<Entity>,
+    asset_server: Res<AssetServer>,
+) {
     // 最初に存在しているentityをすべて保存しておく.
     commands.insert_resource(ResidentEntities(entities.iter().collect::<Vec<Entity>>()));
 
+    init_option2(&mut commands, &asset_server);
+}
+
+fn init_option2(commands: &mut Commands, asset_server: &Res<AssetServer>) {
     let menu = menu_options_settings();
     // let mut option_entities = Vec::<Entity>::new();
     let mut layer_option_entities = HashMap::<u32, Vec<Entity>>::new();
@@ -215,7 +224,7 @@ fn deconstruct_menu(
 pub struct MainMenuPlugin;
 impl Plugin for MainMenuPlugin {
     fn build(&self, app: &mut App) {
-        app.add_system_set(SystemSet::on_enter(AppState::Menu).with_system(init_option2));
+        app.add_system_set(SystemSet::on_enter(AppState::Menu).with_system(init_menu_scene));
         app.add_system_set(SystemSet::on_update(AppState::Menu).with_system(select_options));
         app.add_system_set(SystemSet::on_update(AppState::Menu).with_system(layer_changed));
         app.add_system_set(SystemSet::on_update(AppState::Menu).with_system(back_to_upper_layer));
