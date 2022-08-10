@@ -5,39 +5,16 @@ use bevy::prelude::*;
 
 use crate::components::game::GameRule;
 use crate::components::main_menu::menu::{
-    ChangeMenuLayerEvent, CurrentOption, MenuLayerOptionEntities, MenuLayerPos, MenuOption,
-    MenuOptionResource, MenuOptionSet, MenuOptionSets, OptionText,
+    ChangeMenuLayerEvent, CurrentOption, MenuLayerOptionEntities, MenuLayerPos, MenuOptionResource,
+    OptionText,
 };
 use crate::AppState;
 
-/// これらはMenu状態におけるリソースとして使用する
-struct ResidentEntities(Vec<Entity>);
+use super::menu_contents::menu_options_settings;
 
-fn menu_options_settings() -> MenuOptionSets {
-    let main_option = MenuOptionSet {
-        options: vec![
-            MenuOption::new("Start", 0),
-            MenuOption::new("Set Rule", 1),
-            MenuOption::new("Exit", 2),
-        ],
-        layer_num: 0,
-    };
-    let stage_option = MenuOptionSet {
-        options: vec![MenuOption::new("0", 0)],
-        layer_num: 1,
-    };
-    let set_rule_option = MenuOptionSet {
-        options: vec![
-            MenuOption::new("BallScore", 0),
-            MenuOption::new("LittleOperation", 1),
-            MenuOption::new("TimeAttack", 2),
-        ],
-        layer_num: 2,
-    };
-    MenuOptionSets {
-        option_set: vec![main_option, stage_option, set_rule_option],
-    }
-}
+/// メニュー状態に入ったときに存在したエンティティを保持しておく
+/// （抜けるときにここに入っていないエンティティを削除する）
+struct ResidentEntities(Vec<Entity>);
 
 fn init_option2(mut commands: Commands, entities: Query<Entity>, asset_server: Res<AssetServer>) {
     // 最初に存在しているentityをすべて保存しておく.
@@ -69,7 +46,7 @@ fn init_option2(mut commands: Commands, entities: Query<Entity>, asset_server: R
                     ..default()
                 })
                 .insert(Visibility { is_visible: false })
-                .insert(MenuLayerPos(option_set.layer_num, option.id))
+                .insert(MenuLayerPos(option_set.layer_num))
                 .insert(OptionText)
                 .id();
             // 初めて見る階層番号なら配列を作成, すでにあるならそこに追加
