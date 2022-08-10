@@ -59,7 +59,7 @@ fn init_option2(commands: &mut Commands, asset_server: &Res<AssetServer>) {
         // テキストの配置位置を決定するための変数
         let mut text_width_sum = SCREEN_WIDTH * 0.1;
         let mut text_height_sum = SCREEN_HEIGHT * 0.2;
-        for (opt_idx, option) in option_set.options.iter().enumerate() {
+        for option in option_set.options.iter() {
             let mut text_bundle = TextBundle {
                 text: Text::with_section(
                     option.name,
