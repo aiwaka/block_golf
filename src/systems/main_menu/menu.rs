@@ -118,7 +118,7 @@ fn select_options(
 
     let prev_num = menu_res.current_option_num;
     if key_in.just_pressed(KeyCode::Left) {
-        menu_res.current_option_num = (prev_num + 2) % option_num;
+        menu_res.current_option_num = (prev_num + option_num - 1) % option_num;
     } else if key_in.just_pressed(KeyCode::Right) {
         menu_res.current_option_num = (prev_num + 1) % option_num;
     }
