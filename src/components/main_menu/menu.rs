@@ -19,8 +19,15 @@ pub struct MenuOptionResource {
 /// 0: レイヤー番号
 #[derive(Component)]
 pub struct MenuLayerPos(pub u32);
-/// レイヤーを変更するイベント
-pub struct ChangeMenuLayerEvent(pub u32);
+/// 0: 変更先レイヤー
+/// 1: スタックに追加するかどうか
+pub struct ChangeMenuLayerEvent(pub u32, pub bool);
+impl ChangeMenuLayerEvent {
+    /// スタック追加をデフォルトでtrueとして移動先のみ指定する簡略化メソッド
+    pub fn move_to(to: u32) -> Self {
+        ChangeMenuLayerEvent(to, true)
+    }
+}
 
 /// メニュー全体の設計図となる構造体
 pub struct MenuOptionSets {

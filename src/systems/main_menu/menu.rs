@@ -129,8 +129,10 @@ fn layer_changed(
         menu_res
             .layer_choice_table
             .insert(current_layer, current_option);
-        // レイヤースタックに追加
-        menu_res.layer_stack.push(current_layer);
+        // レイヤースタックに追加する処理
+        if ev.1 {
+            menu_res.layer_stack.push(current_layer);
+        }
         // 新レイヤーの選択肢番号を取得
         let next_init_option = *menu_res.layer_choice_table.get(&next_layer).unwrap();
         for ent in current_option_query.iter() {
@@ -139,7 +141,7 @@ fn layer_changed(
         // 更新処理
         menu_res.current_layer = next_layer;
         menu_res.current_option_num = next_init_option;
-        // ここでCurrentOptionを挿入（FIXME: うまく動かない）
+        // ここでCurrentOptionを挿入
         commands
             .entity(option_entities[next_init_option as usize])
             .insert(CurrentOption);
@@ -155,7 +157,7 @@ fn back_to_upper_layer(
     if key_in.just_pressed(KeyCode::X) {
         // popできたなら移動処理, できなければ無視でOK
         if let Some(last_layer) = menu_res.layer_stack.pop() {
-            event_writer.send(ChangeMenuLayerEvent(last_layer));
+            event_writer.send(ChangeMenuLayerEvent(last_layer, false));
         }
     }
 }
@@ -173,8 +175,8 @@ fn each_option_processing(
         let pos = menu_res.current_option_num;
         match layer {
             0 => match pos {
-                0 => event_writer.send(ChangeMenuLayerEvent(1)),
-                1 => event_writer.send(ChangeMenuLayerEvent(2)),
+                0 => event_writer.send(ChangeMenuLayerEvent::move_to(1)),
+                1 => event_writer.send(ChangeMenuLayerEvent::move_to(2)),
                 2 => {
                     app_exit_events.send_default();
                 }
