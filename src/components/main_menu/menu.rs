@@ -13,6 +13,10 @@ pub struct MenuOptionResource {
     pub layer_stack: Vec<u32>,
     /// レイヤー番号に対して最後にいた選択肢番号を保存しておく
     pub layer_choice_table: HashMap<u32, u32>,
+    /// レイヤーとエンティティを紐付けるハッシュマップ
+    pub layer_option_entities: HashMap<u32, Entity>,
+    /// レイヤーと選択肢数を紐付けるハッシュマップ
+    pub layer_option_num: HashMap<u32, u32>,
 }
 
 /// メニューとして表示される選択肢セットのレイヤー番号を用いた識別子
@@ -20,7 +24,15 @@ pub struct MenuOptionResource {
 #[derive(Component)]
 pub struct MenuLayerPos(pub u32);
 /// レイヤーを変更するイベント
-pub struct ChangeMenuLayerEvent(pub u32);
+/// 0: 変更先レイヤー
+/// 1: スタックに追加するかどうか
+pub struct ChangeMenuLayerEvent(pub u32, pub bool);
+impl ChangeMenuLayerEvent {
+    /// スタック追加をデフォルトでtrueとして移動先のみ指定する簡略化メソッド
+    pub fn moveTo(to: u32) -> Self {
+        ChangeMenuLayerEvent(to, true)
+    }
+}
 
 /// メニュー全体の設計図となる構造体
 pub struct MenuOptionSets {
@@ -29,7 +41,7 @@ pub struct MenuOptionSets {
 
 pub struct MenuOptionSet {
     pub options: Vec<MenuOption>,
-    pub layer_num: u32,
+    pub layer_id: u32,
 }
 
 // TODO: enumをこれに変換するマクロとかあったらよさそう
@@ -46,15 +58,11 @@ impl MenuOption {
         }
     }
 }
-/// 階層ごとにエンティティの順番を保持したいのでこのようなリソースを作る
-/// 0: HashMap<レイヤー番号, Vec<テキストのエンティティ>>
-pub struct MenuLayerOptionEntities(pub HashMap<u32, Vec<Entity>>);
-
 /// 選択肢のテキストであることを表す.
 #[derive(Component)]
 pub struct OptionText;
-/// 選択中オプション
+/// 現在のレイヤー
 #[derive(Component)]
-pub struct CurrentOption;
+pub struct CurrentLayer;
 #[derive(Component)]
 pub struct GameRuleOption(pub GameRule);

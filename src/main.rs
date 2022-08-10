@@ -51,6 +51,31 @@ fn add_events(app: &mut App) {
     app.add_event::<ChangeMenuLayerEvent>();
 }
 
+fn test_text(mut commands: Commands, asset_server: Res<AssetServer>) {
+    let mut options_text_bundle = TextBundle {
+        text: Text::default(),
+        style: Style {
+            margin: Rect {
+                left: Val::Px(20.0),
+                ..Default::default()
+            },
+            ..Default::default()
+        },
+        ..Default::default()
+    };
+    for _ in 0..3 {
+        options_text_bundle.text.sections.push(TextSection {
+            value: "test".to_string(),
+            style: TextStyle {
+                font: asset_server.load("fonts/FiraSans-Bold.ttf"),
+                font_size: 40.0,
+                color: Color::WHITE,
+            },
+        });
+    }
+    commands.spawn_bundle(options_text_bundle);
+}
+
 fn main() {
     let window = WindowDescriptor {
         title: "Block Golf".to_string(),
@@ -63,12 +88,15 @@ fn main() {
     app.insert_resource(window);
     app.add_plugins(DefaultPlugins);
     app.add_system(bevy::input::system::exit_on_esc_system);
+    app.add_startup_system(test_text);
     app.add_plugin(ShapePlugin);
     add_events(&mut app);
     app.add_state(AppState::Menu);
     app.insert_resource(ReportExecutionOrderAmbiguities);
 
     app.add_startup_system(global_setup.label("global_setup"));
+    app.run();
+    return;
     app.add_plugin(MainMenuPlugin);
     app.add_plugin(EffectPlugin);
     app.add_plugin(BackToMenuPlugin);
