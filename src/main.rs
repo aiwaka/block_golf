@@ -10,6 +10,7 @@ use components::{
     block::SpawnBlockEvent,
     game::GameOverEvent,
     goal::SpawnGoalEvent,
+    main_menu::menu::ChangeMenuLayerEvent,
     timer::CountDownTimer,
 };
 use systems::{
@@ -22,7 +23,7 @@ use systems::{
     goal::GoalPlugin,
     info_board::InfoBoardPlugin,
     launcher::LauncherPlugin,
-    main_menu::MainMenuPlugin,
+    main_menu::menu::MainMenuPlugin,
     physics::motion_dynamics::MotionDynamicsPlugin,
     setup::{global_setup, stage_setup},
     timer::TimersPlugin,
@@ -47,6 +48,7 @@ fn add_events(app: &mut App) {
     app.add_event::<SpawnGoalEvent>();
     app.add_event::<SetBallEvent>();
     app.add_event::<GameOverEvent>();
+    app.add_event::<ChangeMenuLayerEvent>();
 }
 
 fn main() {
