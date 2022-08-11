@@ -103,6 +103,7 @@ fn return_to_title(
 /// Menu状態の初期からあったものを除いたすべてのEntityを削除する
 fn deconstruct_objects(
     mut commands: Commands,
+    timer_query: Query<Entity, (With<CountDownTimer>, With<RemainingTime>)>,
     entities: Query<Entity>,
     resident_entities: Res<ResidentEntities>,
 ) {
@@ -111,6 +112,10 @@ fn deconstruct_objects(
             commands.entity(ent).despawn();
         }
     }
+    for ent in timer_query.iter() {
+        commands.entity(ent).despawn();
+    }
+    // タイマーも残っていたら削除する
     commands.remove_resource::<NowGameOver>();
     commands.remove_resource::<ResultInfoStorage>();
 }
