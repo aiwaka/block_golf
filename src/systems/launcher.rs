@@ -82,7 +82,6 @@ fn spawn_launcher(mut commands: Commands, mut event_listener: EventReader<SpawnL
 }
 
 fn rotate_launcher(key_in: Res<Input<KeyCode>>, mut query: Query<(&mut Transform, &mut Launcher)>) {
-    const LAUNCHER_ROTATE_ANGLE: f32 = 0.02;
     for (mut trans, mut launcher) in query.iter_mut() {
         let launcher_rotate_angle = launcher.rotate_speed;
         if key_in.pressed(KeyCode::Right) {
