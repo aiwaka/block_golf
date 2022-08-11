@@ -34,7 +34,7 @@ fn spawn_stage_entities(
     mut goal_event_writer: EventWriter<SpawnGoalEvent>,
     mut ball_event_writer: EventWriter<SetBallEvent>,
 ) {
-    info!("stage setup");
+    // info!("spawn stage entities");
     let stage_info = stage_info.unwrap().clone();
     let launcher_info = stage_info.launcher;
     let block_list = stage_info.blocks;
