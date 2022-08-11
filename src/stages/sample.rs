@@ -3,18 +3,22 @@ use std::f32::consts::{FRAC_PI_2, PI};
 use bevy::prelude::*;
 
 use super::field_blocks::field_block;
-use super::structs::{ArrangeBallInfo, BallInfo, BlockInfo, GoalInfo, LauncherInfo, StageInfo};
+use super::structs::{
+    ArrangeBallInfo, BallInfo, BlockInfo, BlockShapeInfo, GoalInfo, LauncherInfo, StageInfo,
+};
+use crate::components::physics::material::PhysicMaterial;
 use crate::components::{
     ball::BallType,
-    block::{BlockSlidePath, BlockType, RotateStrategy, SlideStrategy},
+    block::{BlockSlidePath, RotateStrategy, SlideStrategy},
 };
 use crate::systems::field::{FIELD_HEIGHT, FIELD_WIDTH};
 
 pub fn sample_stage() -> StageInfo {
+    let material = PhysicMaterial::new(1.0, 1.0, 0.0);
     let block_list = vec![
         BlockInfo {
-            block_type: BlockType::Rect {
-                pos: Vec2::new(-240.0, 70.0),
+            pos: Vec2::new(-240.0, 70.0),
+            block_shape_info: BlockShapeInfo::Rect {
                 extents: Vec2::new(90.0, 120.0),
                 rect_origin: Vec2::ZERO,
                 rotate_strategy: RotateStrategy::NoRotate,
@@ -25,44 +29,38 @@ pub fn sample_stage() -> StageInfo {
                         width: 50.0,
                     },
                 },
-                weight: 1.0,
-                friction: 0.0,
-                restitution: 1.0,
             },
+            material,
             default_angle: 2.0,
             default_pos_param: 0.0,
         },
         BlockInfo {
-            block_type: BlockType::Rect {
-                pos: Vec2::ZERO,
+            pos: Vec2::ZERO,
+            block_shape_info: BlockShapeInfo::Rect {
                 extents: Vec2::new(120.0, 80.0),
                 rect_origin: Vec2::new(30.0, 20.0),
                 rotate_strategy: RotateStrategy::Manual(0.025),
                 slide_strategy: SlideStrategy::NoSlide,
-                weight: 1.0,
-                friction: 0.0,
-                restitution: 1.0,
             },
+            material,
             default_angle: 0.0,
             default_pos_param: 0.0,
         },
         BlockInfo {
-            block_type: BlockType::Rect {
-                pos: Vec2::new(200.0, 50.0),
+            pos: Vec2::new(200.0, 50.0),
+            block_shape_info: BlockShapeInfo::Rect {
                 extents: Vec2::new(120.0, 80.0),
                 rect_origin: Vec2::new(80.0, 0.0),
                 rotate_strategy: RotateStrategy::Auto(0.02),
                 slide_strategy: SlideStrategy::NoSlide,
-                weight: 1.0,
-                friction: 0.0,
-                restitution: 1.0,
             },
+            material,
             default_angle: 1.0,
             default_pos_param: 0.0,
         },
         BlockInfo {
-            block_type: BlockType::Rect {
-                pos: Vec2::new(300.0, -160.0),
+            pos: Vec2::new(300.0, -160.0),
+            block_shape_info: BlockShapeInfo::Rect {
                 extents: Vec2::new(80.0, 30.0),
                 rect_origin: Vec2::new(35.0, 0.0),
                 rotate_strategy: RotateStrategy::Manual(0.1),
@@ -73,10 +71,8 @@ pub fn sample_stage() -> StageInfo {
                         width: 40.0,
                     },
                 },
-                weight: 0.5,
-                friction: 0.0,
-                restitution: 1.0,
             },
+            material,
             default_angle: -FRAC_PI_2,
             default_pos_param: -1.0,
         },

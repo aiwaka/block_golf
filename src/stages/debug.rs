@@ -9,7 +9,7 @@ use super::{field_blocks::field_block, structs::BallInfo};
 use crate::components::physics::material::PhysicMaterial;
 use crate::components::{
     ball::BallType,
-    block::{BlockType, RotateStrategy, SlideStrategy},
+    block::{RotateStrategy, SlideStrategy},
 };
 use crate::systems::field::{FIELD_HEIGHT, FIELD_WIDTH};
 
