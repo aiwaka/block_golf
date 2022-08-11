@@ -68,11 +68,12 @@ fn spawn_launcher(mut commands: Commands, mut event_listener: EventReader<SpawnL
                 },
                 Transform {
                     translation: Vec3::new(ev.pos.x, ev.pos.y, 15.0),
+                    rotation: Quat::from_rotation_z(ev.default_angle),
                     ..Default::default()
                 },
             ))
             .insert(Launcher {
-                angle: 0.0,
+                angle: ev.default_angle,
                 rotate_speed: ev.rotate_speed,
                 min_angle: ev.min_angle,
                 max_angle: ev.max_angle,

@@ -19,6 +19,7 @@ pub fn tutorial_stage1() -> StageInfo {
 
     let launcher_info = LauncherInfo {
         pos: Vec2::new(-FIELD_WIDTH / 2.0 + 30.0, -FIELD_HEIGHT / 2.0 + 30.0),
+        default_angle: 0.0,
         rotate_speed: 0.02,
         min_angle: 0.0,
         max_angle: FRAC_PI_2,
