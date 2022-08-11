@@ -95,6 +95,7 @@ pub fn sample_stage() -> StageInfo {
     }];
 
     StageInfo {
+        stage_title: "sample",
         time: 60 * 60,
         launcher: launcher_info,
         blocks: field_block()

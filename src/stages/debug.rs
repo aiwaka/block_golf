@@ -59,6 +59,7 @@ pub fn debug_stage() -> StageInfo {
     }];
 
     StageInfo {
+        stage_title: "debug",
         time: 10 * 60,
         launcher: launcher_info,
         blocks: field_block()

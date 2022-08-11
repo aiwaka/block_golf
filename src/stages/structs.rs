@@ -9,6 +9,7 @@ use crate::components::{
 };
 
 pub struct StageInfo {
+    pub stage_title: &'static str,
     /// 制限時間（フレーム数）
     pub time: u32,
     /// ランチャー情報（回転可能角度の上限と下限）
