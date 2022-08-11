@@ -10,7 +10,8 @@ use crate::{
         launcher::SpawnLauncherEvent,
         timer::CountDownTimer,
     },
-    stages::sample::sample_stage,
+    // stages::{debug::debug_stage, sample::sample_stage},
+    stages::debug::debug_stage,
 };
 
 pub fn global_setup(mut commands: Commands) {
@@ -32,8 +33,8 @@ pub fn stage_setup(
     commands.insert_resource(PassedTime(0));
 
     info!("stage setup");
-    // let stage_info = debug_stage();
-    let stage_info = sample_stage();
+    let stage_info = debug_stage();
+    // let stage_info = sample_stage();
     let launcher_info = stage_info.launcher;
     let block_list = stage_info.blocks;
     let goal_list = stage_info.goal_pos;
@@ -49,7 +50,8 @@ pub fn stage_setup(
     launcher_event_writer.send(launcher_info.to_spawn_event());
 
     for block in block_list {
-        block_event_writer.send(block.to_spawn_event())
+        // block_event_writer.send(block.to_spawn_event())
+        block_event_writer.send(SpawnBlockEvent::from(&block));
     }
     for ball in ball_list {
         ball_event_writer.send(ball.to_spawn_event())

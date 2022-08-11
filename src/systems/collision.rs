@@ -1,12 +1,14 @@
 use std::f32::EPSILON;
 
 use bevy::prelude::*;
-use bevy_prototype_lyon::prelude::RectangleOrigin;
+use bevy_prototype_lyon::{prelude::RectangleOrigin, shapes::Rectangle};
 
 use crate::{
     components::{
         ball::{Ball, BallNocking, GoalinBall},
-        block::{Block, BlockSlidePath, RectangleBlock, SlideStrategy},
+        block::{
+            Block, BlockOriginalPos, BlockSlidePath, BlockTransform, BlockType, SlideStrategy,
+        },
         goal::GoalHole,
         physics::{force::Force, material::PhysicMaterial, position::Position, velocity::Velocity},
     },
@@ -34,20 +36,20 @@ fn rect_contains_point(center: Vec2, extents: Vec2, p: Vec2) -> bool {
 
 /// 当たり判定をして拘束解消に必要な情報（拘束方向と貫通深度のタプル）を返す
 fn collision_between_block_and_ball(
-    block_info: (&RectangleBlock, &Transform),
+    block_info: (&Rectangle, &Transform, &BlockTransform),
     ball_info: (&Ball, &Transform),
 ) -> Option<(Vec2, f32)> {
     // 矩形の回転軸からの相対位置ベクトル
-    let block_origin = if let RectangleOrigin::CustomCenter(center) = block_info.0.rect.origin {
+    let block_origin = if let RectangleOrigin::CustomCenter(center) = block_info.0.origin {
         center
     } else {
         panic!("not customed origin put")
     };
     // 横縦幅
-    let block_extents = block_info.0.rect.extents;
-    let block_pos = vec3_to_vec2(block_info.1.translation);
-    let block_angle = block_info.0.angle;
-    let ball_pos = vec3_to_vec2(ball_info.1.translation);
+    let block_extents = block_info.0.extents;
+    let block_pos = block_info.1.translation.truncate();
+    let block_angle = block_info.2.angle;
+    let ball_pos = ball_info.1.translation.truncate();
     let ball_radius = ball_info.0.ball_type.radius();
 
     // 原点に限定して判定をする簡単なものをつくっておく
@@ -160,7 +162,9 @@ fn block_ball_collision(
     block_query: Query<
         (
             &Transform,
-            &RectangleBlock,
+            &BlockTransform,
+            &BlockType,
+            &BlockOriginalPos,
             &PhysicMaterial,
             Option<&SlideStrategy>,
         ),
@@ -168,12 +172,30 @@ fn block_ball_collision(
     >,
 ) {
     for (ball_trans, ball, ball_material, mut ball_pos, ball_vel, ent) in ball_query.iter_mut() {
-        for (block_trans, block_rect, block_material, slide_strategy) in block_query.iter() {
-            if let Some((lc_collide_normal, penetrate_depth)) =
-                collision_between_block_and_ball((block_rect, block_trans), (ball, ball_trans))
-            {
+        for (
+            block_trans_prim,
+            block_trans,
+            block_type,
+            block_original_pos,
+            block_material,
+            slide_strategy,
+        ) in block_query.iter()
+        {
+            if let Some((lc_collide_normal, penetrate_depth)) = match *block_type {
+                BlockType::Wall { shape } => collision_between_block_and_ball(
+                    (&shape, block_trans_prim, block_trans),
+                    (ball, ball_trans),
+                ),
+                BlockType::Rect { shape } => collision_between_block_and_ball(
+                    (&shape, block_trans_prim, block_trans),
+                    (ball, ball_trans),
+                ),
+                BlockType::Ellipse { shape } => {
+                    continue;
+                }
+            } {
                 // 局所座標を画面座標に修正
-                let collide_normal = rotate_vec2(lc_collide_normal, block_rect.angle);
+                let collide_normal = rotate_vec2(lc_collide_normal, block_trans.angle);
                 ball_pos.0 += collide_normal * penetrate_depth;
                 let restitution = block_material.restitution * ball_material.restitution;
                 let friction = block_material.friction;
@@ -196,7 +218,26 @@ fn block_ball_collision(
                 } else {
                     BlockSlidePath::NoPath
                 };
-                let prev_vel = ball_vel.0 - block_rect.pos_diff(&path);
+                let delta = match *block_type {
+                    BlockType::Wall { shape } => {
+                        if let RectangleOrigin::CustomCenter(center) = shape.origin {
+                            center
+                        } else {
+                            panic!("custom center error");
+                        }
+                    }
+                    BlockType::Rect { shape } => {
+                        if let RectangleOrigin::CustomCenter(center) = shape.origin {
+                            center
+                        } else {
+                            panic!("custom center error");
+                        }
+                    }
+                    BlockType::Ellipse { shape } => {
+                        continue;
+                    }
+                };
+                let prev_vel = ball_vel.0 - block_trans.pos_diff(&path, delta);
                 // let prev_vel = ball_vel.0;
                 let impulsive_force =
                     (1.0 + restitution) * ball_weight * (-prev_vel).project_onto(collide_normal);

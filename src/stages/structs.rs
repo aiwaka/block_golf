@@ -2,9 +2,10 @@ use bevy::prelude::*;
 
 use crate::components::{
     ball::{BallType, SetBallEvent},
-    block::{BlockType, SpawnBlockEvent},
+    block::{BlockType, RotateStrategy, SlideStrategy, SpawnBlockEvent},
     goal::SpawnGoalEvent,
     launcher::SpawnLauncherEvent,
+    physics::material::PhysicMaterial,
 };
 
 pub struct StageInfo {
@@ -37,20 +38,32 @@ impl LauncherInfo {
     }
 }
 
-/// ブロック一つのの情報
+/// ブロック情報からブロックタイプコンポーネントを作成し, さらに出現イベントを作成する
+pub enum BlockShapeInfo {
+    Wall {
+        extents: Vec2,
+    },
+    Rect {
+        extents: Vec2,     // xyの大きさ
+        rect_origin: Vec2, // 矩形内の位置
+        rotate_strategy: RotateStrategy,
+        slide_strategy: SlideStrategy,
+    },
+    Ellipse {
+        radii: Vec2, // x半径とy半径
+        center: Vec2,
+        rotate_strategy: RotateStrategy,
+        slide_strategy: SlideStrategy,
+    },
+}
+
+/// ブロック一つの情報
 pub struct BlockInfo {
-    pub block_type: BlockType,
+    pub pos: Vec2,
+    pub block_shape_info: BlockShapeInfo,
+    pub material: PhysicMaterial,
     pub default_angle: f32,     // 初期角度
     pub default_pos_param: f32, // 初期位置パラメータ
-}
-impl BlockInfo {
-    pub fn to_spawn_event(&self) -> SpawnBlockEvent {
-        SpawnBlockEvent::from_type(
-            self.block_type.clone(),
-            self.default_angle,
-            self.default_pos_param,
-        )
-    }
 }
 
 /// ボールひとつの情報
