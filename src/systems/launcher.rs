@@ -103,7 +103,7 @@ fn nock_ball(
     mut commands: Commands,
     key_in: Res<Input<KeyCode>>,
     mut spawn_ball_event_writer: EventWriter<SpawnBallEvent>,
-    query: Query<(&Launcher, &LauncherState, Entity)>,
+    query: Query<(&Launcher, &LauncherState, &Transform, Entity)>,
     magazine_query: Query<&BallMagazine>,
     is_gameover: Option<Res<NowGameOver>>,
 ) {
@@ -114,21 +114,22 @@ fn nock_ball(
         return;
     }
     if key_in.just_pressed(KeyCode::Z) {
-        for (_, state, ent) in query.iter() {
+        for (_, state, launcher_trans, ent) in query.iter() {
             if let LauncherState::Waiting = *state {
                 // 待機状態ならボールを一つ読み取ってボール出現イベントを送信
                 let magazine = magazine_query.single();
                 let ball_type = if let Some((ball_type, _)) = magazine.balls.get(0) {
                     *ball_type
                 } else {
-                    // 残りボールが無い状態. 効果音とか鳴らすようにするとよさそう
+                    // 残りボールが無い状態. NOTE: 効果音とか鳴らすようにするとよさそう
                     continue;
                 };
                 commands
                     .entity(ent)
                     .remove::<LauncherState>()
                     .insert(LauncherState::Nocking);
-                spawn_ball_event_writer.send(SpawnBallEvent { ball_type });
+                let pos = launcher_trans.translation.truncate();
+                spawn_ball_event_writer.send(SpawnBallEvent { ball_type, pos });
             }
         }
     }
