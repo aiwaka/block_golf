@@ -106,7 +106,8 @@ fn spawn_result_score(
                             style: Style {
                                 position_type: PositionType::Absolute,
                                 position: Rect {
-                                    top: Val::Px(20.0),
+                                    top: Val::Px(140.0),
+                                    left: Val::Px(40.0),
                                     ..default()
                                 },
                                 ..default()
@@ -161,10 +162,7 @@ fn spawn_result_score(
 pub struct InfoBoardPlugin;
 impl Plugin for InfoBoardPlugin {
     fn build(&self, app: &mut App) {
-        app.add_system_set(
-            SystemSet::on_update(AppState::Game)
-                .with_system(init_timer_display.after("stage_setup")),
-        );
+        app.add_system_set(SystemSet::on_update(AppState::Game).with_system(init_timer_display));
         app.add_system_set(SystemSet::on_update(AppState::Game).with_system(show_remaining_time));
         app.add_system_set(
             SystemSet::on_update(AppState::Game).with_system(pop_ball_from_magazine),

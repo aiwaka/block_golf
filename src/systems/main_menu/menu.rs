@@ -172,17 +172,25 @@ fn layer_changed(
     }
 }
 
-/// キャンセルコマンド処理. Xキーでひとつ上の階層に戻る（選択肢は保存する）
+/// ひとつ上の階層に戻る
 fn back_to_upper_layer(
+    event_writer: &mut EventWriter<ChangeMenuLayerEvent>,
+    menu_res: &mut ResMut<MenuOptionResource>,
+) {
+    // popできたなら移動処理, できなければ無視でOK
+    if let Some(last_layer) = menu_res.layer_stack.pop() {
+        event_writer.send(ChangeMenuLayerEvent(last_layer, false));
+    }
+}
+
+/// キャンセルコマンド処理. Xキーでひとつ上の階層に戻る
+fn cancel_select_option(
     key_in: Res<Input<KeyCode>>,
     mut event_writer: EventWriter<ChangeMenuLayerEvent>,
     mut menu_res: ResMut<MenuOptionResource>,
 ) {
     if key_in.just_pressed(KeyCode::X) {
-        // popできたなら移動処理, できなければ無視でOK
-        if let Some(last_layer) = menu_res.layer_stack.pop() {
-            event_writer.send(ChangeMenuLayerEvent(last_layer, false));
-        }
+        back_to_upper_layer(&mut event_writer, &mut menu_res)
     }
 }
 
@@ -212,6 +220,9 @@ fn each_option_processing(
                 let stage_info = select_stage(stage_idx);
                 // ステージ情報をリソースとして挟む
                 commands.insert_resource(stage_info);
+                // ゲームルールを追加
+                let rule_num = menu_res.layer_choice_table[&2];
+                commands.insert_resource(GameRule::from(rule_num));
                 app_state.set(AppState::Loading).unwrap();
             }
             _ => {}
@@ -242,16 +253,6 @@ fn text_color(
     }
 }
 
-/// ゲームルールをグローバルリソースとしてセット
-fn set_game_rule(mut commands: Commands, menu_res: Res<MenuOptionResource>) {
-    let rule_num = if let Some(layer_choice) = menu_res.layer_choice_table.get(&1) {
-        *layer_choice
-    } else {
-        0u32
-    };
-    commands.insert_resource(GameRule::from(rule_num));
-}
-
 /// Menu状態の初期からあったものを除いたすべてのEntityを削除する
 fn deconstruct_menu(
     mut commands: Commands,
@@ -273,15 +274,12 @@ impl Plugin for MainMenuPlugin {
         app.add_system_set(SystemSet::on_enter(AppState::Menu).with_system(init_menu_scene));
         app.add_system_set(SystemSet::on_update(AppState::Menu).with_system(select_options));
         app.add_system_set(SystemSet::on_update(AppState::Menu).with_system(layer_changed));
-        app.add_system_set(SystemSet::on_update(AppState::Menu).with_system(back_to_upper_layer));
+        app.add_system_set(SystemSet::on_update(AppState::Menu).with_system(cancel_select_option));
         app.add_system_set(
             SystemSet::on_update(AppState::Menu).with_system(each_option_processing),
         );
         app.add_system_set(SystemSet::on_update(AppState::Menu).with_system(show_current_layer));
         app.add_system_set(SystemSet::on_update(AppState::Menu).with_system(text_color));
-        app.add_system_set(
-            SystemSet::on_exit(AppState::Menu).with_system(set_game_rule.before("deconstruct")),
-        );
         app.add_system_set(
             SystemSet::on_exit(AppState::Menu).with_system(deconstruct_menu.label("deconstruct")),
         );
