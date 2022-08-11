@@ -138,7 +138,7 @@ fn game_over(
     }
 }
 
-fn return_to_title(
+fn return_to_title_after_gameover(
     is_gameover: Option<Res<NowGameOver>>,
     timer_query: Query<&WaitForResultDisplay>,
     key_in: Res<Input<KeyCode>>,
@@ -156,16 +156,34 @@ fn return_to_title(
 /// ステージを最初からやり直す
 fn retry(
     mut commands: Commands,
+    is_gameover: Option<Res<NowGameOver>>,
     key_in: Res<Input<KeyCode>>,
     timer_query: Query<Entity, (With<CountDownTimer>, With<RemainingTime>)>,
     mut app_state: ResMut<State<AppState>>,
 ) {
-    if key_in.just_pressed(KeyCode::R) {
+    if key_in.just_pressed(KeyCode::R) && is_gameover.is_none() {
         // タイマー削除する
         for ent in timer_query.iter() {
             commands.entity(ent).despawn();
         }
         app_state.set(AppState::Loading).unwrap();
+    }
+}
+
+/// メニューに戻る
+fn return_to_title_immediately(
+    mut commands: Commands,
+    is_gameover: Option<Res<NowGameOver>>,
+    key_in: Res<Input<KeyCode>>,
+    timer_query: Query<Entity, (With<CountDownTimer>, With<RemainingTime>)>,
+    mut app_state: ResMut<State<AppState>>,
+) {
+    if key_in.just_pressed(KeyCode::B) && is_gameover.is_none() {
+        // タイマー削除する
+        for ent in timer_query.iter() {
+            commands.entity(ent).despawn();
+        }
+        app_state.set(AppState::BackToMenu).unwrap();
     }
 }
 
@@ -219,8 +237,13 @@ impl Plugin for GameManagePlugin {
             SystemSet::on_update(AppState::Game)
                 .with_system(game_over.after("save_score").after("count_down_update")),
         );
-        app.add_system_set(SystemSet::on_update(AppState::Game).with_system(return_to_title));
+        app.add_system_set(
+            SystemSet::on_update(AppState::Game).with_system(return_to_title_after_gameover),
+        );
         app.add_system_set(SystemSet::on_update(AppState::Game).with_system(retry));
+        app.add_system_set(
+            SystemSet::on_update(AppState::Game).with_system(return_to_title_immediately),
+        );
         app.add_system_set(
             SystemSet::on_exit(AppState::Game)
                 .with_system(deconstruct_objects.label("deconstruct")),
