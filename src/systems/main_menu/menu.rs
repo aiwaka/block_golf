@@ -8,6 +8,7 @@ use crate::components::main_menu::menu::{
     ChangeMenuLayerEvent, CurrentOption, MenuLayerOptionEntities, MenuLayerPos, MenuOptionResource,
     OptionText,
 };
+use crate::stages::select_stage;
 use crate::{AppState, SCREEN_HEIGHT, SCREEN_WIDTH};
 
 use super::menu_contents::menu_options_settings;
@@ -187,6 +188,7 @@ fn back_to_upper_layer(
 
 /// 決定キーが押されたときのレイヤーと選択肢位置から処理を行う
 fn each_option_processing(
+    mut commands: Commands,
     mut app_state: ResMut<State<AppState>>,
     key_in: Res<Input<KeyCode>>,
     menu_res: Res<MenuOptionResource>,
@@ -206,8 +208,11 @@ fn each_option_processing(
                 _ => {}
             },
             1 => {
-                app_state.set(AppState::Game).unwrap();
-                info!("{}", pos);
+                let stage_idx = pos as usize;
+                let stage_info = select_stage(stage_idx);
+                // ステージ情報をリソースとして挟む
+                commands.insert_resource(stage_info);
+                app_state.set(AppState::Loading).unwrap();
             }
             _ => {}
         }

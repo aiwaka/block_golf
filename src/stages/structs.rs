@@ -8,6 +8,7 @@ use crate::components::{
     physics::material::PhysicMaterial,
 };
 
+#[derive(Clone)]
 pub struct StageInfo {
     pub stage_title: &'static str,
     /// 制限時間（フレーム数）
@@ -22,6 +23,7 @@ pub struct StageInfo {
     pub goal_pos: Vec<GoalInfo>,
 }
 
+#[derive(Clone)]
 pub struct LauncherInfo {
     pub pos: Vec2,
     pub rotate_speed: f32,
@@ -40,6 +42,7 @@ impl LauncherInfo {
 }
 
 /// ブロック情報からブロックタイプコンポーネントを作成し, さらに出現イベントを作成する
+#[derive(Clone)]
 pub enum BlockShapeInfo {
     Wall {
         extents: Vec2,
@@ -59,6 +62,7 @@ pub enum BlockShapeInfo {
 }
 
 /// ブロック一つの情報
+#[derive(Clone)]
 pub struct BlockInfo {
     pub pos: Vec2,
     pub block_shape_info: BlockShapeInfo,
@@ -68,6 +72,7 @@ pub struct BlockInfo {
 }
 
 /// ボールひとつの情報
+#[derive(Clone)]
 pub struct BallInfo {
     pub ball_type: BallType,
 }
@@ -93,6 +98,7 @@ impl ArrangeBallInfo for Vec<BallInfo> {
     }
 }
 
+#[derive(Clone)]
 pub struct GoalInfo {
     pub pos: Vec2,
     pub radius: f32,

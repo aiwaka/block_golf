@@ -15,19 +15,10 @@ use components::{
     timer::CountDownTimer,
 };
 use systems::{
-    ball::BallPlugin,
-    block::BlockPlugin,
-    collision::CollisionPlugin,
-    effects::EffectPlugin,
-    field::FieldPlugin,
-    game::GameManagePlugin,
-    goal::GoalPlugin,
-    info_board::InfoBoardPlugin,
-    launcher::LauncherPlugin,
-    main_menu::menu::MainMenuPlugin,
-    physics::motion_dynamics::MotionDynamicsPlugin,
-    setup::{global_setup, stage_setup},
-    timer::TimersPlugin,
+    ball::BallPlugin, block::BlockPlugin, collision::CollisionPlugin, effects::EffectPlugin,
+    field::FieldPlugin, game::GameManagePlugin, goal::GoalPlugin, info_board::InfoBoardPlugin,
+    launcher::LauncherPlugin, load::LoadStagePlugin, main_menu::menu::MainMenuPlugin,
+    physics::motion_dynamics::MotionDynamicsPlugin, setup::global_setup, timer::TimersPlugin,
 };
 
 const SCREEN_WIDTH: f32 = 1280.0;
@@ -74,9 +65,10 @@ fn main() {
     app.add_plugin(MainMenuPlugin);
     app.add_plugin(EffectPlugin);
     app.add_plugin(BackToMenuPlugin);
-    app.add_system_set(
-        SystemSet::on_enter(AppState::Game).with_system(stage_setup.label("stage_setup")),
-    );
+    app.add_plugin(LoadStagePlugin);
+    // app.add_system_set(
+    //     SystemSet::on_enter(AppState::Game).with_system(stage_setup.label("stage_setup")),
+    // );
     app.add_plugin(FieldPlugin);
     app.add_plugin(GoalPlugin);
     app.add_plugin(BallPlugin);
