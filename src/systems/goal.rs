@@ -55,9 +55,7 @@ fn execute_goaled_in_ball(
 pub struct GoalPlugin;
 impl Plugin for GoalPlugin {
     fn build(&self, app: &mut App) {
-        app.add_system_set(
-            SystemSet::on_enter(AppState::Game).with_system(spawn_goal.after("stage_setup")),
-        );
+        app.add_system_set(SystemSet::on_enter(AppState::Game).with_system(spawn_goal));
         app.add_system_set(
             SystemSet::on_update(AppState::Game).with_system(execute_goaled_in_ball),
         );

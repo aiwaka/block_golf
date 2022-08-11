@@ -161,9 +161,7 @@ fn slide_block(
 pub struct BlockPlugin;
 impl Plugin for BlockPlugin {
     fn build(&self, app: &mut App) {
-        app.add_system_set(
-            SystemSet::on_enter(AppState::Game).with_system(set_block.after("stage_setup")),
-        );
+        app.add_system_set(SystemSet::on_enter(AppState::Game).with_system(set_block));
         app.add_system_set(SystemSet::on_update(AppState::Game).with_system(rotate_block));
         app.add_system_set(SystemSet::on_update(AppState::Game).with_system(slide_block));
         // app.add_system_set(SystemSet::on_update(AppState::Game).with_system(temp));

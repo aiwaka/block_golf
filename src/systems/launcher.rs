@@ -164,13 +164,8 @@ fn launch_ball(
 pub struct LauncherPlugin;
 impl Plugin for LauncherPlugin {
     fn build(&self, app: &mut App) {
-        app.add_system_set(
-            SystemSet::on_enter(AppState::Game).with_system(spawn_launcher.after("stage_setup")),
-        );
-        app.add_system_set(
-            SystemSet::on_enter(AppState::Game)
-                .with_system(spawn_ball_magazine.after("stage_setup")),
-        );
+        app.add_system_set(SystemSet::on_enter(AppState::Game).with_system(spawn_launcher));
+        app.add_system_set(SystemSet::on_enter(AppState::Game).with_system(spawn_ball_magazine));
         app.add_system_set(SystemSet::on_update(AppState::Game).with_system(rotate_launcher));
         app.add_system_set(SystemSet::on_update(AppState::Game).with_system(nock_ball));
         app.add_system_set(SystemSet::on_update(AppState::Game).with_system(launch_ball));

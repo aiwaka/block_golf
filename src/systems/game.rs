@@ -20,6 +20,18 @@ fn init_game(mut commands: Commands, entities: Query<Entity>) {
     commands.insert_resource(ResidentEntities(entities.iter().collect::<Vec<Entity>>()));
 }
 
+/// スコアに関わる値を更新する
+fn update_score_resources(
+    key_in: Res<Input<KeyCode>>,
+    mut operation_amount: ResMut<OperationAmount>,
+    mut passed_time: ResMut<PassedTime>,
+) {
+    if key_in.any_pressed([KeyCode::Left, KeyCode::Right]) {
+        operation_amount.0 += 1;
+    }
+    passed_time.0 += 1;
+}
+
 /// ルールによって異なる条件を満たしたらゲームオーバーイベントを送る
 fn game_over_check(
     rule: Res<GameRule>,
@@ -123,8 +135,9 @@ fn deconstruct_objects(
 pub struct GameManagePlugin;
 impl Plugin for GameManagePlugin {
     fn build(&self, app: &mut App) {
+        app.add_system_set(SystemSet::on_enter(AppState::Game).with_system(init_game));
         app.add_system_set(
-            SystemSet::on_enter(AppState::Game).with_system(init_game.before("stage_setup")),
+            SystemSet::on_update(AppState::Game).with_system(update_score_resources),
         );
         app.add_system_set(
             SystemSet::on_update(AppState::Game).with_system(
