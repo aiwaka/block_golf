@@ -89,6 +89,7 @@ impl BlockSlidePath {
 }
 
 /// ブロックのタイプ. 矩形, 円形, 中空等
+#[derive(Clone)]
 pub enum BlockType {
     Wall {
         pos: Vec2,
@@ -101,6 +102,16 @@ pub enum BlockType {
         pos: Vec2,         // 位置
         extents: Vec2,     // xyの大きさ
         rect_origin: Vec2, // 矩形内の位置
+        rotate_strategy: RotateStrategy,
+        slide_strategy: SlideStrategy,
+        weight: f32,      // 質量
+        friction: f32,    // 摩擦係数
+        restitution: f32, // 反発係数
+    },
+    Ellipse {
+        pos: Vec2,
+        radius: Vec2, // x半径とy半径
+        origin: Vec2,
         rotate_strategy: RotateStrategy,
         slide_strategy: SlideStrategy,
         weight: f32,      // 質量
@@ -129,6 +140,16 @@ impl From<&BlockType> for Color {
                 friction: _,
                 restitution: _,
             } => Color::CYAN,
+            BlockType::Ellipse {
+                pos: _,
+                radius: _,
+                origin: _,
+                rotate_strategy: _,
+                slide_strategy: _,
+                weight: _,
+                friction: _,
+                restitution: _,
+            } => Color::PINK,
         }
     }
 }

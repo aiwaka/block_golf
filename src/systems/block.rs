@@ -106,6 +106,62 @@ fn set_block(mut commands: Commands, mut event_listener: EventReader<SpawnBlockE
                     },
                 ));
             }
+            BlockType::Ellipse {
+                pos,
+                radius,
+                origin,
+                rotate_strategy,
+                slide_strategy,
+                weight,
+                friction,
+                restitution,
+            } => {
+                let block_shape = shapes::Ellipse {
+                    radii: *radius,
+                    center: *origin,
+                };
+                // TODO: 実装
+                // commands
+                //     .spawn_bundle(GeometryBuilder::build_as(
+                //         &block_shape.clone(),
+                //         DrawMode::Outlined {
+                //             fill_mode: FillMode::color(ev.color),
+                //             outline_mode: StrokeMode::new(Color::DARK_GRAY, 3.0),
+                //         },
+                //         Transform {
+                //             translation: Vec3::new(pos.x, pos.y, 12.0),
+                //             rotation: Quat::from_rotation_z(ev.default_angle),
+                //             ..Default::default()
+                //         },
+                //     ))
+                //     .insert(Block)
+                //     .insert(RectangleBlock {
+                //         original_pos: *pos,
+                //         rect: block_shape,
+                //         angle: ev.default_angle,
+                //         pos_param: ev.default_pos_param,
+                //         prev_angle: ev.default_angle,
+                //         prev_param: ev.default_pos_param,
+                //     })
+                //     .insert(PhysicMaterial::new(
+                //         *restitution,
+                //         *weight / extents.x / extents.y,
+                //         *friction,
+                //     ))
+                //     .insert(rotate_strategy.clone())
+                //     .insert(slide_strategy.clone());
+                // commands.spawn_bundle(GeometryBuilder::build_as(
+                //     &shapes::Circle {
+                //         radius: 10.0,
+                //         center: Vec2::new(0.0, 0.0),
+                //     },
+                //     DrawMode::Fill(FillMode::color(Color::RED)),
+                //     Transform {
+                //         translation: Vec3::new(pos.x, pos.y, 80.0),
+                //         ..Default::default()
+                //     },
+                // ));
+            }
         };
     }
 }

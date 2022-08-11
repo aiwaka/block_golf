@@ -10,6 +10,7 @@ use components::{
     block::SpawnBlockEvent,
     game::GameOverEvent,
     goal::SpawnGoalEvent,
+    launcher::SpawnLauncherEvent,
     main_menu::menu::ChangeMenuLayerEvent,
     timer::CountDownTimer,
 };
@@ -44,6 +45,7 @@ pub enum AppState {
 fn add_events(app: &mut App) {
     app.add_event::<SpawnBallEvent>();
     app.add_event::<LaunchBallEvent>();
+    app.add_event::<SpawnLauncherEvent>();
     app.add_event::<SpawnBlockEvent>();
     app.add_event::<SpawnGoalEvent>();
     app.add_event::<SetBallEvent>();
@@ -66,7 +68,7 @@ fn main() {
     app.add_plugin(ShapePlugin);
     add_events(&mut app);
     app.add_state(AppState::Menu);
-    app.insert_resource(ReportExecutionOrderAmbiguities);
+    // app.insert_resource(ReportExecutionOrderAmbiguities);
 
     app.add_startup_system(global_setup.label("global_setup"));
     app.add_plugin(MainMenuPlugin);
