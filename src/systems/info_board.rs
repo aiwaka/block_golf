@@ -17,6 +17,29 @@ fn frame_to_second(frame: u32) -> String {
     format!("{:>02}", frame / 60)
 }
 
+fn init_note_text(mut commands: Commands, asset_server: Res<AssetServer>) {
+    commands.spawn_bundle(TextBundle {
+        style: Style {
+            position_type: PositionType::Absolute,
+            position: Rect {
+                bottom: Val::Px(20.0),
+                ..default()
+            },
+            ..default()
+        },
+        text: Text::with_section(
+            "R: retry\nB: back to title",
+            TextStyle {
+                font: asset_server.load("fonts/ume-tgs5.ttf"),
+                font_size: 20.0,
+                color: Color::WHITE,
+            },
+            TextAlignment::default(),
+        ),
+        ..default()
+    });
+}
+
 fn init_timer_display(
     mut commands: Commands,
     timer_query: Query<(&CountDownTimer, Entity), Added<RemainingTime>>,
@@ -162,6 +185,7 @@ fn spawn_result_score(
 pub struct InfoBoardPlugin;
 impl Plugin for InfoBoardPlugin {
     fn build(&self, app: &mut App) {
+        app.add_system_set(SystemSet::on_enter(AppState::Game).with_system(init_note_text));
         app.add_system_set(SystemSet::on_update(AppState::Game).with_system(init_timer_display));
         app.add_system_set(SystemSet::on_update(AppState::Game).with_system(show_remaining_time));
         app.add_system_set(
