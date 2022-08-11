@@ -2,7 +2,7 @@ use bevy::prelude::*;
 
 use crate::components::{
     ball::{BallType, SetBallEvent},
-    block::{BlockType, RotateStrategy, SlideStrategy, SpawnBlockEvent},
+    block::{RotateStrategy, SlideStrategy},
     goal::SpawnGoalEvent,
     launcher::SpawnLauncherEvent,
     physics::material::PhysicMaterial,

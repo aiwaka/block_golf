@@ -192,6 +192,7 @@ fn block_ball_collision(
                     &path,
                     (ball, ball_trans),
                 ),
+                // TODO: 楕円形ブロックとの衝突を実装
                 BlockType::Ellipse { shape } => {
                     continue;
                 }
@@ -200,7 +201,7 @@ fn block_ball_collision(
                 let collide_normal = rotate_vec2(lc_collide_normal, block_trans.angle);
                 ball_pos.0 += collide_normal * penetrate_depth;
                 let restitution = block_material.restitution * ball_material.restitution;
-                let friction = block_material.friction;
+                // let friction = block_material.friction;
                 // TODO: ボールタイプを保持するかどうか
                 let ball_weight = ball.ball_type.weight();
 
