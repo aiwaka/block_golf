@@ -9,5 +9,7 @@ edition = "2021"
 bevy = "0.7"
 rand = "0.8"
 itertools = "0.10.3"
-heron = { version = "3.1", features = ["2d"] }
+# heron = { version = "3.1", features = ["2d"] }
+ron = "0.7"
+serde = { version = "1.0", features = ["derive"] }
 bevy_prototype_lyon = "0.5"
