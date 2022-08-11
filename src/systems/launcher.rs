@@ -1,17 +1,16 @@
-use super::field::{FIELD_HEIGHT, FIELD_WIDTH};
 use crate::{
     components::{
         ball::{BallType, LaunchBallEvent, SetBallEvent, SpawnBallEvent},
         game::NowGameOver,
         info::RemainingBall,
-        launcher::{BallMagazine, Launcher, LauncherState},
+        launcher::{BallMagazine, Launcher, LauncherState, SpawnLauncherEvent},
     },
     AppState,
 };
 use bevy::prelude::*;
 use bevy_prototype_lyon::{prelude::*, shapes::Polygon};
-use std::f32::consts::FRAC_PI_2;
 
+/// ランチャーの形の多角形を生成する
 fn construct_launcher_shape() -> Polygon {
     const LAUNCHER_WIDTH: f32 = 50.0;
     shapes::Polygon {
@@ -57,36 +56,43 @@ fn spawn_ball_magazine(mut commands: Commands, mut ball_event_reader: EventReade
     commands.spawn().insert(BallMagazine { balls });
 }
 
-fn spawn_launcher(mut commands: Commands) {
-    let shape = construct_launcher_shape();
-    commands
-        .spawn_bundle(GeometryBuilder::build_as(
-            &shape,
-            DrawMode::Outlined {
-                fill_mode: FillMode::color(Color::BLUE),
-                outline_mode: StrokeMode::new(Color::DARK_GRAY, 2.0),
-            },
-            Transform {
-                translation: Vec3::new(-FIELD_WIDTH / 2.0 + 30.0, -FIELD_HEIGHT / 2.0 + 30.0, 15.0),
-                ..Default::default()
-            },
-        ))
-        .insert(Launcher { angle: 0.0 })
-        .insert(LauncherState::Waiting);
+fn spawn_launcher(mut commands: Commands, mut event_listener: EventReader<SpawnLauncherEvent>) {
+    for ev in event_listener.iter() {
+        let shape = construct_launcher_shape();
+        commands
+            .spawn_bundle(GeometryBuilder::build_as(
+                &shape,
+                DrawMode::Outlined {
+                    fill_mode: FillMode::color(Color::BLUE),
+                    outline_mode: StrokeMode::new(Color::DARK_GRAY, 2.0),
+                },
+                Transform {
+                    translation: Vec3::new(ev.pos.x, ev.pos.y, 15.0),
+                    ..Default::default()
+                },
+            ))
+            .insert(Launcher {
+                angle: 0.0,
+                rotate_speed: ev.rotate_speed,
+                min_angle: ev.min_angle,
+                max_angle: ev.max_angle,
+            })
+            .insert(LauncherState::Waiting);
+    }
 }
 
 fn rotate_launcher(key_in: Res<Input<KeyCode>>, mut query: Query<(&mut Transform, &mut Launcher)>) {
-    const LAUNCHER_ROTATE_ANGLE: f32 = 0.02;
     for (mut trans, mut launcher) in query.iter_mut() {
+        let launcher_rotate_angle = launcher.rotate_speed;
         if key_in.pressed(KeyCode::Right) {
-            launcher.angle -= LAUNCHER_ROTATE_ANGLE;
+            launcher.angle -= launcher_rotate_angle;
         } else if key_in.pressed(KeyCode::Left) {
-            launcher.angle += LAUNCHER_ROTATE_ANGLE;
+            launcher.angle += launcher_rotate_angle;
         }
-        if launcher.angle > FRAC_PI_2 * 1.2 {
-            launcher.angle = FRAC_PI_2 * 1.2;
-        } else if launcher.angle < FRAC_PI_2 * -0.2 {
-            launcher.angle = FRAC_PI_2 * -0.2;
+        if launcher.angle > launcher.max_angle {
+            launcher.angle = launcher.max_angle;
+        } else if launcher.angle < launcher.min_angle {
+            launcher.angle = launcher.min_angle;
         }
         trans.rotation = Quat::from_rotation_z(launcher.angle);
     }
@@ -101,6 +107,9 @@ fn nock_ball(
     is_gameover: Option<Res<NowGameOver>>,
 ) {
     if is_gameover.is_some() {
+        return;
+    }
+    if query.is_empty() {
         return;
     }
     if key_in.just_pressed(KeyCode::Z) {

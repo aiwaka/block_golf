@@ -7,6 +7,7 @@ pub mod game;
 pub mod goal;
 pub mod info_board;
 pub mod launcher;
+pub mod load;
 pub mod main_menu;
 pub mod physics;
 pub mod setup;

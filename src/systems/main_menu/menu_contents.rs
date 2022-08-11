@@ -1,6 +1,11 @@
 //! タイトルメニューの構造定義を行うファイル
 
-use crate::components::main_menu::menu::{MenuOption, MenuOptionSet, MenuOptionSets};
+use itertools::Itertools;
+
+use crate::{
+    components::main_menu::menu::{MenuOption, MenuOptionSet, MenuOptionSets},
+    stages::stage_title_vec,
+};
 
 pub fn menu_options_settings() -> MenuOptionSets {
     let main_option = MenuOptionSet {
@@ -11,8 +16,12 @@ pub fn menu_options_settings() -> MenuOptionSets {
         ],
         layer_id: 0,
     };
+    let stage_options = stage_title_vec()
+        .into_iter()
+        .map(MenuOption::new)
+        .collect_vec();
     let stage_option = MenuOptionSet {
-        options: vec![MenuOption::new("0")],
+        options: stage_options,
         layer_id: 1,
     };
     let set_rule_option = MenuOptionSet {

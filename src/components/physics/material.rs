@@ -1,6 +1,6 @@
 use bevy::prelude::Component;
 
-#[derive(Component)]
+#[derive(Component, Clone, Copy)]
 pub struct PhysicMaterial {
     pub restitution: f32, // 反発係数
     pub density: f32,     // 密度

@@ -1,38 +1,54 @@
 use std::f32::consts::{FRAC_2_PI, FRAC_PI_2};
 
 use bevy::prelude::*;
-use bevy_prototype_lyon::{prelude::RectangleOrigin, shapes::Rectangle};
+use bevy_prototype_lyon::{
+    prelude::RectangleOrigin,
+    shapes::{Ellipse, Rectangle},
+};
+
+use crate::stages::structs::{BlockInfo, BlockShapeInfo};
+
+use super::physics::material::PhysicMaterial;
 
 /// ブロックであることを示す. これを使って衝突判定を行う
 #[derive(Component)]
 pub struct Block;
-// Rectangleをあとで使うためのコンポーネント
+
+/// ブロックの位置パラメータが0のときの位置
 #[derive(Component)]
-pub struct RectangleBlock {
-    pub original_pos: Vec2, // 軌道パラメータが0のときの座標
-    pub rect: Rectangle,
-    pub angle: f32,
+pub struct BlockOriginalPos(pub Vec2);
+
+/// ブロックの位置や角度の情報を持っておくコンポーネント
+#[derive(Component, Default)]
+pub struct BlockTransform {
+    pub angle: f32,     // 現在の角度
     pub pos_param: f32, // 位置を計算するためのパラメータ. Manualの場合[-1, 1]をとるとする.
     /// 直前フレームの位置データを保持して差分を取れるようにする.
     pub prev_angle: f32,
     pub prev_param: f32,
 }
-impl RectangleBlock {
+impl BlockTransform {
+    /// デフォルト角度と位置パラメータから新規生成
+    pub fn new(angle: f32, pos_param: f32) -> Self {
+        Self {
+            angle,
+            pos_param,
+            prev_angle: angle,
+            prev_param: pos_param,
+        }
+    }
     /// そのフレームでの重心周りの角速度
     pub fn angle_diff(&self) -> f32 {
         self.angle - self.prev_angle
     }
     /// そのフレームでの重心の並進速度
-    pub fn pos_diff(&self, path: &BlockSlidePath) -> Vec2 {
-        if let RectangleOrigin::CustomCenter(delta) = self.rect.origin {
-            let current_pos = path.calc_orbit(self.pos_param)
-                + delta * Vec2::new(self.angle.cos(), self.angle.sin());
-            let prev_pos = path.calc_orbit(self.prev_param)
-                + delta * Vec2::new(self.prev_angle.cos(), self.prev_angle.sin());
-            current_pos - prev_pos
-        } else {
-            panic!("not customed center");
-        }
+    /// delta: 重心 - 回転軸 のベクトル（Rectならoriginでよい）
+    pub fn pos_diff(&self, path: &BlockSlidePath, delta: Vec2) -> Vec2 {
+        let current_pos =
+            path.calc_orbit(self.pos_param) + delta * Vec2::new(self.angle.cos(), self.angle.sin());
+        let prev_pos = path.calc_orbit(self.prev_param)
+            + delta * Vec2::new(self.prev_angle.cos(), self.prev_angle.sin());
+        current_pos - prev_pos
     }
 }
 
@@ -89,66 +105,99 @@ impl BlockSlidePath {
 }
 
 /// ブロックのタイプ. 矩形, 円形, 中空等
+/// shapeを保持する
+#[derive(Component, Clone)]
 pub enum BlockType {
-    Wall {
-        pos: Vec2,
-        extents: Vec2,
-        weight: f32,      // 質量
-        friction: f32,    // 摩擦係数
-        restitution: f32, // 反発係数
-    },
-    Rect {
-        pos: Vec2,         // 位置
-        extents: Vec2,     // xyの大きさ
-        rect_origin: Vec2, // 矩形内の位置
-        rotate_strategy: RotateStrategy,
-        slide_strategy: SlideStrategy,
-        weight: f32,      // 質量
-        friction: f32,    // 摩擦係数
-        restitution: f32, // 反発係数
-    },
+    Wall { shape: Rectangle },
+    Rect { shape: Rectangle },
+    Ellipse { shape: Ellipse },
 }
 // タイプのデフォルトカラーを決めておく
 impl From<&BlockType> for Color {
     fn from(t: &BlockType) -> Self {
         match *t {
-            BlockType::Wall {
-                pos: _,
-                extents: _,
-                weight: _,
-                friction: _,
-                restitution: _,
-            } => Color::BLACK,
-            BlockType::Rect {
-                pos: _,
-                extents: _,
-                rect_origin: _,
-                rotate_strategy: _,
-                slide_strategy: _,
-                weight: _,
-                friction: _,
-                restitution: _,
-            } => Color::CYAN,
+            BlockType::Wall { shape: _ } => Color::BLACK,
+            BlockType::Rect { shape: _ } => Color::CYAN,
+            BlockType::Ellipse { shape: _ } => Color::PINK,
         }
     }
 }
 
 /// タイプと色を指定
 pub struct SpawnBlockEvent {
+    pub pos: Vec2,
     pub block_type: BlockType,
-    pub color: Color,
+    pub material: PhysicMaterial,
     pub default_angle: f32,
     pub default_pos_param: f32,
+    pub rotate_strategy: RotateStrategy,
+    pub slide_strategy: SlideStrategy,
 }
 
-impl SpawnBlockEvent {
-    pub fn from_type(block_type: BlockType, default_angle: f32, default_pos_param: f32) -> Self {
-        let color = Color::from(&block_type);
-        SpawnBlockEvent {
-            block_type,
-            color,
-            default_angle,
-            default_pos_param,
+impl From<&BlockInfo> for SpawnBlockEvent {
+    fn from(block_info: &BlockInfo) -> Self {
+        match &block_info.block_shape_info {
+            BlockShapeInfo::Wall { extents } => {
+                let block_type = BlockType::Wall {
+                    shape: Rectangle {
+                        extents: *extents,
+                        origin: RectangleOrigin::CustomCenter(Vec2::ZERO),
+                    },
+                };
+                SpawnBlockEvent {
+                    pos: block_info.pos,
+                    block_type,
+                    material: block_info.material,
+                    default_angle: block_info.default_angle,
+                    default_pos_param: block_info.default_pos_param,
+                    rotate_strategy: RotateStrategy::NoRotate,
+                    slide_strategy: SlideStrategy::NoSlide,
+                }
+            }
+            BlockShapeInfo::Rect {
+                extents,
+                rect_origin,
+                rotate_strategy,
+                slide_strategy,
+            } => {
+                let block_type = BlockType::Rect {
+                    shape: Rectangle {
+                        extents: *extents,
+                        origin: RectangleOrigin::CustomCenter(*rect_origin),
+                    },
+                };
+                SpawnBlockEvent {
+                    pos: block_info.pos,
+                    block_type,
+                    material: block_info.material,
+                    default_angle: block_info.default_angle,
+                    default_pos_param: block_info.default_pos_param,
+                    rotate_strategy: rotate_strategy.clone(),
+                    slide_strategy: slide_strategy.clone(),
+                }
+            }
+            BlockShapeInfo::Ellipse {
+                radii,
+                center,
+                rotate_strategy,
+                slide_strategy,
+            } => {
+                let block_type = BlockType::Ellipse {
+                    shape: Ellipse {
+                        radii: *radii,
+                        center: *center,
+                    },
+                };
+                SpawnBlockEvent {
+                    pos: block_info.pos,
+                    block_type,
+                    material: block_info.material,
+                    default_angle: block_info.default_angle,
+                    default_pos_param: block_info.default_pos_param,
+                    rotate_strategy: rotate_strategy.clone(),
+                    slide_strategy: slide_strategy.clone(),
+                }
+            }
         }
     }
 }

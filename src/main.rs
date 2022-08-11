@@ -10,23 +10,15 @@ use components::{
     block::SpawnBlockEvent,
     game::GameOverEvent,
     goal::SpawnGoalEvent,
+    launcher::SpawnLauncherEvent,
     main_menu::menu::ChangeMenuLayerEvent,
     timer::CountDownTimer,
 };
 use systems::{
-    ball::BallPlugin,
-    block::BlockPlugin,
-    collision::CollisionPlugin,
-    effects::EffectPlugin,
-    field::FieldPlugin,
-    game::GameManagePlugin,
-    goal::GoalPlugin,
-    info_board::InfoBoardPlugin,
-    launcher::LauncherPlugin,
-    main_menu::menu::MainMenuPlugin,
-    physics::motion_dynamics::MotionDynamicsPlugin,
-    setup::{global_setup, stage_setup},
-    timer::TimersPlugin,
+    ball::BallPlugin, block::BlockPlugin, collision::CollisionPlugin, effects::EffectPlugin,
+    field::FieldPlugin, game::GameManagePlugin, goal::GoalPlugin, info_board::InfoBoardPlugin,
+    launcher::LauncherPlugin, load::LoadStagePlugin, main_menu::menu::MainMenuPlugin,
+    physics::motion_dynamics::MotionDynamicsPlugin, setup::global_setup, timer::TimersPlugin,
 };
 
 const SCREEN_WIDTH: f32 = 1280.0;
@@ -44,6 +36,7 @@ pub enum AppState {
 fn add_events(app: &mut App) {
     app.add_event::<SpawnBallEvent>();
     app.add_event::<LaunchBallEvent>();
+    app.add_event::<SpawnLauncherEvent>();
     app.add_event::<SpawnBlockEvent>();
     app.add_event::<SpawnGoalEvent>();
     app.add_event::<SetBallEvent>();
@@ -66,15 +59,16 @@ fn main() {
     app.add_plugin(ShapePlugin);
     add_events(&mut app);
     app.add_state(AppState::Menu);
-    app.insert_resource(ReportExecutionOrderAmbiguities);
+    // app.insert_resource(ReportExecutionOrderAmbiguities);
 
     app.add_startup_system(global_setup.label("global_setup"));
     app.add_plugin(MainMenuPlugin);
     app.add_plugin(EffectPlugin);
     app.add_plugin(BackToMenuPlugin);
-    app.add_system_set(
-        SystemSet::on_enter(AppState::Game).with_system(stage_setup.label("stage_setup")),
-    );
+    app.add_plugin(LoadStagePlugin);
+    // app.add_system_set(
+    //     SystemSet::on_enter(AppState::Game).with_system(stage_setup.label("stage_setup")),
+    // );
     app.add_plugin(FieldPlugin);
     app.add_plugin(GoalPlugin);
     app.add_plugin(BallPlugin);

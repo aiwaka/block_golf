@@ -1,33 +1,27 @@
-// use heron::PhysicMaterial;
-
-use crate::components::{ball::SetBallEvent, block::SpawnBlockEvent, goal::SpawnGoalEvent};
+use self::structs::StageInfo;
 
 pub mod debug;
 mod field_blocks;
 pub mod sample;
+pub mod structs;
 
-pub struct StageInfo {
-    pub time: u32, // フレーム数
-    pub blocks: Vec<SpawnBlockEvent>,
-    pub balls: Vec<SetBallEvent>,
-    pub goal_pos: Vec<SpawnGoalEvent>,
+use debug::debug_stage;
+use itertools::Itertools;
+use sample::sample_stage;
+
+type GenerateStageInfoFunc = fn() -> StageInfo;
+
+fn stage_vec() -> Vec<GenerateStageInfoFunc> {
+    vec![debug_stage, sample_stage]
 }
 
-// struct StageInfo {
-//     blocks: Vec<Block>, // 様々なブロックの配置
-//     floors: Vec<Floor>, // 様々な床の配置
-//     hole_pos: Vec2,     // ゴールの位置
-//     ball_pos: Vec2,     // ボール初期位置
-// }
+pub fn stage_title_vec() -> Vec<&'static str> {
+    stage_vec()
+        .into_iter()
+        .map(|generator| generator().stage_title)
+        .collect_vec()
+}
 
-// struct Block {
-//     operatable: bool,                 // プレイヤーが操作可能かどうか
-//     color: Color,                     // ブロックの色
-//     rot_axis: Vec2,                   // 回転軸位置（中心を原点とする）
-//     position: Vec2,                   // 位置（回転軸からの相対位置とする）
-//     material: Option<PhysicMaterial>, // 材質
-//     ini_angle: f32,                   // 初期角度
-//     rotate_speed: f32, // 回転速度（operatableなら反応の鋭敏さ, notなら自動の回転速度）
-// }
-
-// struct Floor {}
+pub fn select_stage(idx: usize) -> StageInfo {
+    stage_vec()[idx]()
+}
