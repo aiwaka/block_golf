@@ -36,7 +36,8 @@ fn rect_contains_point(center: Vec2, extents: Vec2, p: Vec2) -> bool {
 
 /// 当たり判定をして拘束解消に必要な情報（拘束方向と貫通深度のタプル）を返す
 fn collision_between_block_and_ball(
-    block_info: (&Rectangle, &Transform, &BlockTransform),
+    block_info: (&Rectangle, &BlockOriginalPos, &BlockTransform),
+    block_slide_path: &BlockSlidePath,
     ball_info: (&Ball, &Transform),
 ) -> Option<(Vec2, f32)> {
     // 矩形の回転軸からの相対位置ベクトル
@@ -47,7 +48,7 @@ fn collision_between_block_and_ball(
     };
     // 横縦幅
     let block_extents = block_info.0.extents;
-    let block_pos = block_info.1.translation.truncate();
+    let block_pos = block_info.1 .0 + block_slide_path.calc_orbit(block_info.2.pos_param);
     let block_angle = block_info.2.angle;
     let ball_pos = ball_info.1.translation.truncate();
     let ball_radius = ball_info.0.ball_type.radius();
@@ -161,7 +162,6 @@ fn block_ball_collision(
     >,
     block_query: Query<
         (
-            &Transform,
             &BlockTransform,
             &BlockType,
             &BlockOriginalPos,
@@ -172,22 +172,24 @@ fn block_ball_collision(
     >,
 ) {
     for (ball_trans, ball, ball_material, mut ball_pos, ball_vel, ent) in ball_query.iter_mut() {
-        for (
-            block_trans_prim,
-            block_trans,
-            block_type,
-            block_original_pos,
-            block_material,
-            slide_strategy,
-        ) in block_query.iter()
+        for (block_trans, block_type, block_original_pos, block_material, slide_strategy) in
+            block_query.iter()
         {
+            // 移動軌道を取得
+            let path = if let Some(slide_strategy) = slide_strategy {
+                slide_strategy.get_path()
+            } else {
+                BlockSlidePath::NoPath
+            };
             if let Some((lc_collide_normal, penetrate_depth)) = match *block_type {
                 BlockType::Wall { shape } => collision_between_block_and_ball(
-                    (&shape, block_trans_prim, block_trans),
+                    (&shape, block_original_pos, block_trans),
+                    &path,
                     (ball, ball_trans),
                 ),
                 BlockType::Rect { shape } => collision_between_block_and_ball(
-                    (&shape, block_trans_prim, block_trans),
+                    (&shape, block_original_pos, block_trans),
+                    &path,
                     (ball, ball_trans),
                 ),
                 BlockType::Ellipse { shape } => {
@@ -213,11 +215,6 @@ fn block_ball_collision(
 
                 // 撃力は速度差の単位法線へ射影となり, 衝突後の速度はそれを単に足したものになる.
                 // ブロックが止まっているときを考えたいので相対速度補正
-                let path = if let Some(slide_strategy) = slide_strategy {
-                    slide_strategy.get_path()
-                } else {
-                    BlockSlidePath::NoPath
-                };
                 let delta = match *block_type {
                     BlockType::Wall { shape } => {
                         if let RectangleOrigin::CustomCenter(center) = shape.origin {
