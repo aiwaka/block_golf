@@ -60,7 +60,6 @@ fn save_result_score(
             GameRule::LittleOperation => operation_amount.0,
             GameRule::TimeAttack => passed_time.0,
         };
-        // commands.insert_resource(ResultScore(result_score));
         commands.insert_resource(ResultInfoStorage {
             score: result_score,
         });

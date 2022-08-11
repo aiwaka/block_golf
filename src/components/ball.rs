@@ -78,7 +78,8 @@ impl Ball {
 }
 
 #[derive(Component)]
-pub struct GoalinBall;
+/// 獲得スコアを受け渡す
+pub struct GoalinBall(pub u32);
 
 // ステージ情報とランチャーを受け渡すイベント
 pub struct SetBallEvent {

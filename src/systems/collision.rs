@@ -348,7 +348,7 @@ fn goal_and_ball_collision(
             if let Some(diff_vec) = collision_between_goal_and_ball((ball, ball_trans), goal) {
                 if diff_vec.length() < goal.radius * 0.9 {
                     velocity.0 = Vec2::ZERO;
-                    commands.entity(ball_ent).insert(GoalinBall);
+                    commands.entity(ball_ent).insert(GoalinBall(goal.score));
                 }
             }
         }
