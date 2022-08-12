@@ -4,12 +4,13 @@ use self::{
     tutorial_stage::tutorial_stage1,
 };
 
-pub mod aisle;
-pub mod debug;
-mod field_blocks;
-pub mod sample;
 pub mod structs;
-pub mod tutorial_stage;
+
+mod aisle;
+mod debug;
+mod field_blocks;
+mod sample;
+mod tutorial_stage;
 
 // use debug::debug_stage;
 use itertools::Itertools;
