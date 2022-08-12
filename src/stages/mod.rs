@@ -1,5 +1,6 @@
 use self::{
     aisle::{aisle1, aisle2},
+    jamming::jamming1,
     structs::StageInfo,
     tutorial_stage::tutorial_stage1,
 };
@@ -9,6 +10,7 @@ pub mod structs;
 mod aisle;
 mod debug;
 mod field_blocks;
+mod jamming;
 mod sample;
 mod tutorial_stage;
 
@@ -19,7 +21,7 @@ use sample::sample_stage;
 type GenerateStageInfoFunc = fn() -> StageInfo;
 
 fn stage_vec() -> Vec<GenerateStageInfoFunc> {
-    vec![tutorial_stage1, sample_stage, aisle1, aisle2]
+    vec![tutorial_stage1, sample_stage, aisle1, aisle2, jamming1]
 }
 
 pub fn stage_title_vec() -> Vec<&'static str> {
