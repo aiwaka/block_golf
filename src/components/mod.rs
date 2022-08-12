@@ -1,6 +1,7 @@
 //! components：Componentをつけた構造体や列挙体と, Eventを定義する
 pub mod ball;
 pub mod block;
+pub mod block_attach;
 pub mod effects;
 pub mod field;
 pub mod game;
