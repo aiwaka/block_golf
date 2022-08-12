@@ -26,6 +26,7 @@ pub struct StageInfo {
 #[derive(Clone)]
 pub struct LauncherInfo {
     pub pos: Vec2,
+    pub default_angle: f32,
     pub rotate_speed: f32,
     pub min_angle: f32,
     pub max_angle: f32,
@@ -34,6 +35,7 @@ impl LauncherInfo {
     pub fn to_spawn_event(&self) -> SpawnLauncherEvent {
         SpawnLauncherEvent {
             pos: self.pos,
+            default_angle: self.default_angle,
             rotate_speed: self.rotate_speed,
             min_angle: self.min_angle,
             max_angle: self.max_angle,

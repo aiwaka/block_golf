@@ -89,6 +89,7 @@ pub struct SetBallEvent {
 // ボールを出現させる. 待機状態になる.
 pub struct SpawnBallEvent {
     pub ball_type: BallType,
+    pub pos: Vec2,
 }
 // 実際に発射する.
 pub struct LaunchBallEvent {

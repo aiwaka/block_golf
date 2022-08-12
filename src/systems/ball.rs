@@ -11,15 +11,13 @@ use crate::{
 use bevy::{math::vec2, prelude::*};
 use bevy_prototype_lyon::prelude::*;
 
-use super::field::{FIELD_HEIGHT, FIELD_WIDTH};
-
 fn spawn_ball(mut commands: Commands, mut event_listener: EventReader<SpawnBallEvent>) {
     for ev in event_listener.iter() {
         let ball_shape = shapes::Circle {
             radius: ev.ball_type.radius(),
             ..Default::default()
         };
-        let default_pos = Vec2::new(-FIELD_WIDTH / 2.0 + 60.0, -FIELD_HEIGHT / 2.0 + 60.0);
+        let pos = ev.pos;
         commands
             .spawn_bundle(GeometryBuilder::build_as(
                 &ball_shape,
@@ -28,17 +26,17 @@ fn spawn_ball(mut commands: Commands, mut event_listener: EventReader<SpawnBallE
                     outline_mode: StrokeMode::new(Color::DARK_GRAY, 2.0),
                 },
                 Transform {
-                    translation: Vec3::new(default_pos.x, default_pos.y, 11.0),
+                    translation: pos.extend(11.0),
                     ..Default::default()
                 },
             ))
-            .insert(Ball::new(default_pos, vec2(0.0, 0.0), ev.ball_type))
+            .insert(Ball::new(pos, vec2(0.0, 0.0), ev.ball_type))
             .insert(PhysicMaterial::new(
                 ev.ball_type.restitution(),
                 ev.ball_type.density(),
                 0.0,
             ))
-            .insert(Position(default_pos))
+            .insert(Position(pos))
             .insert(Velocity(Vec2::new(0.0, 0.0)))
             .insert(Acceleration(Vec2::ZERO))
             .insert(BallNocking);
