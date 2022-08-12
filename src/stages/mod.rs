@@ -1,4 +1,8 @@
-use self::{aisle::aisle1, structs::StageInfo, tutorial_stage::tutorial_stage1};
+use self::{
+    aisle::{aisle1, aisle2},
+    structs::StageInfo,
+    tutorial_stage::tutorial_stage1,
+};
 
 pub mod aisle;
 pub mod debug;
@@ -14,7 +18,7 @@ use sample::sample_stage;
 type GenerateStageInfoFunc = fn() -> StageInfo;
 
 fn stage_vec() -> Vec<GenerateStageInfoFunc> {
-    vec![tutorial_stage1, sample_stage, aisle1]
+    vec![tutorial_stage1, sample_stage, aisle1, aisle2]
 }
 
 pub fn stage_title_vec() -> Vec<&'static str> {
