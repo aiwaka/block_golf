@@ -1,10 +1,14 @@
 use bevy::prelude::*;
 use bevy_prototype_lyon::prelude::*;
 
+use crate::events::block::SpawnBlockEvent;
 use crate::{
-    components::block::{
-        Block, BlockOriginalPos, BlockSlidePath, BlockTransform, BlockType, RotateStrategy,
-        SlideStrategy, SpawnBlockEvent,
+    components::{
+        block::{
+            Block, BlockOriginalPos, BlockSlidePath, BlockTransform, BlockType, RotateStrategy,
+            SlideStrategy,
+        },
+        block_attach::BlockAttachment,
     },
     AppState,
 };
@@ -51,7 +55,7 @@ fn set_block(mut commands: Commands, mut event_listener: EventReader<SpawnBlockE
                 },
             ),
         };
-        commands
+        let ent = commands
             .spawn_bundle(shape_bundle)
             .insert(Block)
             .insert(ev.block_type.clone())
@@ -59,7 +63,18 @@ fn set_block(mut commands: Commands, mut event_listener: EventReader<SpawnBlockE
             .insert(BlockTransform::new(ev.default_angle, ev.default_pos_param))
             .insert(ev.material)
             .insert(ev.rotate_strategy.clone())
-            .insert(ev.slide_strategy.clone());
+            .insert(ev.slide_strategy.clone())
+            .id();
+        for com in ev.block_attachment.iter() {
+            match com {
+                BlockAttachment::SwitchReceiver { receiver } => {
+                    commands.entity(ent).insert(receiver.clone());
+                }
+                BlockAttachment::Fan(fan) => {
+                    commands.entity(ent).insert(fan.clone());
+                }
+            }
+        }
         commands.spawn_bundle(GeometryBuilder::build_as(
             &shapes::Circle {
                 radius: 10.0,

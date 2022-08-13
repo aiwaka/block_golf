@@ -1,11 +1,17 @@
 use bevy::prelude::*;
 
-use crate::components::{
-    ball::{BallType, SetBallEvent},
-    block::{RotateStrategy, SlideStrategy},
-    goal::SpawnGoalEvent,
-    launcher::SpawnLauncherEvent,
-    physics::material::PhysicMaterial,
+use crate::events::ball::SetBallEvent;
+use crate::events::goal::SpawnGoalEvent;
+use crate::events::launcher::SpawnLauncherEvent;
+use crate::events::switch::SpawnSwitchEvent;
+use crate::{
+    components::{
+        ball::BallType,
+        block::{RotateStrategy, SlideStrategy},
+        block_attach::{switch::SwitchTile, BlockAttachment},
+        physics::material::PhysicMaterial,
+    },
+    events::ToSpawnEvent,
 };
 
 #[derive(Clone)]
@@ -21,6 +27,8 @@ pub struct StageInfo {
     pub balls: Vec<BallInfo>,
     /// ゴール情報
     pub goal_pos: Vec<GoalInfo>,
+    /// スイッチの送信機の情報
+    pub switches: Vec<SwitchInfo>,
 }
 
 #[derive(Clone)]
@@ -31,8 +39,9 @@ pub struct LauncherInfo {
     pub min_angle: f32,
     pub max_angle: f32,
 }
-impl LauncherInfo {
-    pub fn to_spawn_event(&self) -> SpawnLauncherEvent {
+impl ToSpawnEvent for LauncherInfo {
+    type E = SpawnLauncherEvent;
+    fn to_spawn_event(&self) -> Self::E {
         SpawnLauncherEvent {
             pos: self.pos,
             default_angle: self.default_angle,
@@ -69,8 +78,9 @@ pub struct BlockInfo {
     pub pos: Vec2,
     pub block_shape_info: BlockShapeInfo,
     pub material: PhysicMaterial,
-    pub default_angle: f32,     // 初期角度
-    pub default_pos_param: f32, // 初期位置パラメータ
+    pub default_angle: f32,                     // 初期角度
+    pub default_pos_param: f32,                 // 初期位置パラメータ
+    pub block_attachment: Vec<BlockAttachment>, // ブロックにくっつけるもの
 }
 
 /// ボールひとつの情報
@@ -82,7 +92,10 @@ impl BallInfo {
     pub fn from_type(ball_type: BallType) -> Self {
         BallInfo { ball_type }
     }
-    pub fn to_spawn_event(&self) -> SetBallEvent {
+}
+impl ToSpawnEvent for BallInfo {
+    type E = SetBallEvent;
+    fn to_spawn_event(&self) -> Self::E {
         SetBallEvent {
             ball_type: self.ball_type,
         }
@@ -106,12 +119,28 @@ pub struct GoalInfo {
     pub radius: f32,
     pub score: u32,
 }
-impl GoalInfo {
-    pub fn to_spawn_event(&self) -> SpawnGoalEvent {
+impl ToSpawnEvent for GoalInfo {
+    type E = SpawnGoalEvent;
+    fn to_spawn_event(&self) -> Self::E {
         SpawnGoalEvent {
             pos: self.pos,
             radius: self.radius,
             score: self.score,
+        }
+    }
+}
+
+#[derive(Clone)]
+pub struct SwitchInfo {
+    pub component: SwitchTile,
+    pub pos: Vec2,
+}
+impl ToSpawnEvent for SwitchInfo {
+    type E = SpawnSwitchEvent;
+    fn to_spawn_event(&self) -> Self::E {
+        SpawnSwitchEvent {
+            component: self.component.clone(),
+            pos: self.pos,
         }
     }
 }

@@ -3,12 +3,12 @@ use bevy::prelude::*;
 
 use crate::{
     components::{
-        ball::SpawnBallEvent,
         game::{NowGameOver, ResultInfoStorage},
         info::{ConsumingBall, RemainingBall, RemainingTime, ResultText, WaitForResultDisplay},
         launcher::BallMagazine,
         timer::CountDownTimer,
     },
+    events::ball::SpawnBallEvent,
     AppState,
 };
 

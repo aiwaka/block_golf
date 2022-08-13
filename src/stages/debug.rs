@@ -27,6 +27,7 @@ pub fn debug_stage() -> StageInfo {
             material,
             default_angle: 0.0,
             default_pos_param: 0.0,
+            block_attachment: vec![],
         },
         BlockInfo {
             pos: Vec2::new(0.0, 0.0),
@@ -39,6 +40,7 @@ pub fn debug_stage() -> StageInfo {
             material,
             default_angle: 0.0,
             default_pos_param: 0.0,
+            block_attachment: vec![],
         },
     ];
 
@@ -69,5 +71,6 @@ pub fn debug_stage() -> StageInfo {
             .collect::<Vec<BlockInfo>>(),
         balls: ball_list,
         goal_pos: goal_list,
+        switches: vec![],
     }
 }

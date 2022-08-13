@@ -5,9 +5,10 @@ use crate::{
     components::{
         ball::GoalinBall,
         game::{GoaledBall, Score},
-        goal::{GoalHole, SpawnGoalEvent},
+        goal::GoalHole,
         physics::{position::Position, velocity::Velocity},
     },
+    events::goal::SpawnGoalEvent,
     AppState,
 };
 

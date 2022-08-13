@@ -18,8 +18,6 @@ impl From<u32> for GameRule {
     }
 }
 
-pub struct GameOverEvent;
-
 /// ゴールしたボール
 pub struct GoaledBall(pub u32);
 /// 最初のボールの総数
