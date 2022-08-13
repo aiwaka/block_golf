@@ -60,13 +60,20 @@ fn switch_state_changed(
                     .insert(CountDownTimer::new_will_not_be_removed(count));
             }
 
-            // FIXME: 色が変化しない
-            if let DrawMode::Fill(ref mut fill_mode) = *draw_mode {
+            if let DrawMode::Outlined {
+                ref mut fill_mode,
+                outline_mode: _,
+            } = *draw_mode
+            {
                 fill_mode.color = Color::DARK_GREEN;
             }
         } else if !switch.active {
             info!("switch {:?} is not active", ent);
-            if let DrawMode::Fill(ref mut fill_mode) = *draw_mode {
+            if let DrawMode::Outlined {
+                ref mut fill_mode,
+                outline_mode: _,
+            } = *draw_mode
+            {
                 fill_mode.color = Color::YELLOW_GREEN;
             }
         }
