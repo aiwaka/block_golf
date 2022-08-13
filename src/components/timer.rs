@@ -23,6 +23,14 @@ impl CountDownTimer {
             ..Default::default()
         }
     }
+    /// 自動でエンティティを削除されないコンポーネントとして作成する（このコンポーネント自体は終了時取り除かれる）
+    pub fn new_will_not_be_removed(count: u32) -> Self {
+        Self {
+            count,
+            auto_despawn: false,
+            ..Default::default()
+        }
+    }
     pub fn tick(&mut self) {
         if !self.pause && self.count > 0 {
             self.count -= 1;
