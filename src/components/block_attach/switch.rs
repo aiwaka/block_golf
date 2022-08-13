@@ -15,6 +15,8 @@ pub struct SwitchTile {
     pub auto_reverse: Option<u32>,
     /// SwitchTargetに付けた整数を指定して効果対象を限定する.
     pub target_id: u32,
+    /// 大きさ
+    pub extents: Vec2,
 }
 
 /// 変更する内容ごとにここに登録する
