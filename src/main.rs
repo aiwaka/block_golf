@@ -8,6 +8,7 @@ use bevy_prototype_lyon::prelude::*;
 use components::{
     ball::{LaunchBallEvent, SetBallEvent, SpawnBallEvent},
     block::SpawnBlockEvent,
+    block_attach::switch::SpawnSwitchEvent,
     game::GameOverEvent,
     goal::SpawnGoalEvent,
     launcher::SpawnLauncherEvent,
@@ -40,6 +41,7 @@ fn add_events(app: &mut App) {
     app.add_event::<SpawnBlockEvent>();
     app.add_event::<SpawnGoalEvent>();
     app.add_event::<SetBallEvent>();
+    app.add_event::<SpawnSwitchEvent>();
     app.add_event::<GameOverEvent>();
     app.add_event::<ChangeMenuLayerEvent>();
 }

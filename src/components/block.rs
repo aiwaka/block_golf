@@ -8,7 +8,7 @@ use bevy_prototype_lyon::{
 
 use crate::stages::structs::{BlockInfo, BlockShapeInfo};
 
-use super::physics::material::PhysicMaterial;
+use super::{block_attach::BlockAttachment, physics::material::PhysicMaterial};
 
 /// ブロックであることを示す. これを使って衝突判定を行う
 #[derive(Component)]
@@ -53,7 +53,7 @@ impl BlockTransform {
 }
 
 /// 回転の方法
-#[derive(Component, Clone)]
+#[derive(Component, Clone, Debug)]
 pub enum RotateStrategy {
     NoRotate,
     Manual(f32),
@@ -61,7 +61,7 @@ pub enum RotateStrategy {
 }
 
 /// 移動の方法
-#[derive(Component, Clone)]
+#[derive(Component, Clone, Debug)]
 pub enum SlideStrategy {
     NoSlide,
     Manual { speed: f32, path: BlockSlidePath }, // キー入力で移動
@@ -80,7 +80,7 @@ impl SlideStrategy {
     }
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub enum BlockSlidePath {
     NoPath,
     StandardLine { theta: f32, width: f32 }, // X軸からの角度を引数に取る
@@ -132,6 +132,7 @@ pub struct SpawnBlockEvent {
     pub default_pos_param: f32,
     pub rotate_strategy: RotateStrategy,
     pub slide_strategy: SlideStrategy,
+    pub block_attachment: Vec<BlockAttachment>,
 }
 
 impl From<&BlockInfo> for SpawnBlockEvent {
@@ -152,6 +153,7 @@ impl From<&BlockInfo> for SpawnBlockEvent {
                     default_pos_param: block_info.default_pos_param,
                     rotate_strategy: RotateStrategy::NoRotate,
                     slide_strategy: SlideStrategy::NoSlide,
+                    block_attachment: block_info.block_attachment.clone(),
                 }
             }
             BlockShapeInfo::Rect {
@@ -174,6 +176,7 @@ impl From<&BlockInfo> for SpawnBlockEvent {
                     default_pos_param: block_info.default_pos_param,
                     rotate_strategy: rotate_strategy.clone(),
                     slide_strategy: slide_strategy.clone(),
+                    block_attachment: block_info.block_attachment.clone(),
                 }
             }
             BlockShapeInfo::Ellipse {
@@ -196,6 +199,7 @@ impl From<&BlockInfo> for SpawnBlockEvent {
                     default_pos_param: block_info.default_pos_param,
                     rotate_strategy: rotate_strategy.clone(),
                     slide_strategy: slide_strategy.clone(),
+                    block_attachment: block_info.block_attachment.clone(),
                 }
             }
         }

@@ -30,6 +30,7 @@ pub fn aisle1() -> StageInfo {
             material,
             default_angle: 0.0,
             default_pos_param: 0.0,
+            block_attachment: vec![],
         },
         BlockInfo {
             pos: orig_point,
@@ -42,6 +43,7 @@ pub fn aisle1() -> StageInfo {
             material,
             default_angle: 0.0,
             default_pos_param: 0.0,
+            block_attachment: vec![],
         },
     ];
 
@@ -90,6 +92,7 @@ pub fn aisle2() -> StageInfo {
             material,
             default_angle: 0.0,
             default_pos_param: 0.0,
+            block_attachment: vec![],
         },
         BlockInfo {
             pos: Vec2::new(-FIELD_WIDTH / 2.0 - 30.0, FIELD_HEIGHT / 2.0 - 60.0),
@@ -108,6 +111,7 @@ pub fn aisle2() -> StageInfo {
             material,
             default_angle: 0.0,
             default_pos_param: 0.0,
+            block_attachment: vec![],
         },
     ];
 

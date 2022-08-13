@@ -1,7 +1,14 @@
 use bevy::prelude::*;
 
+use crate::components::block::{RotateStrategy, SlideStrategy};
+
+pub struct SpawnSwitchEvent {
+    pub component: SwitchTile,
+    pub pos: Vec2,
+}
+
 /// ボールが踏んで何らかの効果を発動させるスイッチ
-#[derive(Component)]
+#[derive(Component, Clone, Debug)]
 pub struct SwitchTile {
     /// 押された瞬間のみtrueになるフラグ
     pub just_active: bool,
@@ -15,7 +22,22 @@ pub struct SwitchTile {
     pub target_id: u32,
 }
 
-#[derive(Component)]
-pub struct SwitchTarget {
+/// 変更する内容ごとにここに登録する
+#[derive(Clone, Debug)]
+pub enum SwitchType {
+    ChangeSlideStrategy {
+        before: SlideStrategy,
+        after: SlideStrategy,
+    },
+    ChangeRotateStrategy {
+        before: RotateStrategy,
+        after: RotateStrategy,
+    },
+    ToggleFanActive,
+}
+
+#[derive(Component, Clone, Debug)]
+pub struct SwitchReceiver {
+    pub switch_type: SwitchType,
     pub target_id: u32,
 }

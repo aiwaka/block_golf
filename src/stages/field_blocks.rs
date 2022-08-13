@@ -15,6 +15,7 @@ pub fn field_block() -> Vec<BlockInfo> {
             material,
             default_angle: 0.0,
             default_pos_param: 0.0,
+            block_attachment: vec![],
         },
         BlockInfo {
             pos: Vec2::new(-FIELD_WIDTH / 2.0 - 30.0, 0.0),
@@ -24,6 +25,7 @@ pub fn field_block() -> Vec<BlockInfo> {
             material,
             default_angle: 0.0,
             default_pos_param: 0.0,
+            block_attachment: vec![],
         },
         BlockInfo {
             pos: Vec2::new(0.0, FIELD_HEIGHT / 2.0 + 30.0),
@@ -33,6 +35,7 @@ pub fn field_block() -> Vec<BlockInfo> {
             material,
             default_angle: 0.0,
             default_pos_param: 0.0,
+            block_attachment: vec![],
         },
         BlockInfo {
             pos: Vec2::new(0.0, -FIELD_HEIGHT / 2.0 - 30.0),
@@ -42,6 +45,7 @@ pub fn field_block() -> Vec<BlockInfo> {
             material,
             default_angle: 0.0,
             default_pos_param: 0.0,
+            block_attachment: vec![],
         },
     ]
 }

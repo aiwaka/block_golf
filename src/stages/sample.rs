@@ -33,6 +33,7 @@ pub fn sample_stage() -> StageInfo {
             material,
             default_angle: 2.0,
             default_pos_param: 0.0,
+            block_attachment: vec![],
         },
         BlockInfo {
             pos: Vec2::ZERO,
@@ -45,6 +46,7 @@ pub fn sample_stage() -> StageInfo {
             material,
             default_angle: 0.0,
             default_pos_param: 0.0,
+            block_attachment: vec![],
         },
         BlockInfo {
             pos: Vec2::new(200.0, 50.0),
@@ -57,6 +59,7 @@ pub fn sample_stage() -> StageInfo {
             material,
             default_angle: 1.0,
             default_pos_param: 0.0,
+            block_attachment: vec![],
         },
         BlockInfo {
             pos: Vec2::new(300.0, -160.0),
@@ -75,6 +78,7 @@ pub fn sample_stage() -> StageInfo {
             material,
             default_angle: -FRAC_PI_2,
             default_pos_param: -1.0,
+            block_attachment: vec![],
         },
     ];
 

@@ -1,5 +1,6 @@
 pub mod ball;
 pub mod block;
+pub mod block_attach;
 pub mod collision;
 pub mod effects;
 pub mod field;

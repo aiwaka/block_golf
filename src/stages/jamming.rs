@@ -31,6 +31,7 @@ pub fn jamming1() -> StageInfo {
                 material,
                 default_angle: (i * j) as f32,
                 default_pos_param: 0.0,
+                block_attachment: vec![],
             })
         }
     }
