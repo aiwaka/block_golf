@@ -3,6 +3,7 @@ use bevy_prototype_lyon::{prelude::*, shapes::Rectangle};
 
 use crate::{
     components::{
+        block::{RotateStrategy, SlideStrategy},
         block_attach::switch::{SwitchReceiver, SwitchTile, SwitchType},
         timer::CountDownTimer,
     },
@@ -37,9 +38,9 @@ fn spawn_switch(mut commands: Commands, mut event_reader: EventReader<SpawnSwitc
     }
 }
 
-/// タイマーが切れたらスイッチのactiveを切る
-fn deactivate_switch(mut query: Query<(&mut SwitchTile, &CountDownTimer, Entity)>) {
-    for (mut switch, timer, ent) in query.iter_mut() {
+/// タイマーが切れたらスイッチのactiveを切る（タイマーは自動で除去される）
+fn deactivate_switch(mut query: Query<(&mut SwitchTile, &CountDownTimer)>) {
+    for (mut switch, timer) in query.iter_mut() {
         if timer.is_finished() {
             switch.active = false;
         }
@@ -53,7 +54,7 @@ fn switch_state_changed(
 ) {
     for (switch, mut draw_mode, ent) in query.iter_mut() {
         if switch.just_active {
-            info!("switch {:?} is just active", ent);
+            // info!("switch {:?} is just active", ent);
             if let Some(count) = switch.auto_reverse {
                 commands
                     .entity(ent)
@@ -68,7 +69,7 @@ fn switch_state_changed(
                 fill_mode.color = Color::DARK_GREEN;
             }
         } else if !switch.active {
-            info!("switch {:?} is not active", ent);
+            // info!("switch {:?} is not active", ent);
             if let DrawMode::Outlined {
                 ref mut fill_mode,
                 outline_mode: _,
@@ -85,24 +86,45 @@ fn off_just_active(mut query: Query<(&mut SwitchTile, Entity)>) {
     for (mut switch, ent) in query.iter_mut() {
         if switch.just_active {
             switch.just_active = false;
-            info!("off just active {:?}", ent);
+            // info!("off just active {:?}", ent);
         }
     }
 }
 
 fn execute_change_by_switch(
     mut commands: Commands,
-    switch_query: Query<&SwitchTile>,
-    receiver_query: Query<&SwitchReceiver>,
+    switch_query: Query<&SwitchTile, Changed<SwitchTile>>,
+    receiver_query: Query<(&SwitchReceiver, Entity)>,
 ) {
     for switch in switch_query.iter() {
         let target_id = switch.target_id;
-        for attachment in receiver_query.iter() {
-            if target_id == attachment.target_id {
-                match &attachment.switch_type {
-                    SwitchType::ChangeRotateStrategy { before, after } => {}
-                    SwitchType::ChangeSlideStrategy { before, after } => {}
-                    SwitchType::ToggleFanActive => {}
+        if switch.just_active {
+            for (attachment, ent) in receiver_query.iter() {
+                if target_id == attachment.target_id {
+                    match &attachment.switch_type {
+                        SwitchType::ChangeRotateStrategy { before: _, after } => {
+                            info!("{:?}", after);
+                            commands.entity(ent).insert(after.clone());
+                        }
+                        SwitchType::ChangeSlideStrategy { before: _, after } => {
+                            commands.entity(ent).insert(after.clone());
+                        }
+                        SwitchType::ToggleFanActive => {}
+                    }
+                }
+            }
+        } else if !switch.active {
+            for (attachment, ent) in receiver_query.iter() {
+                if target_id == attachment.target_id {
+                    match &attachment.switch_type {
+                        SwitchType::ChangeRotateStrategy { before, after: _ } => {
+                            commands.entity(ent).insert(before.clone());
+                        }
+                        SwitchType::ChangeSlideStrategy { before, after: _ } => {
+                            commands.entity(ent).insert(before.clone());
+                        }
+                        SwitchType::ToggleFanActive => {}
+                    }
                 }
             }
         }
@@ -121,6 +143,9 @@ impl Plugin for SwitchPlugin {
         app.add_system_set(
             SystemSet::on_update(AppState::Game)
                 .with_system(deactivate_switch.after("count_down_update")),
+        );
+        app.add_system_set(
+            SystemSet::on_update(AppState::Game).with_system(execute_change_by_switch),
         );
         app.add_system_to_stage(CoreStage::Last, off_just_active);
     }
