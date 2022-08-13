@@ -1,20 +1,13 @@
 mod components;
+mod events;
 mod stages;
 mod systems;
 
 use bevy::{ecs::schedule::ReportExecutionOrderAmbiguities, prelude::*};
 use bevy_prototype_lyon::prelude::*;
 
-use components::{
-    ball::{LaunchBallEvent, SetBallEvent, SpawnBallEvent},
-    block::SpawnBlockEvent,
-    block_attach::switch::SpawnSwitchEvent,
-    game::GameOverEvent,
-    goal::SpawnGoalEvent,
-    launcher::SpawnLauncherEvent,
-    main_menu::menu::ChangeMenuLayerEvent,
-    timer::CountDownTimer,
-};
+use components::timer::CountDownTimer;
+use events::add_events;
 use systems::{
     ball::BallPlugin, block::BlockPlugin, collision::CollisionPlugin, effects::EffectPlugin,
     field::FieldPlugin, game::GameManagePlugin, goal::GoalPlugin, info_board::InfoBoardPlugin,
@@ -32,18 +25,6 @@ pub enum AppState {
     Game,
     BackToMenu,
     Result,
-}
-
-fn add_events(app: &mut App) {
-    app.add_event::<SpawnBallEvent>();
-    app.add_event::<LaunchBallEvent>();
-    app.add_event::<SpawnLauncherEvent>();
-    app.add_event::<SpawnBlockEvent>();
-    app.add_event::<SpawnGoalEvent>();
-    app.add_event::<SetBallEvent>();
-    app.add_event::<SpawnSwitchEvent>();
-    app.add_event::<GameOverEvent>();
-    app.add_event::<ChangeMenuLayerEvent>();
 }
 
 fn main() {

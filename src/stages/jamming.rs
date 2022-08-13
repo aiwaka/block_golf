@@ -62,5 +62,6 @@ pub fn jamming1() -> StageInfo {
             .collect::<Vec<BlockInfo>>(),
         balls: ball_list,
         goal_pos: goal_list,
+        switches: vec![],
     }
 }

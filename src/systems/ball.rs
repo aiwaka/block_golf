@@ -1,11 +1,12 @@
 use crate::{
     components::{
-        ball::{Ball, BallNocking, LaunchBallEvent, SpawnBallEvent},
+        ball::{Ball, BallNocking},
         physics::{
             acceleration::Acceleration, material::PhysicMaterial, position::Position,
             velocity::Velocity,
         },
     },
+    events::ball::{LaunchBallEvent, SpawnBallEvent},
     AppState,
 };
 use bevy::{math::vec2, prelude::*};

@@ -2,16 +2,16 @@ use bevy::prelude::*;
 
 use crate::{
     components::{
-        ball::SetBallEvent,
-        block::SpawnBlockEvent,
         game::{
-            GameOverEvent, GameRule, GoaledBall, InitialBallNum, NowGameOver, OperationAmount,
-            PassedTime, ResultInfoStorage, Score,
+            GameRule, GoaledBall, InitialBallNum, NowGameOver, OperationAmount, PassedTime,
+            ResultInfoStorage, Score,
         },
-        goal::SpawnGoalEvent,
         info::{RemainingTime, WaitForResultDisplay},
-        launcher::SpawnLauncherEvent,
         timer::CountDownTimer,
+    },
+    events::{
+        ball::SetBallEvent, block::SpawnBlockEvent, game::GameOverEvent, goal::SpawnGoalEvent,
+        launcher::SpawnLauncherEvent, ToSpawnEvent,
     },
     stages::structs::StageInfo,
     AppState,
@@ -51,7 +51,7 @@ fn spawn_stage_entities(
     launcher_event_writer.send(launcher_info.to_spawn_event());
 
     for block in block_list {
-        block_event_writer.send(SpawnBlockEvent::from(&block));
+        block_event_writer.send(block.to_spawn_event());
     }
     for ball in ball_list {
         ball_event_writer.send(ball.to_spawn_event())

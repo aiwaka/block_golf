@@ -1,11 +1,12 @@
 use bevy::prelude::*;
 use bevy_prototype_lyon::prelude::*;
 
+use crate::events::block::SpawnBlockEvent;
 use crate::{
     components::{
         block::{
             Block, BlockOriginalPos, BlockSlidePath, BlockTransform, BlockType, RotateStrategy,
-            SlideStrategy, SpawnBlockEvent,
+            SlideStrategy,
         },
         block_attach::BlockAttachment,
     },

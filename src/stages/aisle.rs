@@ -74,6 +74,7 @@ pub fn aisle1() -> StageInfo {
             .collect::<Vec<BlockInfo>>(),
         balls: ball_list,
         goal_pos: goal_list,
+        switches: vec![],
     }
 }
 
@@ -142,5 +143,6 @@ pub fn aisle2() -> StageInfo {
             .collect::<Vec<BlockInfo>>(),
         balls: ball_list,
         goal_pos: goal_list,
+        switches: vec![],
     }
 }

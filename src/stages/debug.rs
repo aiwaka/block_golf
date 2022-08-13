@@ -71,5 +71,6 @@ pub fn debug_stage() -> StageInfo {
             .collect::<Vec<BlockInfo>>(),
         balls: ball_list,
         goal_pos: goal_list,
+        switches: vec![],
     }
 }

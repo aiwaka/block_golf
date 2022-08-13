@@ -1,9 +1,13 @@
 use crate::{
     components::{
-        ball::{BallType, LaunchBallEvent, SetBallEvent, SpawnBallEvent},
+        ball::BallType,
         game::NowGameOver,
         info::RemainingBall,
-        launcher::{BallMagazine, Launcher, LauncherState, SpawnLauncherEvent},
+        launcher::{BallMagazine, Launcher, LauncherState},
+    },
+    events::{
+        ball::{LaunchBallEvent, SetBallEvent, SpawnBallEvent},
+        launcher::SpawnLauncherEvent,
     },
     AppState,
 };

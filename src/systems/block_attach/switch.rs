@@ -1,7 +1,9 @@
 use bevy::prelude::*;
 use bevy_prototype_lyon::{prelude::*, shapes::Rectangle};
 
-use crate::{components::block_attach::switch::{SpawnSwitchEvent, SwitchTile}, AppState};
+use crate::{
+    components::block_attach::switch::SwitchTile, events::switch::SpawnSwitchEvent, AppState,
+};
 
 fn spawn_switch(mut commands: Commands, mut event_reader: EventReader<SpawnSwitchEvent>) {
     for ev in event_reader.iter() {

@@ -2,11 +2,6 @@ use bevy::prelude::*;
 
 use crate::components::block::{RotateStrategy, SlideStrategy};
 
-pub struct SpawnSwitchEvent {
-    pub component: SwitchTile,
-    pub pos: Vec2,
-}
-
 /// ボールが踏んで何らかの効果を発動させるスイッチ
 #[derive(Component, Clone, Debug)]
 pub struct SwitchTile {

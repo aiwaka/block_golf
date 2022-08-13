@@ -19,6 +19,7 @@ pub struct MenuOptionResource {
 /// 0: レイヤー番号
 #[derive(Component)]
 pub struct MenuLayerPos(pub u32);
+
 /// 0: 変更先レイヤー
 /// 1: スタックに追加するかどうか
 pub struct ChangeMenuLayerEvent(pub u32, pub bool);

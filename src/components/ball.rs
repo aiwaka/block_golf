@@ -2,6 +2,8 @@ use std::f32::consts::PI;
 
 use bevy::prelude::*;
 
+use crate::events::ball::SetBallEvent;
+
 #[derive(Clone, Copy, Debug)]
 pub enum BallType {
     Normal,
@@ -80,18 +82,3 @@ impl Ball {
 #[derive(Component)]
 /// 獲得スコアを受け渡す
 pub struct GoalinBall(pub u32);
-
-// ステージ情報とランチャーを受け渡すイベント
-pub struct SetBallEvent {
-    pub ball_type: BallType,
-}
-
-// ボールを出現させる. 待機状態になる.
-pub struct SpawnBallEvent {
-    pub ball_type: BallType,
-    pub pos: Vec2,
-}
-// 実際に発射する.
-pub struct LaunchBallEvent {
-    pub direction: Vec2,
-}
