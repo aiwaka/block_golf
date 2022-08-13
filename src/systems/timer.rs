@@ -13,7 +13,11 @@ pub fn count_down_update(mut query: Query<&mut CountDownTimer>) {
 fn delete_counter(mut commands: Commands, query: Query<(&CountDownTimer, Entity)>) {
     for (timer, ent) in query.iter() {
         if timer.is_finished() {
-            commands.entity(ent).despawn();
+            if timer.auto_despawn {
+                commands.entity(ent).despawn();
+            } else {
+                commands.entity(ent).remove::<CountDownTimer>();
+            }
         }
     }
 }

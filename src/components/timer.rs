@@ -5,12 +5,22 @@ use bevy::prelude::*;
 pub struct CountDownTimer {
     count: u32,
     pause: bool,
+    pub auto_despawn: bool,
+}
+impl Default for CountDownTimer {
+    fn default() -> Self {
+        CountDownTimer {
+            count: 0,
+            pause: false,
+            auto_despawn: true,
+        }
+    }
 }
 impl CountDownTimer {
     pub fn new(count: u32) -> Self {
         Self {
             count,
-            pause: false,
+            ..Default::default()
         }
     }
     pub fn tick(&mut self) {
