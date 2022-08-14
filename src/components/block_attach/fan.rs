@@ -27,6 +27,10 @@ impl ToFanDirection for u32 {
     }
 }
 
+/// 風の視覚エフェクト.
+#[derive(Component, Clone, Debug)]
+pub struct WindVisualEffect;
+
 /// 送風機は一定形状のブロックと同じとする.
 /// 当たり判定を拡張するにはブロックと重ねる.
 #[derive(Component, Clone, Debug)]

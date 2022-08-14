@@ -10,8 +10,9 @@ use crate::{
     components::{
         ball::Ball,
         block::{BlockTransform, BlockType},
-        block_attach::fan::{Fan, FanDirection},
+        block_attach::fan::{Fan, FanDirection, WindVisualEffect},
         physics::{force::Force, position::Position, velocity::Velocity},
+        timer::CountDownTimer,
     },
     AppState,
 };
@@ -52,6 +53,72 @@ pub fn spawn_fan(commands: &mut Commands, block_ent: Entity, rect: &Rectangle, f
     });
 }
 
+/// 風エフェクトのためにここでだけ使うタイマーコンポーネント
+#[derive(Component)]
+struct WindVfxDuration(Timer);
+fn set_wind_vfx_duration(mut commands: Commands) {
+    commands
+        .spawn()
+        .insert(WindVfxDuration(Timer::from_seconds(0.12, true)));
+}
+// 風エフェクトを出す
+fn spawn_wind_visual_effect(
+    mut commands: Commands,
+    fan_query: Query<(&Fan, &BlockTransform, &GlobalTransform, &BlockType)>,
+    time: Res<Time>,
+    mut timer_query: Query<&mut WindVfxDuration>,
+) {
+    let mut wind_vfx_timer = timer_query.single_mut();
+    if wind_vfx_timer.0.tick(time.delta()).just_finished() {
+        let effect_shape = Circle {
+            radius: 5.0,
+            center: Vec2::ZERO,
+        };
+        let effect_draw_mode = DrawMode::Fill(FillMode::color(Color::WHITE));
+        for (fan, block_trans, block_glb_trans, block_type) in fan_query.iter() {
+            if fan.active {
+                if let BlockType::Rect { shape } = block_type {
+                    let angle = block_trans.angle;
+                    // まずファンの両端点を計算する
+                    let [p1, p2] = calc_edge_points_of_fan(
+                        &fan.direction,
+                        block_glb_trans.translation.truncate(),
+                        angle,
+                        shape.extents,
+                    );
+                    // 経過時刻を用いてエフェクトを出す.
+                    // [0,1]を取るパラメータで内分して位置を計算
+                    let param = (time.seconds_since_startup() as f32 * 60.0).sin() / 2.0 + 0.5;
+                    let spawn_pos = p1 * param + p2 * (1.0 - param);
+                    let vel = (p1 - p2).perp().normalize() * 15.0;
+                    commands
+                        .spawn_bundle(GeometryBuilder::build_as(
+                            &effect_shape,
+                            effect_draw_mode,
+                            Transform {
+                                translation: spawn_pos.extend(50.0),
+                                ..Default::default()
+                            },
+                        ))
+                        .insert(WindVisualEffect)
+                        .insert(Velocity(vel))
+                        .insert(Position(spawn_pos))
+                        .insert(CountDownTimer::new(60));
+                }
+            }
+        }
+    }
+}
+
+/// 風エフェクトを更新する. タイマーにより削除は自動的に行われる
+fn update_wind_visual_effect(
+    mut query: Query<(&mut Transform, &Position), With<WindVisualEffect>>,
+) {
+    for (mut trans, pos) in query.iter_mut() {
+        trans.translation = pos.0.extend(50.0);
+    }
+}
+
 // TODO: これはcollisionにある関数のコピーなのでまとめたほうがよい
 fn rotate_vec2(v: Vec2, angle: f32) -> Vec2 {
     Vec2::new(
@@ -84,31 +151,33 @@ fn generate_wind(
     mut ball_query: Query<(&Ball, &Position, &mut Velocity, Entity)>,
 ) {
     for (fan, block_trans, block_glb_trans, block_type) in fan_query.iter() {
-        if let BlockType::Rect { shape } = block_type {
-            let angle = block_trans.angle;
-            // まずファンの両端点を計算する
-            let [p1, p2] = calc_edge_points_of_fan(
-                &fan.direction,
-                block_glb_trans.translation.truncate(),
-                angle,
-                shape.extents,
-            );
+        if fan.active {
+            if let BlockType::Rect { shape } = block_type {
+                let angle = block_trans.angle;
+                // まずファンの両端点を計算する
+                let [p1, p2] = calc_edge_points_of_fan(
+                    &fan.direction,
+                    block_glb_trans.translation.truncate(),
+                    angle,
+                    shape.extents,
+                );
 
-            for (ball, ball_pos, mut ball_vel, ent) in ball_query.iter_mut() {
-                let ball_pos = ball_pos.0;
-                if (p2 - p1).dot(ball_pos - p1) > 0.0
-                    && (p1 - p2).dot(ball_pos - p2) > 0.0
-                    && (ball_pos - p1).perp_dot(p2 - p1) > 0.0
-                {
-                    let area = 4.0 * ball.ball_type.radius() * PI;
-                    let dir_unit = (p1 - p2).perp();
-                    // FIXME: 力を複数受けることができないことになっているのを改善すべき
-                    // TODO: また, 障害物を挟んだ場合風が届かないようにしたい.
-                    // commands
-                    //     .entity(ent)
-                    //     .insert(Force(dir_unit * fan.pressure * area));
-                    ball_vel.0 += dir_unit * fan.pressure * area;
-                    ball_vel.0 = ball_vel.0.clamp_length_max(15.0);
+                for (ball, ball_pos, mut ball_vel, ent) in ball_query.iter_mut() {
+                    let ball_pos = ball_pos.0;
+                    if (p2 - p1).dot(ball_pos - p1) > 0.0
+                        && (p1 - p2).dot(ball_pos - p2) > 0.0
+                        && (ball_pos - p1).perp_dot(p2 - p1) > 0.0
+                    {
+                        let area = 4.0 * ball.ball_type.radius() * PI;
+                        let dir_unit = (p1 - p2).perp().normalize();
+                        // FIXME: 力を複数受けることができないことになっているのを改善すべき
+                        // TODO: また, 障害物を挟んだ場合風が届かないようにしたい.
+                        // commands
+                        //     .entity(ent)
+                        //     .insert(Force(dir_unit * fan.pressure * area));
+                        ball_vel.0 += dir_unit * fan.pressure * area;
+                        ball_vel.0 = ball_vel.0.clamp_length_max(15.0);
+                    }
                 }
             }
         }
@@ -119,6 +188,13 @@ pub(super) struct FanPlugin;
 impl Plugin for FanPlugin {
     fn build(&self, app: &mut App) {
         // app.add_system_set(SystemSet::on_enter(AppState::Game).with_system(temp));
+        app.add_system_set(SystemSet::on_enter(AppState::Game).with_system(set_wind_vfx_duration));
         app.add_system_set(SystemSet::on_update(AppState::Game).with_system(generate_wind));
+        app.add_system_set(
+            SystemSet::on_update(AppState::Game).with_system(spawn_wind_visual_effect),
+        );
+        app.add_system_set(
+            SystemSet::on_update(AppState::Game).with_system(update_wind_visual_effect),
+        );
     }
 }

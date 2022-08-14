@@ -79,7 +79,7 @@ pub fn tutorial_stage1() -> StageInfo {
             material,
             default_angle: 0.0,
             default_pos_param: 0.0,
-            block_attachment: vec![BlockAttachment::Fan(Fan::new(true, 0, 0.00001))],
+            block_attachment: vec![BlockAttachment::Fan(Fan::new(true, 0, 0.0006))],
         },
     ];
 
