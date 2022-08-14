@@ -11,7 +11,7 @@ use crate::{
     },
     events::{
         ball::SetBallEvent, block::SpawnBlockEvent, game::GameOverEvent, goal::SpawnGoalEvent,
-        launcher::SpawnLauncherEvent, ToSpawnEvent,
+        launcher::SpawnLauncherEvent, switch::SpawnSwitchEvent, ToSpawnEvent,
     },
     stages::structs::StageInfo,
     AppState,
@@ -33,6 +33,7 @@ fn spawn_stage_entities(
     mut block_event_writer: EventWriter<SpawnBlockEvent>,
     mut goal_event_writer: EventWriter<SpawnGoalEvent>,
     mut ball_event_writer: EventWriter<SetBallEvent>,
+    mut switch_event_writer: EventWriter<SpawnSwitchEvent>,
 ) {
     // info!("spawn stage entities");
     let stage_info = stage_info.unwrap().clone();
@@ -40,6 +41,7 @@ fn spawn_stage_entities(
     let block_list = stage_info.blocks;
     let goal_list = stage_info.goal_pos;
     let ball_list = stage_info.balls;
+    let switch_list = stage_info.switches;
     commands.insert_resource(InitialBallNum(ball_list.len() as u32));
 
     // 残り時間タイマー用意
@@ -54,10 +56,13 @@ fn spawn_stage_entities(
         block_event_writer.send(block.to_spawn_event());
     }
     for ball in ball_list {
-        ball_event_writer.send(ball.to_spawn_event())
+        ball_event_writer.send(ball.to_spawn_event());
     }
     for goal in goal_list {
-        goal_event_writer.send(goal.to_spawn_event())
+        goal_event_writer.send(goal.to_spawn_event());
+    }
+    for switch in switch_list {
+        switch_event_writer.send(switch.to_spawn_event());
     }
 }
 

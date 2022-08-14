@@ -1,12 +1,8 @@
-use bevy::prelude::Component;
-
-use self::{
-    fan::Fan,
-    switch::{SwitchReceiver, SwitchType},
-};
+use self::{fan::Fan, switch::SwitchReceiver};
 
 pub mod fan;
 pub mod switch;
+pub mod updater;
 
 /// ブロックに取り付けられるもの
 #[derive(Clone, Debug)]

@@ -132,14 +132,40 @@ impl ToSpawnEvent for GoalInfo {
 
 #[derive(Clone)]
 pub struct SwitchInfo {
-    pub component: SwitchTile,
+    pub default_active: bool,
+    /// 発動する重さ制限（必ず発動するなら0にすればよい）
+    pub threshold: f32,
+    /// 押された後自動で解除されるかどうか（フレーム数のOptionで指定）
+    pub auto_reverse: Option<u32>,
+    /// SwitchTargetに付けた整数を指定して効果対象を限定する.
+    pub target_id: u32,
+    pub extents: Vec2,
     pub pos: Vec2,
+}
+impl Default for SwitchInfo {
+    fn default() -> Self {
+        Self {
+            default_active: false,
+            threshold: 0.0,
+            auto_reverse: None,
+            target_id: 0,
+            extents: Vec2::splat(40.0),
+            pos: Vec2::ZERO,
+        }
+    }
 }
 impl ToSpawnEvent for SwitchInfo {
     type E = SpawnSwitchEvent;
     fn to_spawn_event(&self) -> Self::E {
         SpawnSwitchEvent {
-            component: self.component.clone(),
+            component: SwitchTile {
+                just_active: self.default_active,
+                active: self.default_active,
+                threshold: self.threshold,
+                auto_reverse: self.auto_reverse,
+                target_id: self.target_id,
+                extents: self.extents,
+            },
             pos: self.pos,
         }
     }

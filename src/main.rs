@@ -9,10 +9,11 @@ use bevy_prototype_lyon::prelude::*;
 use components::timer::CountDownTimer;
 use events::add_events;
 use systems::{
-    ball::BallPlugin, block::BlockPlugin, collision::CollisionPlugin, effects::EffectPlugin,
-    field::FieldPlugin, game::GameManagePlugin, goal::GoalPlugin, info_board::InfoBoardPlugin,
-    launcher::LauncherPlugin, load::LoadStagePlugin, main_menu::menu::MainMenuPlugin,
-    physics::motion_dynamics::MotionDynamicsPlugin, setup::global_setup, timer::TimersPlugin,
+    ball::BallPlugin, block::BlockPlugin, block_attach::BlockAttachmentPlugin,
+    collision::CollisionPlugin, effects::EffectPlugin, field::FieldPlugin, game::GameManagePlugin,
+    goal::GoalPlugin, info_board::InfoBoardPlugin, launcher::LauncherPlugin, load::LoadStagePlugin,
+    main_menu::menu::MainMenuPlugin, physics::motion_dynamics::MotionDynamicsPlugin,
+    setup::global_setup, timer::TimersPlugin,
 };
 
 const SCREEN_WIDTH: f32 = 1280.0;
@@ -56,6 +57,7 @@ fn main() {
     app.add_plugin(GoalPlugin);
     app.add_plugin(BallPlugin);
     app.add_plugin(BlockPlugin);
+    app.add_plugin(BlockAttachmentPlugin);
     app.add_plugin(CollisionPlugin);
     app.add_plugin(LauncherPlugin);
     app.add_plugin(MotionDynamicsPlugin);

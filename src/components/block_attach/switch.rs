@@ -15,6 +15,8 @@ pub struct SwitchTile {
     pub auto_reverse: Option<u32>,
     /// SwitchTargetに付けた整数を指定して効果対象を限定する.
     pub target_id: u32,
+    /// 大きさ
+    pub extents: Vec2,
 }
 
 /// 変更する内容ごとにここに登録する
@@ -29,6 +31,14 @@ pub enum SwitchType {
         after: RotateStrategy,
     },
     ToggleFanActive,
+    MoveBlock {
+        /// 初期カウント
+        count: i32,
+        /// countがlimitになるまで更新
+        limit: i32,
+        /// カウントから座標を計算する関数
+        func: fn(i32) -> Vec2,
+    },
 }
 
 #[derive(Component, Clone, Debug)]

@@ -9,6 +9,7 @@ use crate::{
         block::{
             Block, BlockOriginalPos, BlockSlidePath, BlockTransform, BlockType, SlideStrategy,
         },
+        block_attach::switch::SwitchTile,
         goal::GoalHole,
         physics::{force::Force, material::PhysicMaterial, position::Position, velocity::Velocity},
     },
@@ -27,7 +28,10 @@ fn vec3_to_vec2(v: Vec3) -> Vec2 {
     Vec2::new(v.x, v.y)
 }
 
-// 直交座標系に水平な矩形が, ある点を含んでいるか？
+/// 直交座標系に水平な矩形が, ある点を含んでいるか？
+/// center: 矩形の中心
+/// extents: 矩形の大きさ（width, height）
+/// p: 判定したい点
 fn rect_contains_point(center: Vec2, extents: Vec2, p: Vec2) -> bool {
     let leftbottom = center - extents / 2.0;
     ((leftbottom.x)..(leftbottom.x + extents.x)).contains(&p.x)
@@ -355,6 +359,38 @@ fn goal_and_ball_collision(
     }
 }
 
+/// スイッチとボールの当たり判定
+fn switch_and_ball_collision(
+    mut ball_query: Query<(&Transform, &Ball), Without<GoalinBall>>,
+    mut switch_query: Query<(&Transform, &mut SwitchTile)>,
+) {
+    for (ball_trans, ball) in ball_query.iter_mut() {
+        for (switch_trans, mut switch) in switch_query.iter_mut() {
+            if switch.active {
+                continue;
+            }
+            if let Some(ball_weight) = {
+                // スイッチの上に乗っていたら重さを返す
+                let ball_pos = ball_trans.translation.truncate();
+                let switch_pos = switch_trans.translation.truncate();
+                let switch_extents = switch.extents;
+                // 球同士が完全に重なっている場合lengthが0でおかしくなるが, とりあえず保留
+                if rect_contains_point(switch_pos, switch_extents, ball_pos) {
+                    Some(ball.ball_type.weight())
+                } else {
+                    None
+                }
+            } {
+                // スイッチがアクティブでなく閾値を超えた重さが加わったとき
+                if switch.threshold < ball_weight {
+                    switch.active = true;
+                    switch.just_active = true;
+                }
+            }
+        }
+    }
+}
+
 pub struct CollisionPlugin;
 impl Plugin for CollisionPlugin {
     fn build(&self, app: &mut App) {
@@ -369,6 +405,13 @@ impl Plugin for CollisionPlugin {
         app.add_system_set(
             SystemSet::on_update(AppState::Game)
                 .with_system(goal_and_ball_collision.before("execute_force")),
+        );
+        app.add_system_set(
+            SystemSet::on_update(AppState::Game).with_system(
+                switch_and_ball_collision
+                    .before("execute_force")
+                    .label("collision:switch_and_ball"),
+            ),
         );
     }
 }

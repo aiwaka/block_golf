@@ -31,7 +31,7 @@ fn spawn_ball(mut commands: Commands, mut event_listener: EventReader<SpawnBallE
                     ..Default::default()
                 },
             ))
-            .insert(Ball::new(pos, vec2(0.0, 0.0), ev.ball_type))
+            .insert(Ball::new(ev.ball_type))
             .insert(PhysicMaterial::new(
                 ev.ball_type.restitution(),
                 ev.ball_type.density(),
