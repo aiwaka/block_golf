@@ -15,27 +15,51 @@ use crate::systems::field::{FIELD_HEIGHT, FIELD_WIDTH};
 
 pub fn tutorial_stage1() -> StageInfo {
     let material = PhysicMaterial::new(1.0, 1.0, 0.0);
-    let block_list = vec![BlockInfo {
-        pos: Vec2::new(0.0, 300.0),
-        block_shape_info: BlockShapeInfo::Rect {
-            extents: Vec2::new(180.0, 90.0),
-            rect_origin: Vec2::ZERO,
-            rotate_strategy: RotateStrategy::NoRotate,
-            slide_strategy: SlideStrategy::NoSlide,
-        },
-        material,
-        default_angle: 1.0,
-        default_pos_param: 0.0,
-        block_attachment: vec![BlockAttachment::SwitchReceiver {
-            receiver: SwitchReceiver {
-                switch_type: SwitchType::ChangeRotateStrategy {
-                    before: RotateStrategy::NoRotate,
-                    after: RotateStrategy::Auto(0.1),
-                },
-                target_id: 0,
+    let block_list = vec![
+        BlockInfo {
+            pos: Vec2::new(0.0, 300.0),
+            block_shape_info: BlockShapeInfo::Rect {
+                extents: Vec2::new(180.0, 90.0),
+                rect_origin: Vec2::ZERO,
+                rotate_strategy: RotateStrategy::NoRotate,
+                slide_strategy: SlideStrategy::NoSlide,
             },
-        }],
-    }];
+            material,
+            default_angle: 1.0,
+            default_pos_param: 0.0,
+            block_attachment: vec![BlockAttachment::SwitchReceiver {
+                receiver: SwitchReceiver {
+                    switch_type: SwitchType::ChangeRotateStrategy {
+                        before: RotateStrategy::NoRotate,
+                        after: RotateStrategy::Auto(0.1),
+                    },
+                    target_id: 0,
+                },
+            }],
+        },
+        BlockInfo {
+            pos: Vec2::new(200.0, 300.0),
+            block_shape_info: BlockShapeInfo::Rect {
+                extents: Vec2::new(180.0, 90.0),
+                rect_origin: Vec2::ZERO,
+                rotate_strategy: RotateStrategy::Manual(0.05),
+                slide_strategy: SlideStrategy::NoSlide,
+            },
+            material,
+            default_angle: 0.0,
+            default_pos_param: 0.0,
+            block_attachment: vec![BlockAttachment::SwitchReceiver {
+                receiver: SwitchReceiver {
+                    switch_type: SwitchType::MoveBlock {
+                        count: 0,
+                        limit: 60,
+                        func: |count: i32| Vec2::new(200.0, 300.0 - count as f32 * 2.0),
+                    },
+                    target_id: 0,
+                },
+            }],
+        },
+    ];
 
     let launcher_info = LauncherInfo {
         pos: Vec2::new(-FIELD_WIDTH / 2.0 + 30.0, -FIELD_HEIGHT / 2.0 + 30.0),

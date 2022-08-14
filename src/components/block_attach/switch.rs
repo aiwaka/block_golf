@@ -31,6 +31,14 @@ pub enum SwitchType {
         after: RotateStrategy,
     },
     ToggleFanActive,
+    MoveBlock {
+        /// 初期カウント
+        count: i32,
+        /// countがlimitになるまで更新
+        limit: i32,
+        /// カウントから座標を計算する関数
+        func: fn(i32) -> Vec2,
+    },
 }
 
 #[derive(Component, Clone, Debug)]

@@ -3,8 +3,10 @@ use bevy_prototype_lyon::{prelude::*, shapes::Rectangle};
 
 use crate::{
     components::{
-        block::{RotateStrategy, SlideStrategy},
-        block_attach::switch::{SwitchReceiver, SwitchTile, SwitchType},
+        block_attach::{
+            switch::{SwitchReceiver, SwitchTile, SwitchType},
+            updater::{Updater, UpdaterType, UpdaterVec},
+        },
         timer::CountDownTimer,
     },
     events::switch::SpawnSwitchEvent,
@@ -81,8 +83,8 @@ fn switch_state_changed(
     }
 }
 
-/// just_activeがtrueのときにそのフレームの最後にfalseに戻しておくためのシステム
-fn off_just_active(mut query: Query<(&mut SwitchTile, Entity)>) {
+/// just_activeとjust_reverseがtrueのときにそのフレームの最後にfalseに戻しておくためのシステム
+fn off_one_frame_flag(mut query: Query<(&mut SwitchTile, Entity)>) {
     for (mut switch, ent) in query.iter_mut() {
         if switch.just_active {
             switch.just_active = false;
@@ -94,28 +96,41 @@ fn off_just_active(mut query: Query<(&mut SwitchTile, Entity)>) {
 fn execute_change_by_switch(
     mut commands: Commands,
     switch_query: Query<&SwitchTile, Changed<SwitchTile>>,
-    receiver_query: Query<(&SwitchReceiver, Entity)>,
+    mut receiver_query: Query<(&SwitchReceiver, Option<&mut UpdaterVec>, Entity)>,
 ) {
     for switch in switch_query.iter() {
-        let target_id = switch.target_id;
         if switch.just_active {
-            for (attachment, ent) in receiver_query.iter() {
-                if target_id == attachment.target_id {
+            for (attachment, updater_vec, ent) in receiver_query.iter_mut() {
+                if switch.target_id == attachment.target_id {
+                    let mut entity_commands = commands.entity(ent);
                     match &attachment.switch_type {
                         SwitchType::ChangeRotateStrategy { before: _, after } => {
                             info!("{:?}", after);
-                            commands.entity(ent).insert(after.clone());
+                            entity_commands.insert(after.clone());
                         }
                         SwitchType::ChangeSlideStrategy { before: _, after } => {
-                            commands.entity(ent).insert(after.clone());
+                            entity_commands.insert(after.clone());
                         }
                         SwitchType::ToggleFanActive => {}
+                        SwitchType::MoveBlock { count, limit, func } => {
+                            info!("move block attachment : limit {}", limit);
+                            let updater = Updater {
+                                count: *count,
+                                limit: *limit,
+                                updater_type: UpdaterType::BlockPos { func: *func },
+                            };
+                            if let Some(mut updater_vec) = updater_vec {
+                                updater_vec.0.push(updater);
+                            } else {
+                                entity_commands.insert(UpdaterVec::new_from_a_updater(updater));
+                            }
+                        }
                     }
                 }
             }
         } else if !switch.active {
-            for (attachment, ent) in receiver_query.iter() {
-                if target_id == attachment.target_id {
+            for (attachment, _, ent) in receiver_query.iter() {
+                if switch.target_id == attachment.target_id {
                     match &attachment.switch_type {
                         SwitchType::ChangeRotateStrategy { before, after: _ } => {
                             commands.entity(ent).insert(before.clone());
@@ -124,6 +139,7 @@ fn execute_change_by_switch(
                             commands.entity(ent).insert(before.clone());
                         }
                         SwitchType::ToggleFanActive => {}
+                        SwitchType::MoveBlock { count, limit, func } => {}
                     }
                 }
             }
@@ -147,6 +163,6 @@ impl Plugin for SwitchPlugin {
         app.add_system_set(
             SystemSet::on_update(AppState::Game).with_system(execute_change_by_switch),
         );
-        app.add_system_to_stage(CoreStage::Last, off_just_active);
+        app.add_system_to_stage(CoreStage::Last, off_one_frame_flag);
     }
 }

@@ -65,6 +65,7 @@ fn set_block(mut commands: Commands, mut event_listener: EventReader<SpawnBlockE
             .insert(ev.rotate_strategy.clone())
             .insert(ev.slide_strategy.clone())
             .id();
+        // ブロックにくっつけるものを追加.
         for com in ev.block_attachment.iter() {
             match com {
                 BlockAttachment::SwitchReceiver { receiver } => {
