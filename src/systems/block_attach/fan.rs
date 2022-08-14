@@ -1,3 +1,5 @@
+use std::f32::consts::PI;
+
 use bevy::prelude::*;
 use bevy_prototype_lyon::{
     prelude::{DrawMode, FillMode, GeometryBuilder},
@@ -9,7 +11,7 @@ use crate::{
         ball::Ball,
         block::{BlockTransform, BlockType},
         block_attach::fan::{Fan, FanDirection},
-        physics::position::Position,
+        physics::{force::Force, position::Position, velocity::Velocity},
     },
     AppState,
 };
@@ -75,53 +77,11 @@ fn calc_edge_points_of_fan(
     }
 }
 
-#[derive(Component)]
-struct TempPin;
-#[derive(Component)]
-struct TempText;
-fn temp(mut commands: Commands, asset_server: Res<AssetServer>) {
-    commands
-        .spawn_bundle(GeometryBuilder::build_as(
-            &Circle {
-                radius: 10.0,
-                center: Vec2::new(0.0, 0.0),
-            },
-            DrawMode::Fill(FillMode::color(Color::PURPLE)),
-            Transform::default(),
-        ))
-        .insert(TempPin);
-    commands
-        .spawn_bundle(TextBundle {
-            style: Style {
-                position_type: PositionType::Absolute,
-                position: Rect {
-                    top: Val::Px(30.0),
-                    right: Val::Px(40.0),
-                    ..default()
-                },
-                ..default()
-            },
-            text: Text::with_section(
-                "angle",
-                TextStyle {
-                    font: asset_server.load("fonts/ume-tgs5.ttf"),
-                    font_size: 40.0,
-                    color: Color::WHITE,
-                },
-                TextAlignment::default(),
-            ),
-            ..default()
-        })
-        .insert(TempText);
-}
-
 /// 動いている送風機とボールの間に障害物がなければ力を加える
 fn generate_wind(
     mut commands: Commands,
     fan_query: Query<(&Fan, &BlockTransform, &GlobalTransform, &BlockType)>,
-    ball_query: Query<(&Ball, &Position)>,
-    mut temp: Query<(&mut Transform, &TempPin)>,
-    mut temp_text: Query<(&mut Text, &TempText)>,
+    mut ball_query: Query<(&Ball, &Position, &mut Velocity, Entity)>,
 ) {
     for (fan, block_trans, block_glb_trans, block_type) in fan_query.iter() {
         if let BlockType::Rect { shape } = block_type {
@@ -134,13 +94,23 @@ fn generate_wind(
                 shape.extents,
             );
 
-            for (mut t, _) in temp.iter_mut() {
-                t.translation = p2.extend(80.0);
+            for (ball, ball_pos, mut ball_vel, ent) in ball_query.iter_mut() {
+                let ball_pos = ball_pos.0;
+                if (p2 - p1).dot(ball_pos - p1) > 0.0
+                    && (p1 - p2).dot(ball_pos - p2) > 0.0
+                    && (ball_pos - p1).perp_dot(p2 - p1) > 0.0
+                {
+                    let area = 4.0 * ball.ball_type.radius() * PI;
+                    let dir_unit = (p1 - p2).perp();
+                    // FIXME: 力を複数受けることができないことになっているのを改善すべき
+                    // TODO: また, 障害物を挟んだ場合風が届かないようにしたい.
+                    // commands
+                    //     .entity(ent)
+                    //     .insert(Force(dir_unit * fan.pressure * area));
+                    ball_vel.0 += dir_unit * fan.pressure * area;
+                    ball_vel.0 = ball_vel.0.clamp_length_max(15.0);
+                }
             }
-            for (mut t, _) in temp_text.iter_mut() {
-                t.sections[0].value = angle.to_string();
-            }
-            for (ball, ball_pos) in ball_query.iter() {}
         }
     }
 }
@@ -148,7 +118,7 @@ fn generate_wind(
 pub(super) struct FanPlugin;
 impl Plugin for FanPlugin {
     fn build(&self, app: &mut App) {
-        app.add_system_set(SystemSet::on_enter(AppState::Game).with_system(temp));
+        // app.add_system_set(SystemSet::on_enter(AppState::Game).with_system(temp));
         app.add_system_set(SystemSet::on_update(AppState::Game).with_system(generate_wind));
     }
 }
