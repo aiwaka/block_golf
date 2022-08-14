@@ -157,11 +157,15 @@ impl Plugin for SwitchPlugin {
         );
         app.add_system_set(SystemSet::on_update(AppState::Game).with_system(switch_state_changed));
         app.add_system_set(
-            SystemSet::on_update(AppState::Game)
-                .with_system(deactivate_switch.after("count_down_update")),
+            SystemSet::on_update(AppState::Game).with_system(
+                deactivate_switch
+                    .after("count_down_update")
+                    .label("switch:deactivate_switch"),
+            ),
         );
         app.add_system_set(
-            SystemSet::on_update(AppState::Game).with_system(execute_change_by_switch),
+            SystemSet::on_update(AppState::Game)
+                .with_system(execute_change_by_switch.after("collision:switch_and_ball")),
         );
         app.add_system_to_stage(CoreStage::Last, off_one_frame_flag);
     }

@@ -407,8 +407,11 @@ impl Plugin for CollisionPlugin {
                 .with_system(goal_and_ball_collision.before("execute_force")),
         );
         app.add_system_set(
-            SystemSet::on_update(AppState::Game)
-                .with_system(switch_and_ball_collision.before("execute_force")),
+            SystemSet::on_update(AppState::Game).with_system(
+                switch_and_ball_collision
+                    .before("execute_force")
+                    .label("collision:switch_and_ball"),
+            ),
         );
     }
 }
