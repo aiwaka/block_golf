@@ -7,7 +7,7 @@ use bevy_prototype_lyon::{
 use crate::{
     components::{
         ball::Ball,
-        block::{BlockOriginalPos, BlockTransform, BlockType},
+        block::{BlockTransform, BlockType},
         block_attach::fan::{Fan, FanDirection},
         physics::position::Position,
     },
@@ -23,11 +23,11 @@ pub fn spawn_fan(commands: &mut Commands, block_ent: Entity, rect: &Rectangle, f
         ),
         FanDirection::Down => (
             rect.extents.project_onto(Vec2::X) + Vec2::Y * 10.0,
-            rect.extents.project_onto(-Vec2::Y) / 2.0,
+            -rect.extents.project_onto(Vec2::Y) / 2.0,
         ),
         FanDirection::Left => (
             rect.extents.project_onto(Vec2::Y) + Vec2::X * 10.0,
-            rect.extents.project_onto(-Vec2::X) / 2.0,
+            -rect.extents.project_onto(Vec2::X) / 2.0,
         ),
         FanDirection::Right => (
             rect.extents.project_onto(Vec2::Y) + Vec2::X * 10.0,
@@ -66,7 +66,7 @@ fn calc_edge_points_of_fan(
 ) -> [Vec2; 2] {
     let half_ext = rotate_vec2(extents / 2.0, angle);
     // xだけ反転させたベクトル
-    let refl_half_ext = rotate_vec2(Vec2::new(-extents.x, extents.y), angle);
+    let refl_half_ext = rotate_vec2(Vec2::new(-extents.x, extents.y) / 2.0, angle);
     match fan_direction {
         FanDirection::Up => [block_orig_pos + half_ext, block_orig_pos + refl_half_ext],
         FanDirection::Down => [block_orig_pos - half_ext, block_orig_pos - refl_half_ext],
@@ -135,7 +135,7 @@ fn generate_wind(
             );
 
             for (mut t, _) in temp.iter_mut() {
-                t.translation = p1.extend(80.0);
+                t.translation = p2.extend(80.0);
             }
             for (mut t, _) in temp_text.iter_mut() {
                 t.sections[0].value = angle.to_string();

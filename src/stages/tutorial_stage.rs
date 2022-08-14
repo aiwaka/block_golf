@@ -65,13 +65,14 @@ pub fn tutorial_stage1() -> StageInfo {
             block_shape_info: BlockShapeInfo::Rect {
                 extents: Vec2::new(100.0, 70.0),
                 rect_origin: Vec2::ZERO,
-                rotate_strategy: RotateStrategy::Auto(0.01),
+                // rotate_strategy: RotateStrategy::Auto(0.01),
+                rotate_strategy: RotateStrategy::NoRotate,
                 slide_strategy: SlideStrategy::NoSlide,
             },
             material,
             default_angle: 0.0,
             default_pos_param: 0.0,
-            block_attachment: vec![BlockAttachment::Fan(Fan::new(true, 1, 1.0))],
+            block_attachment: vec![BlockAttachment::Fan(Fan::new(true, 0, 1.0))],
         },
     ];
 

@@ -1,9 +1,5 @@
 use bevy::prelude::*;
 
-pub struct SpawnFanEvent {
-    pub fan_obj: Fan,
-}
-
 pub trait ToFanDirection {
     fn to_fan_direction(&self) -> FanDirection;
 }
