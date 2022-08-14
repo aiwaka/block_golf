@@ -146,9 +146,8 @@ fn calc_edge_points_of_fan(
 
 /// 動いている送風機とボールの間に障害物がなければ力を加える
 fn generate_wind(
-    mut commands: Commands,
     fan_query: Query<(&Fan, &BlockTransform, &GlobalTransform, &BlockType)>,
-    mut ball_query: Query<(&Ball, &Position, &mut Velocity, Entity)>,
+    mut ball_query: Query<(&Ball, &Position, &mut Force)>,
 ) {
     for (fan, block_trans, block_glb_trans, block_type) in fan_query.iter() {
         if fan.active {
@@ -162,7 +161,7 @@ fn generate_wind(
                     shape.extents,
                 );
 
-                for (ball, ball_pos, mut ball_vel, ent) in ball_query.iter_mut() {
+                for (ball, ball_pos, mut force) in ball_query.iter_mut() {
                     let ball_pos = ball_pos.0;
                     if (p2 - p1).dot(ball_pos - p1) > 0.0
                         && (p1 - p2).dot(ball_pos - p2) > 0.0
@@ -170,13 +169,9 @@ fn generate_wind(
                     {
                         let area = 4.0 * ball.ball_type.radius() * PI;
                         let dir_unit = (p1 - p2).perp().normalize();
-                        // FIXME: 力を複数受けることができないことになっているのを改善すべき
                         // TODO: また, 障害物を挟んだ場合風が届かないようにしたい.
-                        // commands
-                        //     .entity(ent)
-                        //     .insert(Force(dir_unit * fan.pressure * area));
-                        ball_vel.0 += dir_unit * fan.pressure * area;
-                        ball_vel.0 = ball_vel.0.clamp_length_max(15.0);
+                        force.0 += dir_unit * fan.pressure * area;
+                        force.0 = force.0.clamp_length_max(15.0);
                     }
                 }
             }
