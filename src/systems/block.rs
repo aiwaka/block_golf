@@ -13,6 +13,8 @@ use crate::{
     AppState,
 };
 
+use super::block_attach::fan::spawn_fan;
+
 /// キューに入っているブロックを追加する（開始時実行）
 fn set_block(mut commands: Commands, mut event_listener: EventReader<SpawnBlockEvent>) {
     for ev in event_listener.iter() {
@@ -72,7 +74,11 @@ fn set_block(mut commands: Commands, mut event_listener: EventReader<SpawnBlockE
                     commands.entity(ent).insert(receiver.clone());
                 }
                 BlockAttachment::Fan(fan) => {
-                    commands.entity(ent).insert(fan.clone());
+                    if let BlockType::Rect { shape } = ev.block_type {
+                        commands.entity(ent).insert(fan.clone());
+
+                        spawn_fan(&mut commands, ent, &shape, fan);
+                    }
                 }
             }
         }

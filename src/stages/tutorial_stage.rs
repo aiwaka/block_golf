@@ -8,6 +8,7 @@ use super::structs::{
 use super::{field_blocks::field_block, structs::BallInfo};
 use crate::components::ball::BallType;
 use crate::components::block::{RotateStrategy, SlideStrategy};
+use crate::components::block_attach::fan::Fan;
 use crate::components::block_attach::switch::{SwitchReceiver, SwitchType};
 use crate::components::block_attach::BlockAttachment;
 use crate::components::physics::material::PhysicMaterial;
@@ -58,6 +59,19 @@ pub fn tutorial_stage1() -> StageInfo {
                     target_id: 0,
                 },
             }],
+        },
+        BlockInfo {
+            pos: Vec2::new(0.0, 0.0),
+            block_shape_info: BlockShapeInfo::Rect {
+                extents: Vec2::new(100.0, 70.0),
+                rect_origin: Vec2::ZERO,
+                rotate_strategy: RotateStrategy::Auto(0.01),
+                slide_strategy: SlideStrategy::NoSlide,
+            },
+            material,
+            default_angle: 0.0,
+            default_pos_param: 0.0,
+            block_attachment: vec![BlockAttachment::Fan(Fan::new(true, 1, 1.0))],
         },
     ];
 
