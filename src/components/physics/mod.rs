@@ -43,11 +43,3 @@ impl BasicPhysicsBundle {
         }
     }
 }
-
-#[derive(Bundle, Debug, Clone)]
-pub struct MaterialPhysicsBundle {}
-impl MaterialPhysicsBundle {
-    pub fn new(material: PhysicMaterial, vol: f32) -> Self {
-        Self {}
-    }
-}

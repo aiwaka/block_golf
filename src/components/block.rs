@@ -1,14 +1,7 @@
 use std::f32::consts::{FRAC_2_PI, FRAC_PI_2};
 
 use bevy::prelude::*;
-use bevy_prototype_lyon::{
-    prelude::RectangleOrigin,
-    shapes::{Ellipse, Rectangle},
-};
-
-use crate::stages::structs::{BlockInfo, BlockShapeInfo};
-
-use super::{block_attach::BlockAttachment, physics::material::PhysicMaterial};
+use bevy_prototype_lyon::shapes;
 
 /// ブロックであることを示す. これを使って衝突判定を行う
 #[derive(Component)]
@@ -108,9 +101,9 @@ impl BlockSlidePath {
 /// shapeを保持する
 #[derive(Component, Clone)]
 pub enum BlockType {
-    Wall { shape: Rectangle },
-    Rect { shape: Rectangle },
-    Ellipse { shape: Ellipse },
+    Wall { shape: shapes::Rectangle },
+    Rect { shape: shapes::Rectangle },
+    Ellipse { shape: shapes::Ellipse },
 }
 // タイプのデフォルトカラーを決めておく
 impl From<&BlockType> for Color {

@@ -15,10 +15,6 @@ impl GoalHole {
 }
 impl From<&SpawnGoalEvent> for GoalHole {
     fn from(ev: &SpawnGoalEvent) -> Self {
-        GoalHole {
-            pos: ev.pos,
-            radius: ev.radius,
-            score: ev.score,
-        }
+        GoalHole::new(ev.pos, ev.radius, ev.score)
     }
 }
