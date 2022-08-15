@@ -1,5 +1,3 @@
-use std::f32::consts::PI;
-
 use bevy::prelude::*;
 use bevy_prototype_lyon::{
     prelude::{DrawMode, FillMode, GeometryBuilder},
@@ -11,7 +9,7 @@ use crate::{
         ball::Ball,
         block::{BlockTransform, BlockType},
         block_attach::fan::{Fan, FanDirection, WindVisualEffect},
-        physics::{force::Force, position::Position, velocity::Velocity},
+        physics::{force::Force, material::Volume, position::Position, velocity::Velocity},
         timer::CountDownTimer,
     },
     AppState,
@@ -54,7 +52,7 @@ pub fn spawn_fan(commands: &mut Commands, block_ent: Entity, rect: &Rectangle, f
 }
 
 /// 風エフェクトのためにここでだけ使うタイマーコンポーネント
-#[derive(Component)]
+#[derive(Component, Debug)]
 struct WindVfxDuration(Timer);
 fn set_wind_vfx_duration(mut commands: Commands) {
     commands
@@ -127,6 +125,7 @@ fn rotate_vec2(v: Vec2, angle: f32) -> Vec2 {
     )
 }
 /// ファンの両端点を計算する
+/// 反時計回りになるように2点を返す
 fn calc_edge_points_of_fan(
     fan_direction: &FanDirection,
     block_orig_pos: Vec2,
@@ -147,7 +146,7 @@ fn calc_edge_points_of_fan(
 /// 動いている送風機とボールの間に障害物がなければ力を加える
 fn generate_wind(
     fan_query: Query<(&Fan, &BlockTransform, &GlobalTransform, &BlockType)>,
-    mut ball_query: Query<(&Ball, &Position, &mut Force)>,
+    mut ball_query: Query<(&Ball, &Position, &Volume, &mut Force)>,
 ) {
     for (fan, block_trans, block_glb_trans, block_type) in fan_query.iter() {
         if fan.active {
@@ -161,17 +160,16 @@ fn generate_wind(
                     shape.extents,
                 );
 
-                for (ball, ball_pos, mut force) in ball_query.iter_mut() {
+                for (_, ball_pos, volume, mut force) in ball_query.iter_mut() {
                     let ball_pos = ball_pos.0;
                     if (p2 - p1).dot(ball_pos - p1) > 0.0
                         && (p1 - p2).dot(ball_pos - p2) > 0.0
                         && (ball_pos - p1).perp_dot(p2 - p1) > 0.0
                     {
-                        let area = 4.0 * ball.ball_type.radius() * PI;
                         let dir_unit = (p1 - p2).perp().normalize();
                         // TODO: また, 障害物を挟んだ場合風が届かないようにしたい.
-                        force.0 += dir_unit * fan.pressure * area;
-                        force.0 = force.0.clamp_length_max(15.0);
+                        force.0 += dir_unit * fan.pressure * volume.0;
+                        // force.0 = force.0.clamp_length_max(15.0);
                     }
                 }
             }
