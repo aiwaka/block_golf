@@ -253,8 +253,6 @@ fn block_ball_collision(
 }
 
 /// 衝突応答としてball1にかかるべき力を返す（ball2は向きを反転させた力を使う）
-/// ...力を扱うシステムを実装していないので, とりあえず貫通深度を返す
-/// TODO: -> 実装したのでそのように変更しても良さそう
 fn collision_of_balls(ball1: (&Ball, &Transform), ball2: (&Ball, &Transform)) -> Option<Vec2> {
     let ball1_radius = ball1.0.ball_type.radius();
     let ball1_pos = vec3_to_vec2(ball1.1.translation);
@@ -263,7 +261,10 @@ fn collision_of_balls(ball1: (&Ball, &Transform), ball2: (&Ball, &Transform)) ->
     let diff = ball1_pos - ball2_pos;
     // 球同士が完全に重なっている場合lengthが0でおかしくなるが, とりあえず保留
     if diff.length_squared() < (ball1_radius + ball2_radius) * (ball1_radius + ball2_radius) {
-        Some(diff * ((ball1_radius + ball2_radius) / diff.length() - 1.0))
+        const FORCE_PARAM: f32 = 0.001;
+        let overlap_vec = diff * ((ball1_radius + ball2_radius) / diff.length() - 1.0);
+        // kx^2を返す.
+        Some(overlap_vec * overlap_vec.length() * FORCE_PARAM)
     } else {
         None
     }
@@ -276,7 +277,6 @@ fn balls_collision(
             &Transform,
             &Ball,
             &PhysicMaterial,
-            &mut Position,
             &mut Velocity,
             &mut Force,
             Option<&BallNocking>,
@@ -286,31 +286,18 @@ fn balls_collision(
 ) {
     let mut ball_combination_iter = ball_query.iter_combinations_mut();
     while let Some([ball1_info, ball2_info]) = ball_combination_iter.fetch_next() {
-        // nocking状態のボールは常にball2であるようにする.
-        let [ball1_info, ball2_info] = if ball1_info.6.is_some() && ball2_info.6.is_none() {
+        // nocking状態のボールは常にball2であるように入れ替える.
+        let [ball1_info, ball2_info] = if ball1_info.5.is_some() && ball2_info.5.is_none() {
             [ball2_info, ball1_info]
         } else {
             [ball1_info, ball2_info]
         };
-        let (ball1_trans, ball1, ball1_material, mut ball1_pos, ball1_vel, mut ball1_force, _) =
-            ball1_info;
-        let (
-            ball2_trans,
-            ball2,
-            ball2_material,
-            mut ball2_pos,
-            ball2_vel,
-            mut ball2_force,
-            ball2_nocking,
-        ) = ball2_info;
-        if let Some(collide_normal) = collision_of_balls((ball1, ball1_trans), (ball2, ball2_trans))
+        let (ball1_trans, ball1, ball1_material, ball1_vel, mut ball1_force, _) = ball1_info;
+        let (ball2_trans, ball2, ball2_material, ball2_vel, mut ball2_force, ball2_nocking) =
+            ball2_info;
+        if let Some(repulsive_force) =
+            collision_of_balls((ball1, ball1_trans), (ball2, ball2_trans))
         {
-            if ball2_nocking.is_some() {
-                ball1_pos.0 += collide_normal;
-            } else {
-                ball1_pos.0 += collide_normal / 2.0;
-                ball2_pos.0 -= collide_normal / 2.0;
-            }
             let restitution = ball1_material.restitution * ball2_material.restitution;
             // TODO: 今後ボールタイプを保持するかどうかは考える
             let ball1_weight = ball1.ball_type.weight();
@@ -318,12 +305,22 @@ fn balls_collision(
             // 換算質量
             let reduced_mass = ball1_weight * ball2_weight / (ball1_weight + ball2_weight);
             let vel_diff = ball2_vel.0 - ball1_vel.0;
-            let impulsive_force = (1.0 + restitution)
-                * reduced_mass
-                * vel_diff.project_onto(collide_normal.normalize());
-            // info!("ent: {:?}, force: {}", ball1_ent, impulsive_force);
-            ball1_force.0 += impulsive_force;
-            ball2_force.0 -= impulsive_force;
+            if ball2_nocking.is_some() {
+                ball1_force.0 += repulsive_force * 2.0;
+                let impulsive_force = (1.0 + restitution)
+                    * ball1_weight
+                    * vel_diff.project_onto(repulsive_force.normalize());
+                ball1_force.0 += impulsive_force;
+            } else {
+                ball1_force.0 += repulsive_force;
+                ball2_force.0 -= repulsive_force;
+                let impulsive_force = (1.0 + restitution)
+                    * reduced_mass
+                    * vel_diff.project_onto(repulsive_force.normalize());
+                // info!("ent: {:?}, force: {}", ball1_ent, impulsive_force);
+                ball1_force.0 += impulsive_force;
+                ball2_force.0 -= impulsive_force;
+            }
         }
     }
 }
