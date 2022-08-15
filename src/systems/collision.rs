@@ -305,22 +305,22 @@ fn balls_collision(
             // 換算質量
             let reduced_mass = ball1_weight * ball2_weight / (ball1_weight + ball2_weight);
             let vel_diff = ball2_vel.0 - ball1_vel.0;
-            if ball2_nocking.is_some() {
-                ball1_force.0 += repulsive_force * 2.0;
+            let [ball1_add_force, ball2_add_force] = if ball2_nocking.is_some() {
                 let impulsive_force = (1.0 + restitution)
                     * ball1_weight
                     * vel_diff.project_onto(repulsive_force.normalize());
-                ball1_force.0 += impulsive_force;
+                [repulsive_force + impulsive_force, Vec2::ZERO]
             } else {
-                ball1_force.0 += repulsive_force;
-                ball2_force.0 -= repulsive_force;
                 let impulsive_force = (1.0 + restitution)
                     * reduced_mass
                     * vel_diff.project_onto(repulsive_force.normalize());
-                // info!("ent: {:?}, force: {}", ball1_ent, impulsive_force);
-                ball1_force.0 += impulsive_force;
-                ball2_force.0 -= impulsive_force;
-            }
+                [
+                    repulsive_force + impulsive_force,
+                    -repulsive_force - impulsive_force,
+                ]
+            };
+            ball1_force.0 += ball1_add_force;
+            ball2_force.0 += ball2_add_force;
         }
     }
 }
