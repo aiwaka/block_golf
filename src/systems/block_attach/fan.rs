@@ -119,13 +119,6 @@ fn update_wind_visual_effect(
     }
 }
 
-// TODO: これはcollisionにある関数のコピーなのでまとめたほうがよい
-fn rotate_vec2(v: Vec2, angle: f32) -> Vec2 {
-    Vec2::new(
-        v.x * angle.cos() - v.y * angle.sin(),
-        v.x * angle.sin() + v.y * angle.cos(),
-    )
-}
 /// ファンの両端点を計算する
 /// 反時計回りになるように2点を返す
 fn calc_edge_points_of_fan(
@@ -134,9 +127,9 @@ fn calc_edge_points_of_fan(
     angle: f32,
     extents: Vec2,
 ) -> [Vec2; 2] {
-    let half_ext = rotate_vec2(extents / 2.0, angle);
+    let half_ext = Vec2::from_angle(angle).rotate(extents / 2.0);
     // xだけ反転させたベクトル
-    let refl_half_ext = rotate_vec2(Vec2::new(-extents.x, extents.y) / 2.0, angle);
+    let refl_half_ext = Vec2::from_angle(angle).rotate(Vec2::new(-extents.x, extents.y) / 2.0);
     match fan_direction {
         FanDirection::Up => [block_orig_pos + half_ext, block_orig_pos + refl_half_ext],
         FanDirection::Down => [block_orig_pos - half_ext, block_orig_pos - refl_half_ext],
