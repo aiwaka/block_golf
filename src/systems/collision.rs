@@ -11,7 +11,12 @@ use crate::{
         },
         block_attach::switch::SwitchTile,
         goal::GoalHole,
-        physics::{force::Force, material::PhysicMaterial, position::Position, velocity::Velocity},
+        physics::{
+            force::Force,
+            material::{PhysicMaterial, Volume},
+            position::Position,
+            velocity::Velocity,
+        },
     },
     AppState,
 };
@@ -21,11 +26,6 @@ fn rotate_vec2(v: Vec2, angle: f32) -> Vec2 {
         v.x * angle.cos() - v.y * angle.sin(),
         v.x * angle.sin() + v.y * angle.cos(),
     )
-}
-
-/// vec3のxyだけを抜き出したものをつくる
-fn vec3_to_vec2(v: Vec3) -> Vec2 {
-    Vec2::new(v.x, v.y)
 }
 
 /// 直交座標系に水平な矩形が, ある点を含んでいるか？
@@ -152,7 +152,6 @@ fn collision_between_block_and_ball(
 
 #[allow(clippy::type_complexity)]
 fn block_ball_collision(
-    mut commands: Commands,
     mut ball_query: Query<
         (
             &Transform,
@@ -160,7 +159,8 @@ fn block_ball_collision(
             &PhysicMaterial,
             &mut Position,
             &Velocity,
-            Entity,
+            &mut Force,
+            &Volume,
         ),
         Without<GoalinBall>,
     >,
@@ -175,7 +175,9 @@ fn block_ball_collision(
         With<Block>,
     >,
 ) {
-    for (ball_trans, ball, ball_material, mut ball_pos, ball_vel, ent) in ball_query.iter_mut() {
+    for (ball_trans, ball, ball_material, mut ball_pos, ball_vel, mut force, volume) in
+        ball_query.iter_mut()
+    {
         for (block_trans, block_type, block_original_pos, block_material, slide_strategy) in
             block_query.iter()
         {
@@ -206,8 +208,7 @@ fn block_ball_collision(
                 ball_pos.0 += collide_normal * penetrate_depth;
                 let restitution = block_material.restitution * ball_material.restitution;
                 // let friction = block_material.friction;
-                // TODO: ボールタイプを保持するかどうか
-                let ball_weight = ball.ball_type.weight();
+                let ball_weight = ball_material.density * volume.0;
 
                 // let [block_x, block_y] = block_rect.rect.extents.to_array();
                 // let block_mass = block_material.density * block_x * block_y;
@@ -243,24 +244,30 @@ fn block_ball_collision(
                 // let prev_vel = ball_vel.0;
                 let impulsive_force =
                     (1.0 + restitution) * ball_weight * (-prev_vel).project_onto(collide_normal);
-                commands.entity(ent).insert(Force(impulsive_force));
+                force.0 += impulsive_force;
             }
         }
     }
 }
 
 /// 衝突応答としてball1にかかるべき力を返す（ball2は向きを反転させた力を使う）
-/// ...力を扱うシステムを実装していないので, とりあえず貫通深度を返す
-/// TODO: -> 実装したのでそのように変更しても良さそう
 fn collision_of_balls(ball1: (&Ball, &Transform), ball2: (&Ball, &Transform)) -> Option<Vec2> {
     let ball1_radius = ball1.0.ball_type.radius();
-    let ball1_pos = vec3_to_vec2(ball1.1.translation);
+    let ball1_pos = ball1.1.translation.truncate();
     let ball2_radius = ball2.0.ball_type.radius();
-    let ball2_pos = vec3_to_vec2(ball2.1.translation);
+    let ball2_pos = ball2.1.translation.truncate();
     let diff = ball1_pos - ball2_pos;
-    // 球同士が完全に重なっている場合lengthが0でおかしくなるが, とりあえず保留
     if diff.length_squared() < (ball1_radius + ball2_radius) * (ball1_radius + ball2_radius) {
-        Some(diff * ((ball1_radius + ball2_radius) / diff.length() - 1.0))
+        const FORCE_PARAM: f32 = 0.1;
+        let diff_length = diff.length();
+        let overlap_vec = if diff_length < EPSILON {
+            // 球同士が完全に重なっている場合lengthが0なので, X方向に返すとして計算する.
+            ball1_radius * Vec2::X
+        } else {
+            diff * ((ball1_radius + ball2_radius) / diff_length - 1.0)
+        };
+        // kx^2を返す.
+        Some(overlap_vec * overlap_vec.length() * FORCE_PARAM)
     } else {
         None
     }
@@ -268,69 +275,71 @@ fn collision_of_balls(ball1: (&Ball, &Transform), ball2: (&Ball, &Transform)) ->
 
 #[allow(clippy::type_complexity)]
 fn balls_collision(
-    mut commands: Commands,
     mut ball_query: Query<
         (
             &Transform,
             &Ball,
             &PhysicMaterial,
-            &mut Position,
-            &mut Velocity,
+            &Velocity,
+            &mut Force,
+            &Volume,
             Option<&BallNocking>,
-            Entity,
         ),
         Without<GoalinBall>,
     >,
 ) {
     let mut ball_combination_iter = ball_query.iter_combinations_mut();
     while let Some([ball1_info, ball2_info]) = ball_combination_iter.fetch_next() {
-        // nocking状態のボールは常にball2であるようにする.
-        let [ball1_info, ball2_info] = if ball1_info.5.is_some() && ball2_info.5.is_none() {
+        // nocking状態のボールは常にball2であるように入れ替える.
+        let [ball1_info, ball2_info] = if ball1_info.6.is_some() && ball2_info.6.is_none() {
             [ball2_info, ball1_info]
         } else {
             [ball1_info, ball2_info]
         };
-        let (ball1_trans, ball1, ball1_material, mut ball1_pos, ball1_vel, _, ball1_ent) =
+        let (ball1_trans, ball1, ball1_material, ball1_vel, mut ball1_force, ball1_vol, _) =
             ball1_info;
         let (
             ball2_trans,
             ball2,
             ball2_material,
-            mut ball2_pos,
             ball2_vel,
+            mut ball2_force,
+            ball2_vol,
             ball2_nocking,
-            ball2_ent,
         ) = ball2_info;
-        if let Some(collide_normal) = collision_of_balls((ball1, ball1_trans), (ball2, ball2_trans))
+        if let Some(repulsive_force) =
+            collision_of_balls((ball1, ball1_trans), (ball2, ball2_trans))
         {
-            if ball2_nocking.is_some() {
-                ball1_pos.0 += collide_normal;
-            } else {
-                ball1_pos.0 += collide_normal / 2.0;
-                ball2_pos.0 -= collide_normal / 2.0;
-            }
             let restitution = ball1_material.restitution * ball2_material.restitution;
-            // TODO: 今後ボールタイプを保持するかどうかは考える
-            let ball1_weight = ball1.ball_type.weight();
-            let ball2_weight = ball2.ball_type.weight();
+            // 素材と体積から質量を計算する
+            let ball1_weight = ball1_material.density * ball1_vol.0;
+            let ball2_weight = ball2_material.density * ball2_vol.0;
             // 換算質量
             let reduced_mass = ball1_weight * ball2_weight / (ball1_weight + ball2_weight);
             let vel_diff = ball2_vel.0 - ball1_vel.0;
-            let impulsive_force = (1.0 + restitution)
-                * reduced_mass
-                * vel_diff.project_onto(collide_normal.normalize());
-            // info!("ent: {:?}, force: {}", ball1_ent, impulsive_force);
-            commands.entity(ball1_ent).insert(Force(impulsive_force));
-            commands.entity(ball2_ent).insert(Force(-impulsive_force));
-            // ball1_vel.0 += impulsive_force;
-            // ball2_vel.0 -= impulsive_force;
+            let [ball1_add_force, ball2_add_force] = if ball2_nocking.is_some() {
+                let impulsive_force = (1.0 + restitution)
+                    * ball1_weight
+                    * vel_diff.project_onto(repulsive_force.normalize());
+                [repulsive_force + impulsive_force, Vec2::ZERO]
+            } else {
+                let impulsive_force = (1.0 + restitution)
+                    * reduced_mass
+                    * vel_diff.project_onto(repulsive_force.normalize());
+                [
+                    repulsive_force + impulsive_force,
+                    -repulsive_force - impulsive_force,
+                ]
+            };
+            ball1_force.0 += ball1_add_force;
+            ball2_force.0 += ball2_add_force;
         }
     }
 }
 
 fn collision_between_goal_and_ball(ball: (&Ball, &Transform), goal: &GoalHole) -> Option<Vec2> {
     let ball_radius = ball.0.ball_type.radius();
-    let ball_pos = vec3_to_vec2(ball.1.translation);
+    let ball_pos = ball.1.translation.truncate();
     let goal_radius = goal.radius;
     let goal_pos = goal.pos;
     let diff = ball_pos - goal_pos;
@@ -360,11 +369,15 @@ fn goal_and_ball_collision(
 }
 
 /// スイッチとボールの当たり判定
+#[allow(clippy::type_complexity)]
 fn switch_and_ball_collision(
-    mut ball_query: Query<(&Transform, &Ball), Without<GoalinBall>>,
+    mut ball_query: Query<
+        (&Transform, &PhysicMaterial, &Volume),
+        (With<Ball>, Without<GoalinBall>),
+    >,
     mut switch_query: Query<(&Transform, &mut SwitchTile)>,
 ) {
-    for (ball_trans, ball) in ball_query.iter_mut() {
+    for (ball_trans, ball_material, ball_vol) in ball_query.iter_mut() {
         for (switch_trans, mut switch) in switch_query.iter_mut() {
             if switch.active {
                 continue;
@@ -376,7 +389,7 @@ fn switch_and_ball_collision(
                 let switch_extents = switch.extents;
                 // 球同士が完全に重なっている場合lengthが0でおかしくなるが, とりあえず保留
                 if rect_contains_point(switch_pos, switch_extents, ball_pos) {
-                    Some(ball.ball_type.weight())
+                    Some(ball_material.density * ball_vol.0)
                 } else {
                     None
                 }

@@ -1,5 +1,3 @@
-use std::f32::consts::PI;
-
 use bevy::prelude::*;
 
 use crate::events::ball::SetBallEvent;
@@ -9,17 +7,10 @@ pub enum BallType {
     Normal,
 }
 impl BallType {
-    pub fn weight(&self) -> f32 {
+    pub fn density(&self) -> f32 {
         match *self {
             BallType::Normal => 1.0,
         }
-    }
-    pub fn density(&self) -> f32 {
-        self.weight() / self.volume()
-    }
-    /// 二次元体積（面積）を返す
-    pub fn volume(&self) -> f32 {
-        self.radius() * self.radius() * PI
     }
     pub fn radius(&self) -> f32 {
         match *self {

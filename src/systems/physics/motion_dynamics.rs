@@ -1,33 +1,29 @@
 use crate::{
-    components::{
-        ball::Ball,
-        physics::{
-            acceleration::Acceleration, force::Force, material::PhysicMaterial, position::Position,
-            velocity::Velocity,
-        },
+    components::physics::{
+        acceleration::Acceleration,
+        force::Force,
+        material::{PhysicMaterial, Volume},
+        position::Position,
+        velocity::Velocity,
     },
     AppState,
 };
 use bevy::prelude::*;
 
-/// ボールにはたらく力による影響を計算する.
+/// 各フレームでボールにはたらく力による影響を計算する.
 /// 力が加わっていれば加速度をセットし, 加わっていなければ加速度を0にする
-/// 現状ボールしか使えないようになっている.
-/// TODO: lyonのShapeBundleから体積を計算できないか
 pub fn execute_force(
-    mut commands: Commands,
     mut q: Query<(
-        Option<&Force>,
+        Option<&mut Force>,
         &mut Acceleration,
         &PhysicMaterial,
-        &Ball,
-        Entity,
+        &Volume,
     )>,
 ) {
-    for (f, mut a, _, ball, ent) in q.iter_mut() {
-        if let Some(f) = f {
-            a.0 = f.0 / ball.ball_type.weight();
-            commands.entity(ent).remove::<Force>();
+    for (f, mut a, material, vol) in q.iter_mut() {
+        if let Some(mut f) = f {
+            a.0 = f.0 / material.density / vol.0;
+            f.0 = Vec2::ZERO;
         } else {
             a.0 = Vec2::ZERO;
         };
