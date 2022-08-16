@@ -87,8 +87,8 @@ fn spawn_wind_visual_effect(
                     // 経過時刻を用いてエフェクトを出す.
                     // [0,1]を取るパラメータで内分して位置を計算
                     let param = (time.seconds_since_startup() as f32 * 60.0).sin() / 2.0 + 0.5;
-                    let spawn_pos = p1 * param + p2 * (1.0 - param);
-                    let vel = (p1 - p2).perp().normalize() * 15.0;
+                    let spawn_pos = p1.lerp(p2, param);
+                    let effect_vel = (p1 - p2).perp().normalize() * 15.0;
                     commands
                         .spawn_bundle(GeometryBuilder::build_as(
                             &effect_shape,
@@ -99,7 +99,7 @@ fn spawn_wind_visual_effect(
                             },
                         ))
                         .insert(WindVisualEffect)
-                        .insert(Velocity(vel))
+                        .insert(Velocity(effect_vel))
                         .insert(Position(spawn_pos))
                         .insert(CountDownTimer::new(60));
                 }
