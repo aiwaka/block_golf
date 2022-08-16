@@ -257,10 +257,15 @@ fn collision_of_balls(ball1: (&Ball, &Transform), ball2: (&Ball, &Transform)) ->
     let ball2_radius = ball2.0.ball_type.radius();
     let ball2_pos = ball2.1.translation.truncate();
     let diff = ball1_pos - ball2_pos;
-    // 球同士が完全に重なっている場合lengthが0でおかしくなるが, とりあえず保留
     if diff.length_squared() < (ball1_radius + ball2_radius) * (ball1_radius + ball2_radius) {
-        const FORCE_PARAM: f32 = 0.001;
-        let overlap_vec = diff * ((ball1_radius + ball2_radius) / diff.length() - 1.0);
+        const FORCE_PARAM: f32 = 0.1;
+        let diff_length = diff.length();
+        let overlap_vec = if diff_length < EPSILON {
+            // 球同士が完全に重なっている場合lengthが0なので, X方向に返すとして計算する.
+            ball1_radius * Vec2::X
+        } else {
+            diff * ((ball1_radius + ball2_radius) / diff_length - 1.0)
+        };
         // kx^2を返す.
         Some(overlap_vec * overlap_vec.length() * FORCE_PARAM)
     } else {
