@@ -77,10 +77,12 @@ fn spawn_wind_visual_effect(
             if fan.active {
                 if let BlockType::Rect { shape } = block_type {
                     let angle = block_trans.angle;
+                    let (_, _, block_glb_translation) =
+                        block_glb_trans.to_scale_rotation_translation();
                     // まずファンの両端点を計算する
                     let [p1, p2] = calc_edge_points_of_fan(
                         &fan.direction,
-                        block_glb_trans.translation.truncate(),
+                        block_glb_translation.truncate(),
                         angle,
                         shape.extents,
                     );
@@ -153,9 +155,10 @@ fn generate_wind(
             if let BlockType::Rect { shape } = block_type {
                 let angle = block_trans.angle;
                 // まずファンの両端点を計算する
+                let (_, _, block_glb_translation) = block_glb_trans.to_scale_rotation_translation();
                 let [p1, p2] = calc_edge_points_of_fan(
                     &fan.direction,
-                    block_glb_trans.translation.truncate(),
+                    block_glb_translation.truncate(),
                     angle,
                     shape.extents,
                 );
