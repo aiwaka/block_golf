@@ -14,14 +14,21 @@ mod jamming;
 mod sample;
 mod tutorial_stage;
 
-// use debug::debug_stage;
+use debug::debug_stage;
 use itertools::Itertools;
 use sample::sample_stage;
 
 type GenerateStageInfoFunc = fn() -> StageInfo;
 
 fn stage_vec() -> Vec<GenerateStageInfoFunc> {
-    vec![tutorial_stage1, sample_stage, aisle1, aisle2, jamming1]
+    vec![
+        tutorial_stage1,
+        sample_stage,
+        aisle1,
+        aisle2,
+        jamming1,
+        debug_stage,
+    ]
 }
 
 pub fn stage_title_vec() -> Vec<&'static str> {

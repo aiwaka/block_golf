@@ -32,7 +32,7 @@ fn init_menu_scene(
 fn text_style_from_pos(left: f32, top: f32) -> Style {
     Style {
         position_type: PositionType::Absolute,
-        position: Rect {
+        position: UiRect {
             left: Val::Px(left),
             top: Val::Px(top),
             ..Default::default()
@@ -62,14 +62,7 @@ fn init_option2(commands: &mut Commands, asset_server: &Res<AssetServer>) {
         let mut text_height_sum = SCREEN_HEIGHT * 0.2;
         for option in option_set.options.iter() {
             let mut text_bundle = TextBundle {
-                text: Text::with_section(
-                    option.name,
-                    text_style.clone(),
-                    TextAlignment {
-                        horizontal: HorizontalAlign::Center,
-                        ..default()
-                    },
-                ),
+                text: Text::from_section(option.name, text_style.clone()),
                 ..default()
             };
             let text_width = 30.0 * option.name.len() as f32;
@@ -230,6 +223,7 @@ fn each_option_processing(
     }
 }
 
+// NOTE: 0.8でVisibilityの意味が変化したようです
 /// 現在のレイヤーの選択肢を表示させる.
 fn show_current_layer(
     mut query: Query<(&mut Visibility, &MenuLayerPos)>,

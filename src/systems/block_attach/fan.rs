@@ -77,10 +77,12 @@ fn spawn_wind_visual_effect(
             if fan.active {
                 if let BlockType::Rect { shape } = block_type {
                     let angle = block_trans.angle;
+                    let (_, _, block_glb_translation) =
+                        block_glb_trans.to_scale_rotation_translation();
                     // まずファンの両端点を計算する
                     let [p1, p2] = calc_edge_points_of_fan(
                         &fan.direction,
-                        block_glb_trans.translation.truncate(),
+                        block_glb_translation.truncate(),
                         angle,
                         shape.extents,
                     );
@@ -117,13 +119,6 @@ fn update_wind_visual_effect(
     }
 }
 
-// TODO: これはcollisionにある関数のコピーなのでまとめたほうがよい
-fn rotate_vec2(v: Vec2, angle: f32) -> Vec2 {
-    Vec2::new(
-        v.x * angle.cos() - v.y * angle.sin(),
-        v.x * angle.sin() + v.y * angle.cos(),
-    )
-}
 /// ファンの両端点を計算する
 /// 反時計回りになるように2点を返す
 fn calc_edge_points_of_fan(
@@ -132,9 +127,9 @@ fn calc_edge_points_of_fan(
     angle: f32,
     extents: Vec2,
 ) -> [Vec2; 2] {
-    let half_ext = rotate_vec2(extents / 2.0, angle);
+    let half_ext = Vec2::from_angle(angle).rotate(extents / 2.0);
     // xだけ反転させたベクトル
-    let refl_half_ext = rotate_vec2(Vec2::new(-extents.x, extents.y) / 2.0, angle);
+    let refl_half_ext = Vec2::from_angle(angle).rotate(Vec2::new(-extents.x, extents.y) / 2.0);
     match fan_direction {
         FanDirection::Up => [block_orig_pos + half_ext, block_orig_pos + refl_half_ext],
         FanDirection::Down => [block_orig_pos - half_ext, block_orig_pos - refl_half_ext],
@@ -153,9 +148,10 @@ fn generate_wind(
             if let BlockType::Rect { shape } = block_type {
                 let angle = block_trans.angle;
                 // まずファンの両端点を計算する
+                let (_, _, block_glb_translation) = block_glb_trans.to_scale_rotation_translation();
                 let [p1, p2] = calc_edge_points_of_fan(
                     &fan.direction,
-                    block_glb_trans.translation.truncate(),
+                    block_glb_translation.truncate(),
                     angle,
                     shape.extents,
                 );

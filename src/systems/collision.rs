@@ -21,13 +21,6 @@ use crate::{
     AppState,
 };
 
-fn rotate_vec2(v: Vec2, angle: f32) -> Vec2 {
-    Vec2::new(
-        v.x * angle.cos() - v.y * angle.sin(),
-        v.x * angle.sin() + v.y * angle.cos(),
-    )
-}
-
 /// 直交座標系に水平な矩形が, ある点を含んでいるか？
 /// center: 矩形の中心
 /// extents: 矩形の大きさ（width, height）
@@ -64,10 +57,8 @@ fn collision_between_block_and_ball(
     // ボールを原点として, 矩形の角度を水平に補正した局所座標を定義する
     // lcをつけたら局所座標での値とする
     // block_centerは対角線の交点とする
-    let lc_block_center = rotate_vec2(
-        block_pos + rotate_vec2(block_origin, block_angle) - ball_pos,
-        -block_angle,
-    );
+    let lc_block_center = Vec2::from_angle(-block_angle)
+        .rotate(block_pos + Vec2::from_angle(block_angle).rotate(block_origin) - ball_pos);
     if rect_contains_origin(
         lc_block_center,
         block_extents + Vec2::splat(ball_radius * 2.0),
@@ -204,7 +195,7 @@ fn block_ball_collision(
                 }
             } {
                 // 局所座標を画面座標に修正
-                let collide_normal = rotate_vec2(lc_collide_normal, block_trans.angle);
+                let collide_normal = Vec2::from_angle(block_trans.angle).rotate(lc_collide_normal);
                 ball_pos.0 += collide_normal * penetrate_depth;
                 let restitution = block_material.restitution * ball_material.restitution;
                 // let friction = block_material.friction;
