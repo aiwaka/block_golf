@@ -39,7 +39,7 @@ fn main() {
     let mut app = App::new();
     app.insert_resource(window);
     app.add_plugins(DefaultPlugins);
-    app.add_system(bevy::input::system::exit_on_esc_system);
+    app.add_system(bevy::window::close_on_esc);
     app.add_plugin(ShapePlugin);
     add_events(&mut app);
     app.add_state(AppState::Menu);
