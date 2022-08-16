@@ -21,20 +21,19 @@ fn init_note_text(mut commands: Commands, asset_server: Res<AssetServer>) {
     commands.spawn_bundle(TextBundle {
         style: Style {
             position_type: PositionType::Absolute,
-            position: Rect {
+            position: UiRect {
                 bottom: Val::Px(20.0),
                 ..default()
             },
             ..default()
         },
-        text: Text::with_section(
+        text: Text::from_section(
             "R: retry\nB: back to title",
             TextStyle {
                 font: asset_server.load("fonts/ume-tgs5.ttf"),
                 font_size: 20.0,
                 color: Color::WHITE,
             },
-            TextAlignment::default(),
         ),
         ..default()
     });
@@ -50,22 +49,18 @@ fn init_timer_display(
         commands.entity(timer_ent).insert_bundle(TextBundle {
             style: Style {
                 position_type: PositionType::Absolute,
-                position: Rect {
+                position: UiRect {
                     top: Val::Px(20.0),
                     ..default()
                 },
                 ..default()
             },
-            text: Text::with_section(
+            text: Text::from_section(
                 frame_to_second(timer.count()),
                 TextStyle {
                     font: asset_server.load("fonts/ume-tgs5.ttf"),
                     font_size: 40.0,
                     color: Color::WHITE,
-                },
-                TextAlignment {
-                    horizontal: HorizontalAlign::Center,
-                    ..default()
                 },
             ),
             ..default()
@@ -128,23 +123,19 @@ fn spawn_result_score(
                         .spawn_bundle(TextBundle {
                             style: Style {
                                 position_type: PositionType::Absolute,
-                                position: Rect {
+                                position: UiRect {
                                     top: Val::Px(140.0),
                                     left: Val::Px(40.0),
                                     ..default()
                                 },
                                 ..default()
                             },
-                            text: Text::with_section(
+                            text: Text::from_section(
                                 format!("{}: {}", title, value),
                                 TextStyle {
                                     font: asset_server.load("fonts/ume-tgs5.ttf"),
                                     font_size: 40.0,
                                     color: Color::WHITE,
-                                },
-                                TextAlignment {
-                                    horizontal: HorizontalAlign::Center,
-                                    ..default()
                                 },
                             ),
                             ..default()
@@ -156,23 +147,19 @@ fn spawn_result_score(
                 .spawn_bundle(TextBundle {
                     style: Style {
                         position_type: PositionType::Absolute,
-                        position: Rect {
+                        position: UiRect {
                             bottom: Val::Px(20.0),
                             right: Val::Px(40.0),
                             ..default()
                         },
                         ..default()
                     },
-                    text: Text::with_section(
+                    text: Text::from_section(
                         "press Z to back.",
                         TextStyle {
                             font: asset_server.load("fonts/ume-tgs5.ttf"),
                             font_size: 40.0,
                             color: Color::WHITE,
-                        },
-                        TextAlignment {
-                            horizontal: HorizontalAlign::Center,
-                            ..default()
                         },
                     ),
                     ..default()
