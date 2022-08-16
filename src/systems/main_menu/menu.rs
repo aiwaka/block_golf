@@ -230,6 +230,7 @@ fn each_option_processing(
     }
 }
 
+// NOTE: 0.8でVisibilityの意味が変化したようです
 /// 現在のレイヤーの選択肢を表示させる.
 fn show_current_layer(
     mut query: Query<(&mut Visibility, &MenuLayerPos)>,
