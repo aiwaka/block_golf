@@ -12,8 +12,8 @@ use systems::{
     ball::BallPlugin, block::BlockPlugin, block_attach::BlockAttachmentPlugin,
     collision::CollisionPlugin, effects::EffectPlugin, field::FieldPlugin, game::GameManagePlugin,
     goal::GoalPlugin, info_board::InfoBoardPlugin, launcher::LauncherPlugin, load::LoadStagePlugin,
-    main_menu::menu::MainMenuPlugin, physics::motion_dynamics::MotionDynamicsPlugin,
-    setup::global_setup, timer::TimersPlugin,
+    main_menu::menu::MainMenuPlugin, physics::PhysicsPlugin, setup::global_setup,
+    timer::TimersPlugin,
 };
 
 const SCREEN_WIDTH: f32 = 1280.0;
@@ -60,7 +60,7 @@ fn main() {
     app.add_plugin(BlockAttachmentPlugin);
     app.add_plugin(CollisionPlugin);
     app.add_plugin(LauncherPlugin);
-    app.add_plugin(MotionDynamicsPlugin);
+    app.add_plugin(PhysicsPlugin);
     app.add_plugin(InfoBoardPlugin);
     app.add_plugin(TimersPlugin);
     app.add_plugin(GameManagePlugin);
