@@ -11,6 +11,7 @@ use crate::components::block::{BlockSlidePath, RotateStrategy, SlideStrategy};
 use crate::components::block_attach::fan::Fan;
 use crate::components::block_attach::switch::{SwitchReceiver, SwitchType};
 use crate::components::block_attach::BlockAttachment;
+use crate::components::physics::force::Gravity;
 use crate::components::physics::material::PhysicMaterial;
 use crate::systems::field::{FIELD_HEIGHT, FIELD_WIDTH};
 
@@ -133,5 +134,6 @@ pub fn tutorial_stage1() -> StageInfo {
         balls: ball_list,
         goal_pos: goal_list,
         switches,
+        gravity: Some(Gravity::simple_gravity()),
     }
 }

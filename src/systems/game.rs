@@ -42,6 +42,7 @@ fn spawn_stage_entities(
     let goal_list = stage_info.goal_pos;
     let ball_list = stage_info.balls;
     let switch_list = stage_info.switches;
+    let gravity = stage_info.gravity;
     commands.insert_resource(InitialBallNum(ball_list.len() as u32));
 
     // 残り時間タイマー用意
@@ -63,6 +64,10 @@ fn spawn_stage_entities(
     }
     for switch in switch_list {
         switch_event_writer.send(switch.to_spawn_event());
+    }
+    if let Some(gravity) = gravity {
+        commands.spawn().insert(gravity);
+        info!("gravity spawn    ");
     }
 }
 

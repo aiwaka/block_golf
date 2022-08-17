@@ -18,7 +18,7 @@ impl Gravity {
     /// 下向きの一様重力場
     pub fn simple_gravity() -> Self {
         Gravity {
-            field: |_: Vec2| Vec2::new(0.0, -9.8),
+            field: |_: Vec2| Vec2::new(0.0, -0.5),
         }
     }
 }
