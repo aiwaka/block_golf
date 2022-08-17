@@ -75,6 +75,7 @@ pub fn aisle1() -> StageInfo {
         balls: ball_list,
         goal_pos: goal_list,
         switches: vec![],
+        gravity: None,
     }
 }
 
@@ -144,5 +145,6 @@ pub fn aisle2() -> StageInfo {
         balls: ball_list,
         goal_pos: goal_list,
         switches: vec![],
+        gravity: None,
     }
 }

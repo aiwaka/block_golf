@@ -42,7 +42,7 @@ pub fn move_position(mut q: Query<(&Velocity, &mut Position)>) {
     }
 }
 
-pub struct MotionDynamicsPlugin;
+pub(super) struct MotionDynamicsPlugin;
 impl Plugin for MotionDynamicsPlugin {
     fn build(&self, app: &mut App) {
         app.add_system_set(

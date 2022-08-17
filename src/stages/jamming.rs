@@ -63,5 +63,6 @@ pub fn jamming1() -> StageInfo {
         balls: ball_list,
         goal_pos: goal_list,
         switches: vec![],
+        gravity: None,
     }
 }

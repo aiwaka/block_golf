@@ -1,5 +1,7 @@
+//! ステージを定義する構造体を定義するモジュール.
 use bevy::prelude::*;
 
+use crate::components::physics::force::Gravity;
 use crate::events::ball::SetBallEvent;
 use crate::events::goal::SpawnGoalEvent;
 use crate::events::launcher::SpawnLauncherEvent;
@@ -29,6 +31,8 @@ pub struct StageInfo {
     pub goal_pos: Vec<GoalInfo>,
     /// スイッチの送信機の情報
     pub switches: Vec<SwitchInfo>,
+    /// 重力場
+    pub gravity: Option<Gravity>,
 }
 
 #[derive(Clone)]
