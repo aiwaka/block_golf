@@ -121,6 +121,17 @@ fn execute_change_by_switch(
                                 entity_commands.insert(UpdaterVec::new_from_a_updater(updater));
                             }
                         }
+                        SwitchType::RotateBlock { range, func } => {
+                            let updater = Updater::new(
+                                range.clone(),
+                                UpdaterType::BlockAngle { func: *func },
+                            );
+                            if let Some(mut updater_vec) = updater_vec {
+                                updater_vec.0.push(updater);
+                            } else {
+                                entity_commands.insert(UpdaterVec::new_from_a_updater(updater));
+                            }
+                        }
                     }
                 }
             }
@@ -141,6 +152,19 @@ fn execute_change_by_switch(
                             reversed_range.reverse();
                             let updater =
                                 Updater::new(reversed_range, UpdaterType::BlockPos { func: *func });
+                            if let Some(mut updater_vec) = updater_vec {
+                                updater_vec.0.push(updater);
+                            } else {
+                                entity_commands.insert(UpdaterVec::new_from_a_updater(updater));
+                            }
+                        }
+                        SwitchType::RotateBlock { range, func } => {
+                            let mut reversed_range = range.clone();
+                            reversed_range.reverse();
+                            let updater = Updater::new(
+                                reversed_range,
+                                UpdaterType::BlockAngle { func: *func },
+                            );
                             if let Some(mut updater_vec) = updater_vec {
                                 updater_vec.0.push(updater);
                             } else {
