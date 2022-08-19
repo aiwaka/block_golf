@@ -187,8 +187,8 @@ pub fn aisle2() -> StageInfo {
     ball_list.set_balls(BallType::Normal, 3);
 
     let goal_list = vec![GoalInfo {
-        pos: Vec2::new(FIELD_WIDTH / 2.0 - 20.0, FIELD_HEIGHT / 2.0 - 30.0),
-        radius: 30.0,
+        pos: Vec2::new(FIELD_WIDTH / 2.0 - 20.0, FIELD_HEIGHT / 2.0 - 40.0),
+        radius: 50.0,
         score: 1,
     }];
 

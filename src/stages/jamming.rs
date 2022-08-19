@@ -77,8 +77,8 @@ pub fn jamming1() -> StageInfo {
             score: 1,
         },
         GoalInfo {
-            pos: Vec2::new(300.0, 0.0),
-            radius: 30.0,
+            pos: Vec2::new(340.0, 0.0),
+            radius: 50.0,
             score: 3,
         },
     ];
