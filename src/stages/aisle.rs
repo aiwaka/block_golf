@@ -1,4 +1,4 @@
-use std::f32::consts::FRAC_PI_2;
+use std::f32::consts::{FRAC_PI_2, PI};
 
 use bevy::prelude::*;
 
@@ -13,6 +13,64 @@ use crate::components::{
     block::{RotateStrategy, SlideStrategy},
 };
 use crate::systems::field::{FIELD_HEIGHT, FIELD_WIDTH};
+
+pub fn aisle0() -> StageInfo {
+    let orig_point = Vec2::new(-FIELD_WIDTH / 2.0 + 30.0, -FIELD_HEIGHT / 2.0 + 30.0);
+    const ROTATE_SPEED: f32 = 0.01;
+    let block_list = vec![
+        BlockInfo {
+            pos: Vec2::new(-130.0, -60.0),
+            block_shape_info: BlockShapeInfo::Rect {
+                extents: Vec2::new(FIELD_WIDTH / 2.0, FIELD_HEIGHT / 2.0),
+                rect_origin: Vec2::ZERO,
+                rotate_strategy: RotateStrategy::NoRotate,
+                slide_strategy: SlideStrategy::NoSlide,
+            },
+            ..Default::default()
+        },
+        BlockInfo {
+            pos: Vec2::new(130.0, 60.0),
+            block_shape_info: BlockShapeInfo::Rect {
+                extents: Vec2::new(FIELD_WIDTH / 2.0, FIELD_HEIGHT / 2.0),
+                rect_origin: Vec2::ZERO,
+                rotate_strategy: RotateStrategy::NoRotate,
+                slide_strategy: SlideStrategy::NoSlide,
+            },
+            ..Default::default()
+        },
+    ];
+
+    let launcher_info = LauncherInfo {
+        pos: orig_point,
+        default_angle: 0.0,
+        rotate_speed: ROTATE_SPEED,
+        min_angle: 0.0,
+        max_angle: FRAC_PI_2,
+    };
+
+    let mut ball_list = Vec::<BallInfo>::new();
+    ball_list.set_balls(BallType::Normal, 3);
+
+    let goal_list = vec![GoalInfo {
+        pos: Vec2::from_angle(PI).rotate(orig_point),
+        radius: 50.0,
+        ..Default::default()
+    }];
+
+    StageInfo {
+        stage_title: "aisle0",
+        time: 60 * 60,
+        launcher: launcher_info,
+        blocks: field_block()
+            .into_iter()
+            .chain(block_list)
+            .collect::<Vec<BlockInfo>>(),
+        balls: ball_list,
+        goal_pos: goal_list,
+        switches: vec![],
+        gravity: None,
+    }
+}
 
 pub fn aisle1() -> StageInfo {
     let material = PhysicMaterial::new(1.0, 1.0, 0.0);

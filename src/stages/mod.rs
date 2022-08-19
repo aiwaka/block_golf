@@ -1,5 +1,5 @@
 use self::{
-    aisle::{aisle1, aisle2},
+    aisle::{aisle0, aisle1, aisle2},
     jamming::jamming1,
     planet::square_planet,
     structs::StageInfo,
@@ -26,6 +26,7 @@ fn stage_vec() -> Vec<GenerateStageInfoFunc> {
     vec![
         tutorial_stage1,
         sample_stage,
+        aisle0,
         aisle1,
         aisle2,
         jamming1,
