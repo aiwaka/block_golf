@@ -17,14 +17,14 @@ impl BallType {
     pub fn radius(&self) -> f32 {
         match *self {
             BallType::Normal => 20.0,
-            BallType::Metal => 15.0,
+            BallType::Metal => 18.0,
         }
     }
     /// ボールの反発係数. 2つをかけ合わせたものを衝突の際の反発係数として使う
     pub fn restitution(&self) -> f32 {
         match *self {
-            BallType::Normal => 1.0,
-            BallType::Metal => 0.7,
+            BallType::Normal => 0.95,
+            BallType::Metal => 0.65,
         }
     }
     pub fn color(&self) -> Color {
