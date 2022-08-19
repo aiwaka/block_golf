@@ -3,6 +3,7 @@ use bevy::prelude::*;
 /// クロージャを保持して何らかの変更を行う
 #[derive(Clone, Debug)]
 pub enum UpdaterType {
+    #[allow(dead_code)]
     /// 空選択肢
     None,
     BlockPos {
@@ -17,18 +18,21 @@ pub enum UpdaterType {
 
 #[derive(Clone, Debug)]
 pub struct Updater {
-    /// countから1フレームごとに1増加し, limitを超えたら自動で除去される.
-    /// 負の値から初めて一定時間動作しないようなupdaterも設定可能
-    pub count: i32,
-    pub limit: i32,
+    /// rangeをコピーして初期化され, 処理ごとに一つ取り出して計算する. 空になれば削除する.
+    pub current_range: Vec<i32>,
+    /// i32の列で範囲指定する
+    pub range: Vec<i32>,
     pub updater_type: UpdaterType,
 }
-impl Default for Updater {
-    fn default() -> Self {
+impl Updater {
+    pub fn new(range: Vec<i32>, updater_type: UpdaterType) -> Self {
+        // current_rangeはpopで取り出すので逆向きにしてセットする
+        let mut reversed_range = range.clone();
+        reversed_range.reverse();
         Updater {
-            count: 0,
-            limit: 60,
-            updater_type: UpdaterType::None,
+            current_range: reversed_range,
+            range,
+            updater_type,
         }
     }
 }

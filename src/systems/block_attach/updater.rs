@@ -14,13 +14,16 @@ fn update(mut block_query: Query<(&mut BlockTransform, &mut UpdaterVec)>) {
             match updater.updater_type {
                 UpdaterType::None => {}
                 UpdaterType::BlockPos { func } => {
-                    block_trans.offset = func(updater.count);
+                    if let Some(current_count) = updater.current_range.pop() {
+                        block_trans.offset = func(current_count);
+                    }
                 }
                 UpdaterType::BlockAngle { func } => {
-                    block_trans.angle = func(updater.count);
+                    if let Some(current_count) = updater.current_range.pop() {
+                        block_trans.angle = func(current_count);
+                    }
                 }
             }
-            updater.count += 1;
         }
     }
 }
@@ -29,7 +32,7 @@ fn update(mut block_query: Query<(&mut BlockTransform, &mut UpdaterVec)>) {
 /// すべてのupdaterが終了していた場合それ自体を取り除く.
 fn auto_remove(mut commands: Commands, mut updater_query: Query<(&mut UpdaterVec, Entity)>) {
     for (mut updater_vec, ent) in updater_query.iter_mut() {
-        updater_vec.0.retain(|u| u.count < u.limit);
+        updater_vec.0.retain(|u| !u.current_range.is_empty());
         if updater_vec.0.is_empty() {
             commands.entity(ent).remove::<UpdaterVec>();
         }

@@ -32,10 +32,8 @@ pub enum SwitchType {
     },
     ToggleFanActive,
     MoveBlock {
-        /// 初期カウント
-        count: i32,
-        /// countがlimitになるまで更新
-        limit: i32,
+        /// i32の列を保持してNoneが出るまで回す
+        range: Vec<i32>,
         /// カウントから座標を計算する関数. BlockOriginalPosからの相対移動を行う.
         func: fn(i32) -> Vec2,
     },
