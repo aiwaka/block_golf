@@ -6,7 +6,6 @@ use super::field_blocks::field_block;
 use super::structs::{
     ArrangeBallInfo, BallInfo, BlockInfo, BlockShapeInfo, GoalInfo, LauncherInfo, StageInfo,
 };
-use crate::components::block::BlockSlidePath;
 use crate::components::physics::force::Gravity;
 use crate::components::physics::material::PhysicMaterial;
 use crate::components::{
@@ -14,6 +13,42 @@ use crate::components::{
     block::{RotateStrategy, SlideStrategy},
 };
 use crate::systems::field::FIELD_WIDTH;
+
+pub fn strange_gravity() -> StageInfo {
+    let block_list = vec![];
+
+    let launcher_info = LauncherInfo {
+        pos: Vec2::new(-FIELD_WIDTH / 2.0 + 30.0, -250.0),
+        default_angle: 0.0,
+        rotate_speed: 0.0,
+        min_angle: 0.0,
+        max_angle: 0.0,
+    };
+
+    let mut ball_list = Vec::<BallInfo>::new();
+    ball_list.set_balls(BallType::Normal, 1);
+    ball_list.set_balls(BallType::Metal, 1);
+
+    let goal_list = vec![GoalInfo {
+        pos: Vec2::ZERO,
+        radius: 20.0,
+        score: 1,
+    }];
+
+    StageInfo {
+        stage_title: "strange_gravity",
+        time: 60 * 60,
+        launcher: launcher_info,
+        blocks: field_block()
+            .into_iter()
+            .chain(block_list)
+            .collect::<Vec<BlockInfo>>(),
+        balls: ball_list,
+        goal_pos: goal_list,
+        switches: vec![],
+        gravity: Gravity::new_as_some(|pos: Vec2| -0.001 * pos),
+    }
+}
 
 pub fn square_planet() -> StageInfo {
     let material = PhysicMaterial::new(0.8, 9.0, 1.0);
