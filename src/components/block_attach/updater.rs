@@ -3,6 +3,8 @@ use bevy::prelude::*;
 /// クロージャを保持して何らかの変更を行う
 #[derive(Clone, Debug)]
 pub enum UpdaterType {
+    /// 空選択肢
+    None,
     BlockPos {
         /// 位置決定関数
         func: fn(i32) -> Vec2,
@@ -20,6 +22,15 @@ pub struct Updater {
     pub count: i32,
     pub limit: i32,
     pub updater_type: UpdaterType,
+}
+impl Default for Updater {
+    fn default() -> Self {
+        Updater {
+            count: 0,
+            limit: 60,
+            updater_type: UpdaterType::None,
+        }
+    }
 }
 
 /// Updaterの列をコンポーネントとして付与することで同時に様々な変更ができる
