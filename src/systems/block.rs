@@ -82,17 +82,17 @@ fn set_block(mut commands: Commands, mut event_listener: EventReader<SpawnBlockE
                 }
             }
         }
-        commands.spawn_bundle(GeometryBuilder::build_as(
-            &shapes::Circle {
-                radius: 10.0,
-                center: Vec2::new(0.0, 0.0),
-            },
-            DrawMode::Fill(FillMode::color(Color::RED)),
-            Transform {
-                translation: ev.pos.extend(80.0),
-                ..Default::default()
-            },
-        ));
+        // commands.spawn_bundle(GeometryBuilder::build_as(
+        //     &shapes::Circle {
+        //         radius: 10.0,
+        //         center: Vec2::new(0.0, 0.0),
+        //     },
+        //     DrawMode::Fill(FillMode::color(Color::RED)),
+        //     Transform {
+        //         translation: ev.pos.extend(80.0),
+        //         ..Default::default()
+        //     },
+        // ));
     }
 }
 
