@@ -9,6 +9,15 @@ pub struct PhysicMaterial {
     pub density: f32,     // 密度
     pub friction: f32,    // 摩擦係数
 }
+impl Default for PhysicMaterial {
+    fn default() -> Self {
+        PhysicMaterial {
+            restitution: 1.0,
+            density: 1.0,
+            friction: 0.0,
+        }
+    }
+}
 
 #[derive(Component, Debug, Clone, Copy)]
 pub struct Volume(pub f32);

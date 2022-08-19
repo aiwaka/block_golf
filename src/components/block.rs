@@ -52,6 +52,11 @@ pub enum RotateStrategy {
     Manual(f32),
     Auto(f32),
 }
+impl Default for RotateStrategy {
+    fn default() -> Self {
+        RotateStrategy::NoRotate
+    }
+}
 
 /// 移動の方法
 #[derive(Component, Clone, Debug)]
@@ -60,6 +65,11 @@ pub enum SlideStrategy {
     Manual { speed: f32, path: BlockSlidePath }, // キー入力で移動
     AutoWrap { speed: f32, path: BlockSlidePath }, // キー入力で移動, 自動で折り返し
     Auto { speed: f32, path: BlockSlidePath },   // 自動で移動
+}
+impl Default for SlideStrategy {
+    fn default() -> Self {
+        SlideStrategy::NoSlide
+    }
 }
 
 impl SlideStrategy {
