@@ -15,9 +15,11 @@ pub struct BlockOriginalPos(pub Vec2);
 #[derive(Component, Default)]
 pub struct BlockTransform {
     pub angle: f32,     // 現在の角度
+    pub offset: Vec2,   // 位置補正
     pub pos_param: f32, // 位置を計算するためのパラメータ. Manualの場合[-1, 1]をとるとする.
     /// 直前フレームの位置データを保持して差分を取れるようにする.
     pub prev_angle: f32,
+    pub prev_offset: Vec2,
     pub prev_param: f32,
 }
 impl BlockTransform {
@@ -25,8 +27,10 @@ impl BlockTransform {
     pub fn new(angle: f32, pos_param: f32) -> Self {
         Self {
             angle,
+            offset: Vec2::ZERO,
             pos_param,
             prev_angle: angle,
+            prev_offset: Vec2::ZERO,
             prev_param: pos_param,
         }
     }
@@ -37,10 +41,12 @@ impl BlockTransform {
     /// そのフレームでの重心の並進速度
     /// delta: 重心 - 回転軸 のベクトル（Rectならoriginでよい）
     pub fn pos_diff(&self, path: &BlockSlidePath, delta: Vec2) -> Vec2 {
-        let current_pos =
-            path.calc_orbit(self.pos_param) + delta * Vec2::new(self.angle.cos(), self.angle.sin());
+        let current_pos = path.calc_orbit(self.pos_param)
+            + delta * Vec2::new(self.angle.cos(), self.angle.sin())
+            + self.offset;
         let prev_pos = path.calc_orbit(self.prev_param)
-            + delta * Vec2::new(self.prev_angle.cos(), self.prev_angle.sin());
+            + delta * Vec2::new(self.prev_angle.cos(), self.prev_angle.sin())
+            + self.prev_offset;
         current_pos - prev_pos
     }
 }
@@ -52,6 +58,11 @@ pub enum RotateStrategy {
     Manual(f32),
     Auto(f32),
 }
+impl Default for RotateStrategy {
+    fn default() -> Self {
+        RotateStrategy::NoRotate
+    }
+}
 
 /// 移動の方法
 #[derive(Component, Clone, Debug)]
@@ -60,6 +71,11 @@ pub enum SlideStrategy {
     Manual { speed: f32, path: BlockSlidePath }, // キー入力で移動
     AutoWrap { speed: f32, path: BlockSlidePath }, // キー入力で移動, 自動で折り返し
     Auto { speed: f32, path: BlockSlidePath },   // 自動で移動
+}
+impl Default for SlideStrategy {
+    fn default() -> Self {
+        SlideStrategy::NoSlide
+    }
 }
 
 impl SlideStrategy {

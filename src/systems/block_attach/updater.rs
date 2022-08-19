@@ -2,24 +2,28 @@ use bevy::prelude::*;
 
 use crate::{
     components::{
-        block::{BlockOriginalPos, BlockTransform},
+        block::BlockTransform,
         block_attach::updater::{UpdaterType, UpdaterVec},
     },
     AppState,
 };
 
-fn update(mut block_query: Query<(&mut BlockOriginalPos, &mut BlockTransform, &mut UpdaterVec)>) {
-    for (mut block, mut block_trans, mut updater_vec) in block_query.iter_mut() {
+fn update(mut block_query: Query<(&mut BlockTransform, &mut UpdaterVec)>) {
+    for (mut block_trans, mut updater_vec) in block_query.iter_mut() {
         for updater in updater_vec.0.iter_mut() {
             match updater.updater_type {
+                UpdaterType::None => {}
                 UpdaterType::BlockPos { func } => {
-                    block.0 = func(updater.count);
+                    if let Some(current_count) = updater.current_range.pop() {
+                        block_trans.offset = func(current_count);
+                    }
                 }
                 UpdaterType::BlockAngle { func } => {
-                    block_trans.angle = func(updater.count);
+                    if let Some(current_count) = updater.current_range.pop() {
+                        block_trans.angle = func(current_count);
+                    }
                 }
             }
-            updater.count += 1;
         }
     }
 }
@@ -28,7 +32,7 @@ fn update(mut block_query: Query<(&mut BlockOriginalPos, &mut BlockTransform, &m
 /// すべてのupdaterが終了していた場合それ自体を取り除く.
 fn auto_remove(mut commands: Commands, mut updater_query: Query<(&mut UpdaterVec, Entity)>) {
     for (mut updater_vec, ent) in updater_query.iter_mut() {
-        updater_vec.0.retain(|u| u.count < u.limit);
+        updater_vec.0.retain(|u| !u.current_range.is_empty());
         if updater_vec.0.is_empty() {
             commands.entity(ent).remove::<UpdaterVec>();
         }

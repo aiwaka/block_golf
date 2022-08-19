@@ -84,11 +84,10 @@ fn switch_state_changed(
 }
 
 /// just_activeとjust_reverseがtrueのときにそのフレームの最後にfalseに戻しておくためのシステム
-fn off_one_frame_flag(mut query: Query<(&mut SwitchTile, Entity)>) {
-    for (mut switch, ent) in query.iter_mut() {
+fn off_one_frame_flag(mut query: Query<&mut SwitchTile>) {
+    for mut switch in query.iter_mut() {
         if switch.just_active {
             switch.just_active = false;
-            // info!("off just active {:?}", ent);
         }
     }
 }
@@ -112,13 +111,10 @@ fn execute_change_by_switch(
                             entity_commands.insert(after.clone());
                         }
                         SwitchType::ToggleFanActive => {}
-                        SwitchType::MoveBlock { count, limit, func } => {
-                            info!("move block attachment : limit {}", limit);
-                            let updater = Updater {
-                                count: *count,
-                                limit: *limit,
-                                updater_type: UpdaterType::BlockPos { func: *func },
-                            };
+                        SwitchType::MoveBlock { range, func } => {
+                            // info!("move block attachment : limit {}", limit);
+                            let updater =
+                                Updater::new(range.clone(), UpdaterType::BlockPos { func: *func });
                             if let Some(mut updater_vec) = updater_vec {
                                 updater_vec.0.push(updater);
                             } else {
@@ -129,8 +125,9 @@ fn execute_change_by_switch(
                 }
             }
         } else if !switch.active {
-            for (attachment, _, ent) in receiver_query.iter() {
+            for (attachment, updater_vec, ent) in receiver_query.iter_mut() {
                 if switch.target_id == attachment.target_id {
+                    let mut entity_commands = commands.entity(ent);
                     match &attachment.switch_type {
                         SwitchType::ChangeRotateStrategy { before, after: _ } => {
                             commands.entity(ent).insert(before.clone());
@@ -139,7 +136,17 @@ fn execute_change_by_switch(
                             commands.entity(ent).insert(before.clone());
                         }
                         SwitchType::ToggleFanActive => {}
-                        SwitchType::MoveBlock { count, limit, func } => {}
+                        SwitchType::MoveBlock { range, func } => {
+                            let mut reversed_range = range.clone();
+                            reversed_range.reverse();
+                            let updater =
+                                Updater::new(reversed_range, UpdaterType::BlockPos { func: *func });
+                            if let Some(mut updater_vec) = updater_vec {
+                                updater_vec.0.push(updater);
+                            } else {
+                                entity_commands.insert(UpdaterVec::new_from_a_updater(updater));
+                            }
+                        }
                     }
                 }
             }

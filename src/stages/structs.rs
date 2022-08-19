@@ -35,7 +35,7 @@ pub struct StageInfo {
     pub gravity: Option<Gravity>,
 }
 
-#[derive(Clone)]
+#[derive(Clone, Default, Debug)]
 pub struct LauncherInfo {
     pub pos: Vec2,
     pub default_angle: f32,
@@ -57,7 +57,7 @@ impl ToSpawnEvent for LauncherInfo {
 }
 
 /// ブロック情報からブロックタイプコンポーネントを作成し, さらに出現イベントを作成する
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub enum BlockShapeInfo {
     Wall {
         extents: Vec2,
@@ -75,9 +75,19 @@ pub enum BlockShapeInfo {
         slide_strategy: SlideStrategy,
     },
 }
+impl Default for BlockShapeInfo {
+    fn default() -> Self {
+        BlockShapeInfo::Rect {
+            extents: Vec2::ONE * 50.0,
+            rect_origin: Vec2::ZERO,
+            rotate_strategy: RotateStrategy::NoRotate,
+            slide_strategy: SlideStrategy::NoSlide,
+        }
+    }
+}
 
 /// ブロック一つの情報
-#[derive(Clone)]
+#[derive(Clone, Default, Debug)]
 pub struct BlockInfo {
     pub pos: Vec2,
     pub block_shape_info: BlockShapeInfo,
@@ -130,6 +140,15 @@ impl ToSpawnEvent for GoalInfo {
             pos: self.pos,
             radius: self.radius,
             score: self.score,
+        }
+    }
+}
+impl Default for GoalInfo {
+    fn default() -> Self {
+        GoalInfo {
+            pos: Vec2::ZERO,
+            radius: 30.0,
+            score: 1,
         }
     }
 }

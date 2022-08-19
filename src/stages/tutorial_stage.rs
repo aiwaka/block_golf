@@ -1,6 +1,7 @@
 use std::f32::consts::FRAC_PI_2;
 
 use bevy::prelude::*;
+use itertools::Itertools;
 
 use super::structs::{
     ArrangeBallInfo, BlockInfo, BlockShapeInfo, GoalInfo, LauncherInfo, StageInfo, SwitchInfo,
@@ -53,9 +54,8 @@ pub fn tutorial_stage1() -> StageInfo {
             block_attachment: vec![BlockAttachment::SwitchReceiver {
                 receiver: SwitchReceiver {
                     switch_type: SwitchType::MoveBlock {
-                        count: 0,
-                        limit: 60,
-                        func: |count: i32| Vec2::new(200.0, 300.0 - count as f32 * 2.0),
+                        range: (0..60).collect_vec(),
+                        func: |count: i32| Vec2::new(0.0, -count as f32 * 2.0),
                     },
                     target_id: 0,
                 },
@@ -134,6 +134,7 @@ pub fn tutorial_stage1() -> StageInfo {
         balls: ball_list,
         goal_pos: goal_list,
         switches,
-        gravity: Some(Gravity::simple_gravity()),
+        // gravity: Some(Gravity::simple_gravity()),
+        gravity: None,
     }
 }

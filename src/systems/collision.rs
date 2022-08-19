@@ -45,7 +45,8 @@ fn collision_between_block_and_ball(
     };
     // 横縦幅
     let block_extents = block_info.0.extents;
-    let block_pos = block_info.1 .0 + block_slide_path.calc_orbit(block_info.2.pos_param);
+    let block_pos =
+        block_info.1 .0 + block_slide_path.calc_orbit(block_info.2.pos_param) + block_info.2.offset;
     let block_angle = block_info.2.angle;
     let ball_pos = ball_info.1.translation.truncate();
     let ball_radius = ball_info.0.ball_type.radius();

@@ -27,7 +27,7 @@ fn set_block(mut commands: Commands, mut event_listener: EventReader<SpawnBlockE
                     outline_mode: StrokeMode::new(Color::DARK_GRAY, 3.0),
                 },
                 Transform {
-                    translation: ev.pos.extend(12.0),
+                    translation: ev.pos.extend(10.5),
                     rotation: Quat::from_rotation_z(ev.default_angle),
                     ..Default::default()
                 },
@@ -82,17 +82,17 @@ fn set_block(mut commands: Commands, mut event_listener: EventReader<SpawnBlockE
                 }
             }
         }
-        commands.spawn_bundle(GeometryBuilder::build_as(
-            &shapes::Circle {
-                radius: 10.0,
-                center: Vec2::new(0.0, 0.0),
-            },
-            DrawMode::Fill(FillMode::color(Color::RED)),
-            Transform {
-                translation: ev.pos.extend(80.0),
-                ..Default::default()
-            },
-        ));
+        // commands.spawn_bundle(GeometryBuilder::build_as(
+        //     &shapes::Circle {
+        //         radius: 10.0,
+        //         center: Vec2::new(0.0, 0.0),
+        //     },
+        //     DrawMode::Fill(FillMode::color(Color::RED)),
+        //     Transform {
+        //         translation: ev.pos.extend(80.0),
+        //         ..Default::default()
+        //     },
+        // ));
     }
 }
 
@@ -121,7 +121,7 @@ fn rotate_block(
     }
 }
 
-/// ブロックの移動処理を行う
+/// ブロックの移動処理を行う. オフセットを加えるのもここで行う.
 fn slide_block(
     key_in: Res<Input<KeyCode>>,
     mut block_query: Query<
@@ -137,6 +137,7 @@ fn slide_block(
     for (mut trans, mut block_trans, strategy, original_pos) in block_query.iter_mut() {
         // ひとつ前のパラメータとして現在の値を保存
         block_trans.prev_param = block_trans.pos_param;
+        block_trans.prev_offset = block_trans.offset;
         let path = match strategy {
             SlideStrategy::NoSlide => &BlockSlidePath::NoPath,
             SlideStrategy::Manual { speed, path } => {
@@ -165,8 +166,9 @@ fn slide_block(
                 path
             }
         };
-        let new_pos = path.calc_orbit(block_trans.pos_param) + original_pos.0;
-        trans.translation = Vec3::new(new_pos.x, new_pos.y, 12.0);
+        let new_pos = path.calc_orbit(block_trans.pos_param) + block_trans.offset + original_pos.0;
+        let z_coord = trans.translation.z;
+        trans.translation = new_pos.extend(z_coord);
     }
 }
 

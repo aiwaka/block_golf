@@ -21,4 +21,11 @@ impl Gravity {
             field: |_: Vec2| Vec2::new(0.0, -0.5),
         }
     }
+
+    pub fn new(field: fn(Vec2) -> Vec2) -> Self {
+        Self { field }
+    }
+    pub fn new_as_some(field: fn(Vec2) -> Vec2) -> Option<Self> {
+        Some(Gravity::new(field))
+    }
 }

@@ -26,7 +26,7 @@ fn spawn_goal(mut commands: Commands, mut event_listener: EventReader<SpawnGoalE
                     outline_mode: StrokeMode::new(Color::DARK_GRAY, 2.0),
                 },
                 Transform {
-                    translation: ev.pos.extend(11.0),
+                    translation: ev.pos.extend(8.0),
                     ..Default::default()
                 },
             ))

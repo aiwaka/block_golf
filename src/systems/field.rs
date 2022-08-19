@@ -18,7 +18,7 @@ fn set_field(mut commands: Commands, server: Res<AssetServer>) {
             outline_mode: StrokeMode::new(Color::BLACK, 10.0),
         },
         Transform {
-            translation: Vec3::new(0.0, 0.0, 10.0),
+            translation: Vec3::new(0.0, 0.0, 5.0),
             ..Default::default()
         },
     ));
