@@ -27,7 +27,7 @@ fn set_block(mut commands: Commands, mut event_listener: EventReader<SpawnBlockE
                     outline_mode: StrokeMode::new(Color::DARK_GRAY, 3.0),
                 },
                 Transform {
-                    translation: ev.pos.extend(12.0),
+                    translation: ev.pos.extend(10.5),
                     rotation: Quat::from_rotation_z(ev.default_angle),
                     ..Default::default()
                 },
@@ -167,7 +167,8 @@ fn slide_block(
             }
         };
         let new_pos = path.calc_orbit(block_trans.pos_param) + block_trans.offset + original_pos.0;
-        trans.translation = new_pos.extend(12.0);
+        let z_coord = trans.translation.z;
+        trans.translation = new_pos.extend(z_coord);
     }
 }
 
