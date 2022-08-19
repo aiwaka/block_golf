@@ -1,4 +1,7 @@
 //! ステージを定義する構造体を定義するモジュール.
+use crate::systems::field::FIELD_WIDTH;
+use std::f32::consts::FRAC_PI_2;
+
 use bevy::prelude::*;
 
 use crate::components::physics::force::Gravity;
@@ -35,13 +38,24 @@ pub struct StageInfo {
     pub gravity: Option<Gravity>,
 }
 
-#[derive(Clone, Default, Debug)]
+#[derive(Clone, Debug)]
 pub struct LauncherInfo {
     pub pos: Vec2,
     pub default_angle: f32,
     pub rotate_speed: f32,
     pub min_angle: f32,
     pub max_angle: f32,
+}
+impl Default for LauncherInfo {
+    fn default() -> Self {
+        LauncherInfo {
+            pos: Vec2::new(-FIELD_WIDTH / 2.0 + 30.0, 0.0),
+            default_angle: 0.0,
+            rotate_speed: 0.02,
+            min_angle: -FRAC_PI_2,
+            max_angle: FRAC_PI_2,
+        }
+    }
 }
 impl ToSpawnEvent for LauncherInfo {
     type E = SpawnLauncherEvent;
