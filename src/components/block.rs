@@ -15,9 +15,11 @@ pub struct BlockOriginalPos(pub Vec2);
 #[derive(Component, Default)]
 pub struct BlockTransform {
     pub angle: f32,     // 現在の角度
+    pub offset: Vec2,   // 位置補正
     pub pos_param: f32, // 位置を計算するためのパラメータ. Manualの場合[-1, 1]をとるとする.
     /// 直前フレームの位置データを保持して差分を取れるようにする.
     pub prev_angle: f32,
+    pub prev_offset: Vec2,
     pub prev_param: f32,
 }
 impl BlockTransform {
@@ -25,8 +27,10 @@ impl BlockTransform {
     pub fn new(angle: f32, pos_param: f32) -> Self {
         Self {
             angle,
+            offset: Vec2::ZERO,
             pos_param,
             prev_angle: angle,
+            prev_offset: Vec2::ZERO,
             prev_param: pos_param,
         }
     }
