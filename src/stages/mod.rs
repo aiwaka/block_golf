@@ -3,7 +3,7 @@ use self::{
     jamming::jamming1,
     planet::square_planet,
     structs::StageInfo,
-    tutorial_stage::{fan_tutorial, switch_tutorial, tutorial1, tutorial2},
+    tutorial_stage::{fan_tutorial, gravity_tutorial, switch_tutorial, tutorial1, tutorial2},
 };
 
 pub mod structs;
@@ -28,6 +28,7 @@ fn stage_vec() -> Vec<GenerateStageInfoFunc> {
         tutorial2,
         fan_tutorial,
         switch_tutorial,
+        gravity_tutorial,
         sample_stage,
         aisle0,
         aisle1,

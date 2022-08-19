@@ -227,7 +227,7 @@ pub fn switch_tutorial() -> StageInfo {
         },
         BlockInfo {
             pos: Vec2::new(-60.0, 220.0),
-            block_shape_info: block_shape_info.clone(),
+            block_shape_info,
             default_angle: FRAC_PI_2,
             ..Default::default()
         },
@@ -285,5 +285,70 @@ pub fn switch_tutorial() -> StageInfo {
         switches,
         // gravity: Some(Gravity::simple_gravity()),
         gravity: None,
+    }
+}
+
+pub fn gravity_tutorial() -> StageInfo {
+    let block_shape_info = BlockShapeInfo::Rect {
+        extents: Vec2::new(FIELD_WIDTH / 3.0, 120.0),
+        rect_origin: Vec2::ZERO,
+        rotate_strategy: RotateStrategy::NoRotate,
+        slide_strategy: SlideStrategy::NoSlide,
+    };
+    let block_list = vec![
+        BlockInfo {
+            pos: Vec2::new(0.0, -100.0),
+            block_shape_info: BlockShapeInfo::Rect {
+                extents: Vec2::new(FIELD_WIDTH / 3.0, 120.0),
+                rect_origin: Vec2::ZERO,
+                rotate_strategy: RotateStrategy::NoRotate,
+                slide_strategy: SlideStrategy::Manual {
+                    speed: 0.05,
+                    path: BlockSlidePath::StandardLine {
+                        theta: FRAC_PI_2,
+                        width: 120.0,
+                    },
+                },
+            },
+            ..Default::default()
+        },
+        BlockInfo {
+            pos: Vec2::new(-FIELD_WIDTH / 3.0, 0.0),
+            block_shape_info: block_shape_info.clone(),
+            ..Default::default()
+        },
+        BlockInfo {
+            pos: Vec2::new(FIELD_WIDTH / 3.0, 0.0),
+            block_shape_info,
+            ..Default::default()
+        },
+    ];
+
+    let launcher_info = LauncherInfo {
+        pos: Vec2::new(-400.0, 200.0),
+        ..Default::default()
+    };
+
+    let mut ball_list = Vec::<BallInfo>::new();
+    ball_list.set_balls(BallType::Metal, 1);
+
+    let goal_list = vec![GoalInfo {
+        pos: Vec2::new(FIELD_WIDTH / 2.0 - 20.0, 70.0),
+        radius: 40.0,
+        score: 1,
+    }];
+
+    StageInfo {
+        stage_title: "tutorial[gravity]",
+        time: 30 * 60,
+        launcher: launcher_info,
+        blocks: field_block()
+            .into_iter()
+            .chain(block_list)
+            .collect::<Vec<BlockInfo>>(),
+        balls: ball_list,
+        goal_pos: goal_list,
+        switches: vec![],
+        gravity: Gravity::new_as_some(|_: Vec2| Vec2::Y * (-1.5)),
     }
 }
