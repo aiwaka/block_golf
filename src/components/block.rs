@@ -41,10 +41,12 @@ impl BlockTransform {
     /// そのフレームでの重心の並進速度
     /// delta: 重心 - 回転軸 のベクトル（Rectならoriginでよい）
     pub fn pos_diff(&self, path: &BlockSlidePath, delta: Vec2) -> Vec2 {
-        let current_pos =
-            path.calc_orbit(self.pos_param) + delta * Vec2::new(self.angle.cos(), self.angle.sin());
+        let current_pos = path.calc_orbit(self.pos_param)
+            + delta * Vec2::new(self.angle.cos(), self.angle.sin())
+            + self.offset;
         let prev_pos = path.calc_orbit(self.prev_param)
-            + delta * Vec2::new(self.prev_angle.cos(), self.prev_angle.sin());
+            + delta * Vec2::new(self.prev_angle.cos(), self.prev_angle.sin())
+            + self.prev_offset;
         current_pos - prev_pos
     }
 }

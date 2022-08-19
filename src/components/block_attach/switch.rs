@@ -36,7 +36,7 @@ pub enum SwitchType {
         count: i32,
         /// countがlimitになるまで更新
         limit: i32,
-        /// カウントから座標を計算する関数
+        /// カウントから座標を計算する関数. BlockOriginalPosからの相対移動を行う.
         func: fn(i32) -> Vec2,
     },
 }

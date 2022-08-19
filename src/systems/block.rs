@@ -121,7 +121,7 @@ fn rotate_block(
     }
 }
 
-/// ブロックの移動処理を行う
+/// ブロックの移動処理を行う. オフセットを加えるのもここで行う.
 fn slide_block(
     key_in: Res<Input<KeyCode>>,
     mut block_query: Query<
@@ -137,6 +137,7 @@ fn slide_block(
     for (mut trans, mut block_trans, strategy, original_pos) in block_query.iter_mut() {
         // ひとつ前のパラメータとして現在の値を保存
         block_trans.prev_param = block_trans.pos_param;
+        block_trans.prev_offset = block_trans.offset;
         let path = match strategy {
             SlideStrategy::NoSlide => &BlockSlidePath::NoPath,
             SlideStrategy::Manual { speed, path } => {
@@ -165,8 +166,8 @@ fn slide_block(
                 path
             }
         };
-        let new_pos = path.calc_orbit(block_trans.pos_param) + original_pos.0;
-        trans.translation = Vec3::new(new_pos.x, new_pos.y, 12.0);
+        let new_pos = path.calc_orbit(block_trans.pos_param) + block_trans.offset + original_pos.0;
+        trans.translation = new_pos.extend(12.0);
     }
 }
 

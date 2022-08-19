@@ -2,18 +2,18 @@ use bevy::prelude::*;
 
 use crate::{
     components::{
-        block::{BlockOriginalPos, BlockTransform},
+        block::BlockTransform,
         block_attach::updater::{UpdaterType, UpdaterVec},
     },
     AppState,
 };
 
-fn update(mut block_query: Query<(&mut BlockOriginalPos, &mut BlockTransform, &mut UpdaterVec)>) {
-    for (mut block, mut block_trans, mut updater_vec) in block_query.iter_mut() {
+fn update(mut block_query: Query<(&mut BlockTransform, &mut UpdaterVec)>) {
+    for (mut block_trans, mut updater_vec) in block_query.iter_mut() {
         for updater in updater_vec.0.iter_mut() {
             match updater.updater_type {
                 UpdaterType::BlockPos { func } => {
-                    block.0 = func(updater.count);
+                    block_trans.offset = func(updater.count);
                 }
                 UpdaterType::BlockAngle { func } => {
                     block_trans.angle = func(updater.count);
