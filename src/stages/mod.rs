@@ -5,6 +5,7 @@ use self::{
     structs::StageInfo,
     tutorial_stage::{fan_tutorial, gravity_tutorial, switch_tutorial, tutorial1, tutorial2},
 };
+use itertools::Itertools;
 
 pub mod structs;
 
@@ -15,10 +16,6 @@ mod jamming;
 mod planet;
 mod sample;
 mod tutorial_stage;
-
-use debug::debug_stage;
-use itertools::Itertools;
-use sample::sample_stage;
 
 type GenerateStageInfoFunc = fn() -> StageInfo;
 
