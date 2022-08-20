@@ -17,7 +17,9 @@ use super::block_attach::fan::spawn_fan;
 
 /// キューに入っているブロックを追加する（開始時実行）
 fn set_block(mut commands: Commands, mut event_listener: EventReader<SpawnBlockEvent>) {
-    for ev in event_listener.iter() {
+    for (idx, ev) in event_listener.iter().enumerate() {
+        // ブロックが重なったときに変な表示にならないようにz座標に微妙な差をつける
+        let z_offset = idx as f32 / 1000.0;
         let color = Color::from(&ev.block_type);
         let shape_bundle = match ev.block_type {
             BlockType::Wall { shape } => GeometryBuilder::build_as(
@@ -27,7 +29,7 @@ fn set_block(mut commands: Commands, mut event_listener: EventReader<SpawnBlockE
                     outline_mode: StrokeMode::new(Color::DARK_GRAY, 3.0),
                 },
                 Transform {
-                    translation: ev.pos.extend(10.5),
+                    translation: ev.pos.extend(10.5 + z_offset),
                     rotation: Quat::from_rotation_z(ev.default_angle),
                     ..Default::default()
                 },
@@ -39,7 +41,7 @@ fn set_block(mut commands: Commands, mut event_listener: EventReader<SpawnBlockE
                     outline_mode: StrokeMode::new(Color::DARK_GRAY, 3.0),
                 },
                 Transform {
-                    translation: ev.pos.extend(12.0),
+                    translation: ev.pos.extend(12.0 + z_offset),
                     rotation: Quat::from_rotation_z(ev.default_angle),
                     ..Default::default()
                 },
@@ -51,7 +53,7 @@ fn set_block(mut commands: Commands, mut event_listener: EventReader<SpawnBlockE
                     outline_mode: StrokeMode::new(Color::DARK_GRAY, 3.0),
                 },
                 Transform {
-                    translation: ev.pos.extend(12.0),
+                    translation: ev.pos.extend(12.0 + z_offset),
                     rotation: Quat::from_rotation_z(ev.default_angle),
                     ..Default::default()
                 },
