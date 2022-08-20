@@ -18,12 +18,18 @@ fn spawn_goal(mut commands: Commands, mut event_listener: EventReader<SpawnGoalE
             radius: ev.radius,
             ..Default::default()
         };
+        let outline_color = match ev.score {
+            1 => Color::BLUE,
+            2 => Color::YELLOW_GREEN,
+            3 => Color::RED,
+            _ => Color::DARK_GRAY,
+        };
         commands
             .spawn_bundle(GeometryBuilder::build_as(
                 &goal_shape,
                 DrawMode::Outlined {
                     fill_mode: FillMode::color(Color::GRAY),
-                    outline_mode: StrokeMode::new(Color::DARK_GRAY, 2.0),
+                    outline_mode: StrokeMode::new(outline_color, 8.0),
                 },
                 Transform {
                     translation: ev.pos.extend(8.0),

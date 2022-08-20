@@ -50,9 +50,6 @@ fn main() {
     app.add_plugin(EffectPlugin);
     app.add_plugin(BackToMenuPlugin);
     app.add_plugin(LoadStagePlugin);
-    // app.add_system_set(
-    //     SystemSet::on_enter(AppState::Game).with_system(stage_setup.label("stage_setup")),
-    // );
     app.add_plugin(FieldPlugin);
     app.add_plugin(GoalPlugin);
     app.add_plugin(BallPlugin);

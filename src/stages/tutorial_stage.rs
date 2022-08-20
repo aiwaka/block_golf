@@ -48,7 +48,7 @@ pub fn tutorial1() -> StageInfo {
     let launcher_info = LauncherInfo::default();
 
     let mut ball_list = Vec::<BallInfo>::new();
-    ball_list.set_balls(BallType::Normal, 1);
+    ball_list.set_balls(BallType::Normal, 5);
 
     let goal_list = vec![GoalInfo {
         pos: Vec2::new(FIELD_WIDTH / 2.0 - 20.0, 0.0),
@@ -290,7 +290,7 @@ pub fn switch_tutorial() -> StageInfo {
 
 pub fn gravity_tutorial() -> StageInfo {
     let block_shape_info = BlockShapeInfo::Rect {
-        extents: Vec2::new(FIELD_WIDTH / 3.0, 120.0),
+        extents: Vec2::new(FIELD_WIDTH / 3.0, 150.0),
         rect_origin: Vec2::ZERO,
         rotate_strategy: RotateStrategy::NoRotate,
         slide_strategy: SlideStrategy::NoSlide,
@@ -299,7 +299,7 @@ pub fn gravity_tutorial() -> StageInfo {
         BlockInfo {
             pos: Vec2::new(0.0, -100.0),
             block_shape_info: BlockShapeInfo::Rect {
-                extents: Vec2::new(FIELD_WIDTH / 3.0, 120.0),
+                extents: Vec2::new(FIELD_WIDTH / 3.0, 150.0),
                 rect_origin: Vec2::ZERO,
                 rotate_strategy: RotateStrategy::NoRotate,
                 slide_strategy: SlideStrategy::Manual {
@@ -332,11 +332,18 @@ pub fn gravity_tutorial() -> StageInfo {
     let mut ball_list = Vec::<BallInfo>::new();
     ball_list.set_balls(BallType::Metal, 1);
 
-    let goal_list = vec![GoalInfo {
-        pos: Vec2::new(FIELD_WIDTH / 2.0 - 20.0, 70.0),
-        radius: 40.0,
-        score: 1,
-    }];
+    let goal_list = vec![
+        GoalInfo {
+            pos: Vec2::new(FIELD_WIDTH / 2.0 - 20.0, 90.0),
+            radius: 40.0,
+            score: 1,
+        },
+        GoalInfo {
+            pos: Vec2::new(80.0, 170.0),
+            radius: 40.0,
+            score: 3,
+        },
+    ];
 
     StageInfo {
         stage_title: "tutorial[gravity]",
