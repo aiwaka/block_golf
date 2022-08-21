@@ -14,6 +14,7 @@ use crate::{
 };
 
 use super::block_attach::fan::spawn_fan;
+use super::block_attach::magnet::spawn_magnet;
 
 /// キューに入っているブロックを追加する（開始時実行）
 fn set_block(mut commands: Commands, mut event_listener: EventReader<SpawnBlockEvent>) {
@@ -78,11 +79,15 @@ fn set_block(mut commands: Commands, mut event_listener: EventReader<SpawnBlockE
                 BlockAttachment::Fan(fan) => {
                     if let BlockType::Rect { shape } = ev.block_type {
                         commands.entity(ent).insert(fan.clone());
-
                         spawn_fan(&mut commands, ent, &shape, fan);
                     }
                 }
-                BlockAttachment::Magnet(magnet) => {}
+                BlockAttachment::Magnet(magnet) => {
+                    if let BlockType::Rect { shape } = ev.block_type {
+                        commands.entity(ent).insert(magnet.clone());
+                        spawn_magnet(&mut commands, ent, &shape, magnet);
+                    }
+                }
             }
         }
         // commands.spawn_bundle(GeometryBuilder::build_as(
