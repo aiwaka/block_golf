@@ -40,6 +40,7 @@ fn stage_vec() -> Vec<GenerateStageInfoFunc> {
     ]
 }
 
+// NOTE: ステージ名をキーにした辞書形式で持つほうが楽だし自然かもしれない
 pub fn stage_title_vec() -> Vec<&'static str> {
     stage_vec()
         .into_iter()
