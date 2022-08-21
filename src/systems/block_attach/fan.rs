@@ -13,6 +13,7 @@ use crate::{
         physics::{force::Force, material::Volume, position::Position, velocity::Velocity},
         timer::CountDownTimer,
     },
+    systems::utils::calc_edge_points_of_rectangle,
     AppState,
 };
 
@@ -81,7 +82,7 @@ fn spawn_wind_visual_effect(
                     let (_, _, block_glb_translation) =
                         block_glb_trans.to_scale_rotation_translation();
                     // まずファンの両端点を計算する
-                    let [p1, p2] = calc_edge_points_of_fan(
+                    let [p1, p2] = calc_edge_points_of_rectangle(
                         &fan.direction,
                         block_glb_translation.truncate(),
                         angle,
@@ -120,25 +121,6 @@ fn update_wind_visual_effect(
     }
 }
 
-/// ファンの両端点を計算する
-/// 反時計回りになるように2点を返す
-fn calc_edge_points_of_fan(
-    edge_direction: &EdgeDirection,
-    block_orig_pos: Vec2,
-    angle: f32,
-    extents: Vec2,
-) -> [Vec2; 2] {
-    let half_ext = Vec2::from_angle(angle).rotate(extents / 2.0);
-    // xだけ反転させたベクトル
-    let refl_half_ext = Vec2::from_angle(angle).rotate(Vec2::new(-extents.x, extents.y) / 2.0);
-    match edge_direction {
-        EdgeDirection::Up => [block_orig_pos + half_ext, block_orig_pos + refl_half_ext],
-        EdgeDirection::Down => [block_orig_pos - half_ext, block_orig_pos - refl_half_ext],
-        EdgeDirection::Left => [block_orig_pos + refl_half_ext, block_orig_pos - half_ext],
-        EdgeDirection::Right => [block_orig_pos - refl_half_ext, block_orig_pos + half_ext],
-    }
-}
-
 /// 動いている送風機とボールの間に障害物がなければ力を加える
 fn generate_wind(
     fan_query: Query<(&Fan, &BlockTransform, &GlobalTransform, &BlockType)>,
@@ -150,7 +132,7 @@ fn generate_wind(
                 let angle = block_trans.angle;
                 // まずファンの両端点を計算する
                 let (_, _, block_glb_translation) = block_glb_trans.to_scale_rotation_translation();
-                let [p1, p2] = calc_edge_points_of_fan(
+                let [p1, p2] = calc_edge_points_of_rectangle(
                     &fan.direction,
                     block_glb_translation.truncate(),
                     angle,
