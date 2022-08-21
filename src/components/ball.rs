@@ -2,6 +2,10 @@ use bevy::prelude::*;
 
 use crate::events::ball::SetBallEvent;
 
+/// 鉄球であることを表す.
+#[derive(Component, Clone, Copy, Debug)]
+pub struct MetalBall;
+
 #[derive(Clone, Copy, Debug)]
 pub enum BallType {
     Normal,

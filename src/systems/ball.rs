@@ -1,6 +1,6 @@
 use crate::{
     components::{
-        ball::{Ball, BallNocking},
+        ball::{Ball, BallNocking, BallType, MetalBall},
         physics::{
             material::PhysicMaterial, position::Position, velocity::Velocity, BasicPhysicsBundle,
         },
@@ -18,7 +18,7 @@ fn spawn_ball(mut commands: Commands, mut event_listener: EventReader<SpawnBallE
             ..Default::default()
         };
         let pos = ev.pos;
-        commands
+        let ball_ent = commands
             .spawn_bundle(GeometryBuilder::build_as(
                 &ball_shape,
                 DrawMode::Outlined {
@@ -38,7 +38,12 @@ fn spawn_ball(mut commands: Commands, mut event_listener: EventReader<SpawnBallE
                 PhysicMaterial::new(ev.ball_type.restitution(), ev.ball_type.density(), 0.0),
                 &ball_shape,
             ))
-            .insert(BallNocking);
+            .insert(BallNocking)
+            .id();
+        // 鉄球なら属性を付与
+        if let BallType::Metal = ev.ball_type {
+            commands.entity(ball_ent).insert(MetalBall);
+        }
     }
 }
 
