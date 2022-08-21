@@ -8,7 +8,8 @@ use crate::{
     components::{
         ball::Ball,
         block::{BlockTransform, BlockType},
-        block_attach::fan::{Fan, FanDirection, WindVisualEffect},
+        block_attach::fan::{Fan, WindVisualEffect},
+        block_attach::utils::EdgeDirection,
         physics::{force::Force, material::Volume, position::Position, velocity::Velocity},
         timer::CountDownTimer,
     },
@@ -18,19 +19,19 @@ use crate::{
 /// ブロック出現時に送風機のポリゴンを描画するときに使う関数
 pub fn spawn_fan(commands: &mut Commands, block_ent: Entity, rect: &Rectangle, fan: &Fan) {
     let (fan_extents, fan_pos) = match fan.direction {
-        FanDirection::Up => (
+        EdgeDirection::Up => (
             rect.extents.project_onto(Vec2::X) + Vec2::Y * 10.0,
             rect.extents.project_onto(Vec2::Y) / 2.0,
         ),
-        FanDirection::Down => (
+        EdgeDirection::Down => (
             rect.extents.project_onto(Vec2::X) + Vec2::Y * 10.0,
             -rect.extents.project_onto(Vec2::Y) / 2.0,
         ),
-        FanDirection::Left => (
+        EdgeDirection::Left => (
             rect.extents.project_onto(Vec2::Y) + Vec2::X * 10.0,
             -rect.extents.project_onto(Vec2::X) / 2.0,
         ),
-        FanDirection::Right => (
+        EdgeDirection::Right => (
             rect.extents.project_onto(Vec2::Y) + Vec2::X * 10.0,
             rect.extents.project_onto(Vec2::X) / 2.0,
         ),
@@ -122,7 +123,7 @@ fn update_wind_visual_effect(
 /// ファンの両端点を計算する
 /// 反時計回りになるように2点を返す
 fn calc_edge_points_of_fan(
-    fan_direction: &FanDirection,
+    edge_direction: &EdgeDirection,
     block_orig_pos: Vec2,
     angle: f32,
     extents: Vec2,
@@ -130,11 +131,11 @@ fn calc_edge_points_of_fan(
     let half_ext = Vec2::from_angle(angle).rotate(extents / 2.0);
     // xだけ反転させたベクトル
     let refl_half_ext = Vec2::from_angle(angle).rotate(Vec2::new(-extents.x, extents.y) / 2.0);
-    match fan_direction {
-        FanDirection::Up => [block_orig_pos + half_ext, block_orig_pos + refl_half_ext],
-        FanDirection::Down => [block_orig_pos - half_ext, block_orig_pos - refl_half_ext],
-        FanDirection::Left => [block_orig_pos + refl_half_ext, block_orig_pos - half_ext],
-        FanDirection::Right => [block_orig_pos - refl_half_ext, block_orig_pos + half_ext],
+    match edge_direction {
+        EdgeDirection::Up => [block_orig_pos + half_ext, block_orig_pos + refl_half_ext],
+        EdgeDirection::Down => [block_orig_pos - half_ext, block_orig_pos - refl_half_ext],
+        EdgeDirection::Left => [block_orig_pos + refl_half_ext, block_orig_pos - half_ext],
+        EdgeDirection::Right => [block_orig_pos - refl_half_ext, block_orig_pos + half_ext],
     }
 }
 
