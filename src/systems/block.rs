@@ -82,6 +82,7 @@ fn set_block(mut commands: Commands, mut event_listener: EventReader<SpawnBlockE
                         spawn_fan(&mut commands, ent, &shape, fan);
                     }
                 }
+                BlockAttachment::Magnet(magnet) => {}
             }
         }
         // commands.spawn_bundle(GeometryBuilder::build_as(

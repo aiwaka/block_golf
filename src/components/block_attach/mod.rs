@@ -1,6 +1,7 @@
-use self::{fan::Fan, switch::SwitchReceiver};
+use self::{fan::Fan, magnet::Magnet, switch::SwitchReceiver};
 
 pub mod fan;
+pub mod magnet;
 pub mod switch;
 pub mod updater;
 pub mod utils;
@@ -13,4 +14,5 @@ pub enum BlockAttachment {
         receiver: SwitchReceiver,
     },
     Fan(Fan),
+    Magnet(Magnet),
 }
