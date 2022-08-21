@@ -3,7 +3,9 @@ use self::{
     jamming::jamming1,
     planet::{square_planet, strange_gravity},
     structs::StageInfo,
-    tutorial_stage::{fan_tutorial, gravity_tutorial, switch_tutorial, tutorial1, tutorial2},
+    tutorial_stage::{
+        fan_tutorial, gravity_tutorial, magnet_tutorial, switch_tutorial, tutorial1, tutorial2,
+    },
 };
 use itertools::Itertools;
 
@@ -24,6 +26,7 @@ fn stage_vec() -> Vec<GenerateStageInfoFunc> {
         tutorial1,
         tutorial2,
         fan_tutorial,
+        magnet_tutorial,
         switch_tutorial,
         gravity_tutorial,
         // sample_stage,
@@ -37,6 +40,7 @@ fn stage_vec() -> Vec<GenerateStageInfoFunc> {
     ]
 }
 
+// NOTE: ステージ名をキーにした辞書形式で持つほうが楽だし自然かもしれない
 pub fn stage_title_vec() -> Vec<&'static str> {
     stage_vec()
         .into_iter()

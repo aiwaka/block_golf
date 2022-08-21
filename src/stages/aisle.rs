@@ -49,7 +49,7 @@ pub fn aisle0() -> StageInfo {
     };
 
     let mut ball_list = Vec::<BallInfo>::new();
-    ball_list.set_balls(BallType::Normal, 3);
+    ball_list.set_balls(BallType::Normal, 2);
 
     let goal_list = vec![GoalInfo {
         pos: Vec2::from_angle(PI).rotate(orig_point),

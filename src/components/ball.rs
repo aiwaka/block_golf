@@ -2,6 +2,10 @@ use bevy::prelude::*;
 
 use crate::events::ball::SetBallEvent;
 
+/// 鉄球であることを表す.
+#[derive(Component, Clone, Copy, Debug)]
+pub struct MetalBall;
+
 #[derive(Clone, Copy, Debug)]
 pub enum BallType {
     Normal,
@@ -23,8 +27,8 @@ impl BallType {
     /// ボールの反発係数. 2つをかけ合わせたものを衝突の際の反発係数として使う
     pub fn restitution(&self) -> f32 {
         match *self {
-            BallType::Normal => 0.95,
-            BallType::Metal => 0.65,
+            BallType::Normal => 0.98,
+            BallType::Metal => 0.8,
         }
     }
     pub fn color(&self) -> Color {
