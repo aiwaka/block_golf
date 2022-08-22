@@ -232,11 +232,12 @@ fn block_ball_collision(
                         continue;
                     }
                 };
-                let prev_vel = ball_vel.0 - block_trans.pos_diff(&path, delta);
-                // let prev_vel = ball_vel.0;
-                let impulsive_force =
-                    (1.0 + restitution) * ball_weight * (-prev_vel).project_onto(collide_normal);
-                force.0 += impulsive_force;
+                // FIXME:
+                // let prev_vel = ball_vel.0 - block_trans.pos_diff(&path, delta);
+                // // let prev_vel = ball_vel.0;
+                // let impulsive_force =
+                //     (1.0 + restitution) * ball_weight * (-prev_vel).project_onto(collide_normal);
+                // force.0 += impulsive_force;
             }
         }
     }

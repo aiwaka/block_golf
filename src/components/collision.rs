@@ -10,13 +10,24 @@ pub trait ToAbsolutePos {
 pub struct RectangleCollision {
     /// 矩形の大きさ
     pub extents: Vec2,
-    /// 回転軸の位置（軌道の影響で逐次更新される）
-    pub rot_axis_pos: Vec2,
-    /// 0度のときの「回転軸から」矩形中心までの相対位置
-    /// rot_axis_posが0でposが(1,0)で角度が0度なら矩形中心は(1,0)にある.
+    /// 位置（自動で更新する）
     pub pos: Vec2,
-    /// 角度
+    /// 角度（自動で更新する）
     pub angle: f32,
+    /// 前フレームの位置
+    pub prev_pos: Vec2,
+    pub prev_angle: f32,
+}
+impl RectangleCollision {
+    pub fn new(extents: Vec2) -> Self {
+        Self {
+            extents,
+            pos: Vec2::ZERO,
+            angle: 0.0,
+            prev_pos: Vec2::ZERO,
+            prev_angle: 0.0,
+        }
+    }
 }
 
 impl ToVolume for RectangleCollision {
@@ -26,6 +37,6 @@ impl ToVolume for RectangleCollision {
 }
 impl ToAbsolutePos for RectangleCollision {
     fn to_absolute_pos(&self) -> Vec2 {
-        self.rot_axis_pos + Vec2::from_angle(self.angle).rotate(self.pos)
+        self.pos
     }
 }
