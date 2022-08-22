@@ -48,9 +48,12 @@ pub fn spawn_fan(commands: &mut Commands, block_ent: Entity, rect: &Rectangle, f
             ..Default::default()
         },
     );
-    commands.entity(block_ent).with_children(|parent| {
-        parent.spawn_bundle(fan_shape_bundle);
-    });
+    let child_ent = commands
+        .spawn()
+        .insert_bundle(fan_shape_bundle)
+        .insert(fan.clone())
+        .id();
+    commands.entity(block_ent).push_children(&[child_ent]);
 }
 
 /// 風エフェクトのためにここでだけ使うタイマーコンポーネント
@@ -64,7 +67,8 @@ fn set_wind_vfx_duration(mut commands: Commands) {
 // 風エフェクトを出す
 fn spawn_wind_visual_effect(
     mut commands: Commands,
-    fan_query: Query<(&Fan, &BlockTransform, &GlobalTransform, &BlockType)>,
+    block_query: Query<(&BlockTransform, &GlobalTransform, &BlockType, &Children)>,
+    fan_query: Query<&Fan>,
     time: Res<Time>,
     mut timer_query: Query<&mut WindVfxDuration>,
 ) {
@@ -75,37 +79,42 @@ fn spawn_wind_visual_effect(
             center: Vec2::ZERO,
         };
         let effect_draw_mode = DrawMode::Fill(FillMode::color(Color::WHITE));
-        for (fan, block_trans, block_glb_trans, block_type) in fan_query.iter() {
-            if fan.active {
-                if let BlockType::Rect { shape } = block_type {
-                    let angle = block_trans.angle;
-                    let (_, _, block_glb_translation) =
-                        block_glb_trans.to_scale_rotation_translation();
-                    // まずファンの両端点を計算する
-                    let [p1, p2] = calc_edge_points_of_rectangle(
-                        &fan.direction,
-                        block_glb_translation.truncate(),
-                        angle,
-                        shape.extents,
-                    );
-                    // 経過時刻を用いてエフェクトを出す.
-                    // [0,1]を取るパラメータで内分して位置を計算
-                    let param = (time.seconds_since_startup() as f32 * 60.0).sin() / 2.0 + 0.5;
-                    let spawn_pos = p1.lerp(p2, param);
-                    let effect_vel = (p1 - p2).perp().normalize() * 15.0;
-                    commands
-                        .spawn_bundle(GeometryBuilder::build_as(
-                            &effect_shape,
-                            effect_draw_mode,
-                            Transform {
-                                translation: spawn_pos.extend(50.0),
-                                ..Default::default()
-                            },
-                        ))
-                        .insert(WindVisualEffect)
-                        .insert(Velocity(effect_vel))
-                        .insert(Position(spawn_pos))
-                        .insert(CountDownTimer::new(60));
+        for (block_trans, block_glb_trans, block_type, block_children) in block_query.iter() {
+            for &child in block_children.iter() {
+                if let Ok(fan) = fan_query.get(child) {
+                    if fan.active {
+                        if let BlockType::Rect { shape } = block_type {
+                            let angle = block_trans.angle;
+                            let (_, _, block_glb_translation) =
+                                block_glb_trans.to_scale_rotation_translation();
+                            // まずファンの両端点を計算する
+                            let [p1, p2] = calc_edge_points_of_rectangle(
+                                &fan.direction,
+                                block_glb_translation.truncate(),
+                                angle,
+                                shape.extents,
+                            );
+                            // 経過時刻を用いてエフェクトを出す.
+                            // [0,1]を取るパラメータで内分して位置を計算
+                            let param =
+                                (time.seconds_since_startup() as f32 * 60.0).sin() / 2.0 + 0.5;
+                            let spawn_pos = p1.lerp(p2, param);
+                            let effect_vel = (p1 - p2).perp().normalize() * 15.0;
+                            commands
+                                .spawn_bundle(GeometryBuilder::build_as(
+                                    &effect_shape,
+                                    effect_draw_mode,
+                                    Transform {
+                                        translation: spawn_pos.extend(50.0),
+                                        ..Default::default()
+                                    },
+                                ))
+                                .insert(WindVisualEffect)
+                                .insert(Velocity(effect_vel))
+                                .insert(Position(spawn_pos))
+                                .insert(CountDownTimer::new(60));
+                        }
+                    }
                 }
             }
         }
@@ -123,32 +132,38 @@ fn update_wind_visual_effect(
 
 /// 動いている送風機とボールの間に障害物がなければ力を加える
 fn generate_wind(
-    fan_query: Query<(&Fan, &BlockTransform, &GlobalTransform, &BlockType)>,
+    block_query: Query<(&BlockTransform, &GlobalTransform, &BlockType, &Children)>,
+    fan_query: Query<&Fan>,
     mut ball_query: Query<(&Ball, &Position, &Volume, &mut Force)>,
 ) {
-    for (fan, block_trans, block_glb_trans, block_type) in fan_query.iter() {
-        if fan.active {
-            if let BlockType::Rect { shape } = block_type {
-                let angle = block_trans.angle;
-                // まずファンの両端点を計算する
-                let (_, _, block_glb_translation) = block_glb_trans.to_scale_rotation_translation();
-                let [p1, p2] = calc_edge_points_of_rectangle(
-                    &fan.direction,
-                    block_glb_translation.truncate(),
-                    angle,
-                    shape.extents,
-                );
+    for (block_trans, block_glb_trans, block_type, block_children) in block_query.iter() {
+        for &child in block_children.iter() {
+            if let Ok(fan) = fan_query.get(child) {
+                if fan.active {
+                    if let BlockType::Rect { shape } = block_type {
+                        let angle = block_trans.angle;
+                        // まずファンの両端点を計算する
+                        let (_, _, block_glb_translation) =
+                            block_glb_trans.to_scale_rotation_translation();
+                        let [p1, p2] = calc_edge_points_of_rectangle(
+                            &fan.direction,
+                            block_glb_translation.truncate(),
+                            angle,
+                            shape.extents,
+                        );
 
-                for (_, ball_pos, volume, mut force) in ball_query.iter_mut() {
-                    let ball_pos = ball_pos.0;
-                    if (p2 - p1).dot(ball_pos - p1) > 0.0
-                        && (p1 - p2).dot(ball_pos - p2) > 0.0
-                        && (ball_pos - p1).perp_dot(p2 - p1) > 0.0
-                    {
-                        let dir_unit = (p1 - p2).perp().normalize();
-                        // TODO: また, 障害物を挟んだ場合風が届かないようにしたい.
-                        force.0 += dir_unit * fan.pressure * volume.0;
-                        // force.0 = force.0.clamp_length_max(15.0);
+                        for (_, ball_pos, volume, mut force) in ball_query.iter_mut() {
+                            let ball_pos = ball_pos.0;
+                            if (p2 - p1).dot(ball_pos - p1) > 0.0
+                                && (p1 - p2).dot(ball_pos - p2) > 0.0
+                                && (ball_pos - p1).perp_dot(p2 - p1) > 0.0
+                            {
+                                let dir_unit = (p1 - p2).perp().normalize();
+                                // TODO: また, 障害物を挟んだ場合風が届かないようにしたい.
+                                force.0 += dir_unit * fan.pressure * volume.0;
+                                // force.0 = force.0.clamp_length_max(15.0);
+                            }
+                        }
                     }
                 }
             }
