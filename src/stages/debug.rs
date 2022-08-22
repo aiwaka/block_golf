@@ -34,7 +34,7 @@ pub fn debug_stage() -> StageInfo {
             block_shape_info: BlockShapeInfo::Ellipse {
                 radii: Vec2::new(40.0, 60.0),
                 center: Vec2::new(0.0, 10.0),
-                rotate_strategy: RotateStrategy::Manual(0.1),
+                rotate_strategy: RotateStrategy::infinite_manual(0.1),
                 slide_strategy: SlideStrategy::NoSlide,
             },
             material,

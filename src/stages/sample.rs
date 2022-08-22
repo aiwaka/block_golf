@@ -40,7 +40,7 @@ pub fn sample_stage() -> StageInfo {
             block_shape_info: BlockShapeInfo::Rect {
                 extents: Vec2::new(120.0, 80.0),
                 rect_origin: Vec2::new(30.0, 20.0),
-                rotate_strategy: RotateStrategy::Manual(0.025),
+                rotate_strategy: RotateStrategy::infinite_manual(0.025),
                 slide_strategy: SlideStrategy::NoSlide,
             },
             material,
@@ -66,7 +66,7 @@ pub fn sample_stage() -> StageInfo {
             block_shape_info: BlockShapeInfo::Rect {
                 extents: Vec2::new(80.0, 30.0),
                 rect_origin: Vec2::new(35.0, 0.0),
-                rotate_strategy: RotateStrategy::Manual(0.1),
+                rotate_strategy: RotateStrategy::infinite_manual(0.1),
                 slide_strategy: SlideStrategy::AutoWrap {
                     speed: 0.1,
                     path: BlockSlidePath::StandardLine {

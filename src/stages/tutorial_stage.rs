@@ -23,7 +23,7 @@ pub fn tutorial1() -> StageInfo {
             block_shape_info: BlockShapeInfo::Rect {
                 extents: Vec2::new(100.0, 80.0),
                 rect_origin: Vec2::ZERO,
-                rotate_strategy: RotateStrategy::Manual(0.06),
+                rotate_strategy: RotateStrategy::infinite_manual(0.06),
                 slide_strategy: SlideStrategy::NoSlide,
             },
             ..Default::default()

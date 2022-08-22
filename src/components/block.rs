@@ -55,12 +55,21 @@ impl BlockTransform {
 #[derive(Component, Clone, Debug)]
 pub enum RotateStrategy {
     NoRotate,
-    Manual(f32),
+    /// 回転量, 下限, 上限
+    Manual(f32, f32, f32),
     Auto(f32),
 }
 impl Default for RotateStrategy {
     fn default() -> Self {
         RotateStrategy::NoRotate
+    }
+}
+impl RotateStrategy {
+    pub fn manual(amount: f32, min: f32, max: f32) -> Self {
+        Self::Manual(amount, min, max)
+    }
+    pub fn infinite_manual(amount: f32) -> Self {
+        Self::Manual(amount, f32::MIN, f32::MAX)
     }
 }
 

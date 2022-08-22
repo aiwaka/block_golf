@@ -120,6 +120,12 @@ fn rotate_block(
                 } else if key_in.pressed(KeyCode::Right) {
                     block_trans.angle -= angle;
                 };
+                        if block_trans.angle > *max {
+                            block_trans.angle = *max;
+                        }
+                        if block_trans.angle < *min {
+                            block_trans.angle = *min;
+                        }
             }
             RotateStrategy::Auto(angle) => {
                 block_trans.angle += angle;
