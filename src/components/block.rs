@@ -7,7 +7,7 @@ use bevy_prototype_lyon::shapes;
 #[derive(Component, Clone, Copy, Default, Debug)]
 pub struct BlockOriginalPos(pub Vec2);
 
-/// ブロック中心位置から回転軸の位置を相対座標で指定する
+/// ブロック回転軸からブロック中心位置の位置を相対座標で指定する
 #[derive(Component, Clone, Copy, Default, Debug)]
 pub struct BlockAxisPos(pub Vec2);
 

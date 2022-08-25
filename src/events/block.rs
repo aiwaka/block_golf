@@ -18,6 +18,7 @@ use super::ToSpawnEvent;
 /// タイプと色を指定
 pub struct SpawnBlockEvent {
     pub pos: Vec2,
+    pub block_axis: Vec2,
     pub block_type: BlockType,
     pub material: PhysicMaterial,
     pub default_angle: f32,
@@ -39,6 +40,7 @@ impl ToSpawnEvent for BlockInfo {
                 };
                 SpawnBlockEvent {
                     pos: self.pos,
+                    block_axis: Vec2::ZERO,
                     block_type,
                     material: self.material,
                     default_angle: self.default_angle,
@@ -52,11 +54,12 @@ impl ToSpawnEvent for BlockInfo {
                 let block_type = BlockType::Rect {
                     shape: Rectangle {
                         extents: *extents,
-                        origin: RectangleOrigin::CustomCenter(-self.block_axis),
+                        origin: RectangleOrigin::CustomCenter(self.block_axis),
                     },
                 };
                 SpawnBlockEvent {
                     pos: self.pos,
+                    block_axis: self.block_axis,
                     block_type,
                     material: self.material,
                     default_angle: self.default_angle,
@@ -70,11 +73,12 @@ impl ToSpawnEvent for BlockInfo {
                 let block_type = BlockType::Ellipse {
                     shape: Ellipse {
                         radii: *radii,
-                        center: -self.block_axis,
+                        center: self.block_axis,
                     },
                 };
                 SpawnBlockEvent {
                     pos: self.pos,
+                    block_axis: self.block_axis,
                     block_type,
                     material: self.material,
                     default_angle: self.default_angle,

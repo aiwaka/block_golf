@@ -95,7 +95,7 @@ impl Default for BlockShapeInfo {
 #[derive(Clone, Default, Debug)]
 pub struct BlockInfo {
     pub pos: Vec2,
-    /// ブロック中心位置から回転軸の位置を相対座標で指定する
+    /// ブロック回転軸からブロック中心位置の位置を相対座標で指定する
     pub block_axis: Vec2,
     pub block_shape_info: BlockShapeInfo,
     pub material: PhysicMaterial,
