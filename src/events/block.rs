@@ -50,14 +50,14 @@ impl ToSpawnEvent for BlockInfo {
             }
             BlockShapeInfo::Rect {
                 extents,
-                rect_origin,
+                rect_axis,
                 rotate_strategy,
                 slide_strategy,
             } => {
                 let block_type = BlockType::Rect {
                     shape: Rectangle {
                         extents: *extents,
-                        origin: RectangleOrigin::CustomCenter(*rect_origin),
+                        origin: RectangleOrigin::CustomCenter(-*rect_axis),
                     },
                 };
                 SpawnBlockEvent {

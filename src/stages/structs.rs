@@ -77,8 +77,9 @@ pub enum BlockShapeInfo {
         extents: Vec2,
     },
     Rect {
-        extents: Vec2,     // xyの大きさ
-        rect_origin: Vec2, // 矩形内の位置
+        extents: Vec2, // xyの大きさ
+        /// ブロック中心位置から回転軸の位置を相対座標で指定する
+        rect_axis: Vec2,
         rotate_strategy: RotateStrategy,
         slide_strategy: SlideStrategy,
     },
@@ -93,7 +94,7 @@ impl Default for BlockShapeInfo {
     fn default() -> Self {
         BlockShapeInfo::Rect {
             extents: Vec2::ONE * 50.0,
-            rect_origin: Vec2::ZERO,
+            rect_axis: Vec2::ZERO,
             rotate_strategy: RotateStrategy::NoRotate,
             slide_strategy: SlideStrategy::NoSlide,
         }

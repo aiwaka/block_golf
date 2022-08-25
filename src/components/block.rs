@@ -3,13 +3,13 @@ use std::f32::consts::{FRAC_2_PI, FRAC_PI_2};
 use bevy::prelude::*;
 use bevy_prototype_lyon::shapes;
 
-/// ブロックであることを示す. これを使って衝突判定を行う
-#[derive(Component)]
-pub struct Block;
-
-/// ブロックの位置パラメータが0のときの位置
-#[derive(Component)]
+/// ブロックのすべての位置補正がかかっていない状態のブロック中心の位置
+#[derive(Component, Clone, Copy, Default, Debug)]
 pub struct BlockOriginalPos(pub Vec2);
+
+/// ブロック中心位置から回転軸の位置を相対座標で指定する
+#[derive(Component, Clone, Copy, Default, Debug)]
+pub struct BlockAxisPos(pub Vec2);
 
 /// ブロックの位置や角度の情報を持っておくコンポーネント
 #[derive(Component, Default)]
@@ -29,16 +29,8 @@ impl BlockTransform {
             angle,
             offset: Vec2::ZERO,
             pos_param,
-            // prev_angle: angle,
-            // prev_offset: Vec2::ZERO,
-            // prev_param: pos_param,
         }
     }
-    // /// そのフレームでの重心周りの角速度
-    // pub fn angle_diff(&self) -> f32 {
-    //     self.angle - self.prev_angle
-    // }
-
     // /// そのフレームでの重心の並進速度
     // /// delta: 重心 - 回転軸 のベクトル（Rectならoriginでよい）
     // pub fn pos_diff(&self, path: &BlockSlidePath, delta: Vec2) -> Vec2 {

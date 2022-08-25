@@ -20,7 +20,7 @@ pub fn sample_stage() -> StageInfo {
             pos: Vec2::new(-240.0, 70.0),
             block_shape_info: BlockShapeInfo::Rect {
                 extents: Vec2::new(90.0, 120.0),
-                rect_origin: Vec2::ZERO,
+                rect_axis: Vec2::ZERO,
                 rotate_strategy: RotateStrategy::NoRotate,
                 slide_strategy: SlideStrategy::Manual {
                     speed: 0.08,
@@ -39,7 +39,7 @@ pub fn sample_stage() -> StageInfo {
             pos: Vec2::ZERO,
             block_shape_info: BlockShapeInfo::Rect {
                 extents: Vec2::new(120.0, 80.0),
-                rect_origin: Vec2::new(30.0, 20.0),
+                rect_axis: Vec2::new(30.0, 20.0),
                 rotate_strategy: RotateStrategy::infinite_manual(0.025),
                 slide_strategy: SlideStrategy::NoSlide,
             },
@@ -52,7 +52,7 @@ pub fn sample_stage() -> StageInfo {
             pos: Vec2::new(200.0, 50.0),
             block_shape_info: BlockShapeInfo::Rect {
                 extents: Vec2::new(120.0, 80.0),
-                rect_origin: Vec2::new(80.0, 0.0),
+                rect_axis: Vec2::new(80.0, 0.0),
                 rotate_strategy: RotateStrategy::Auto(0.02),
                 slide_strategy: SlideStrategy::NoSlide,
             },
@@ -65,7 +65,7 @@ pub fn sample_stage() -> StageInfo {
             pos: Vec2::new(300.0, -160.0),
             block_shape_info: BlockShapeInfo::Rect {
                 extents: Vec2::new(80.0, 30.0),
-                rect_origin: Vec2::new(35.0, 0.0),
+                rect_axis: Vec2::new(35.0, 0.0),
                 rotate_strategy: RotateStrategy::infinite_manual(0.1),
                 slide_strategy: SlideStrategy::AutoWrap {
                     speed: 0.1,

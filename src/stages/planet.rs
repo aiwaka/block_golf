@@ -57,7 +57,7 @@ pub fn square_planet() -> StageInfo {
             pos: Vec2::ZERO,
             block_shape_info: BlockShapeInfo::Rect {
                 extents: Vec2::new(200.0, 200.0),
-                rect_origin: Vec2::ZERO,
+                rect_axis: Vec2::ZERO,
                 rotate_strategy: RotateStrategy::Auto(0.01),
                 slide_strategy: SlideStrategy::NoSlide,
             },
@@ -68,7 +68,7 @@ pub fn square_planet() -> StageInfo {
             pos: Vec2::new(50.0, 300.0),
             block_shape_info: BlockShapeInfo::Rect {
                 extents: Vec2::new(160.0, 40.0),
-                rect_origin: Vec2::new(70.0, 0.0),
+                rect_axis: Vec2::new(70.0, 0.0),
                 rotate_strategy: RotateStrategy::infinite_manual(0.08),
                 slide_strategy: SlideStrategy::NoSlide,
             },
@@ -78,7 +78,7 @@ pub fn square_planet() -> StageInfo {
             pos: Vec2::new(50.0, -300.0),
             block_shape_info: BlockShapeInfo::Rect {
                 extents: Vec2::new(160.0, 40.0),
-                rect_origin: Vec2::new(70.0, 0.0),
+                rect_axis: Vec2::new(70.0, 0.0),
                 rotate_strategy: RotateStrategy::infinite_manual(-0.08),
                 slide_strategy: SlideStrategy::NoSlide,
             },

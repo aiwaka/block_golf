@@ -48,7 +48,7 @@ pub fn jamming1() -> StageInfo {
                 pos: Vec2::new(pos_x, pos_y),
                 block_shape_info: BlockShapeInfo::Rect {
                     extents: Vec2::new(30.0, 100.0),
-                    rect_origin: Vec2::ZERO,
+                    rect_axis: Vec2::ZERO,
                     rotate_strategy: RotateStrategy::Auto(0.08 * rotate_sgn),
                     slide_strategy: SlideStrategy::NoSlide,
                 },

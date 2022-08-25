@@ -20,7 +20,7 @@ pub fn debug_stage() -> StageInfo {
             pos: Vec2::new(0.0, 0.0),
             block_shape_info: BlockShapeInfo::Rect {
                 extents: Vec2::new(50.0, 600.0),
-                rect_origin: Vec2::ZERO,
+                rect_axis: Vec2::ZERO,
                 rotate_strategy: RotateStrategy::NoRotate,
                 slide_strategy: SlideStrategy::NoSlide,
             },

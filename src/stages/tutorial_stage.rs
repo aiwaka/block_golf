@@ -22,7 +22,7 @@ pub fn tutorial1() -> StageInfo {
             pos: Vec2::new(-100.0, 200.0),
             block_shape_info: BlockShapeInfo::Rect {
                 extents: Vec2::new(100.0, 80.0),
-                rect_origin: Vec2::ZERO,
+                rect_axis: Vec2::ZERO,
                 rotate_strategy: RotateStrategy::infinite_manual(0.06),
                 slide_strategy: SlideStrategy::NoSlide,
             },
@@ -32,7 +32,7 @@ pub fn tutorial1() -> StageInfo {
             pos: Vec2::new(200.0, 200.0),
             block_shape_info: BlockShapeInfo::Rect {
                 extents: Vec2::new(100.0, 80.0),
-                rect_origin: Vec2::ZERO,
+                rect_axis: Vec2::ZERO,
                 rotate_strategy: RotateStrategy::NoRotate,
                 slide_strategy: SlideStrategy::Manual {
                     speed: 0.1,
@@ -77,7 +77,7 @@ pub fn tutorial2() -> StageInfo {
         pos: Vec2::ZERO,
         block_shape_info: BlockShapeInfo::Rect {
             extents: Vec2::new(200.0, 150.0),
-            rect_origin: Vec2::ZERO,
+            rect_axis: Vec2::ZERO,
             rotate_strategy: RotateStrategy::NoRotate,
             slide_strategy: SlideStrategy::NoSlide,
         },
@@ -117,7 +117,7 @@ pub fn fan_tutorial() -> StageInfo {
             pos: Vec2::new(0.0, -300.0),
             block_shape_info: BlockShapeInfo::Rect {
                 extents: Vec2::new(200.0, 70.0),
-                rect_origin: Vec2::ZERO,
+                rect_axis: Vec2::ZERO,
                 rotate_strategy: RotateStrategy::NoRotate,
                 slide_strategy: SlideStrategy::NoSlide,
             },
@@ -128,7 +128,7 @@ pub fn fan_tutorial() -> StageInfo {
             pos: Vec2::new(0.0, 250.0),
             block_shape_info: BlockShapeInfo::Rect {
                 extents: Vec2::new(200.0, 150.0),
-                rect_origin: Vec2::ZERO,
+                rect_axis: Vec2::ZERO,
                 rotate_strategy: RotateStrategy::NoRotate,
                 slide_strategy: SlideStrategy::NoSlide,
             },
@@ -173,7 +173,7 @@ pub fn magnet_tutorial() -> StageInfo {
         pos: Vec2::new(0.0, 250.0),
         block_shape_info: BlockShapeInfo::Rect {
             extents: Vec2::new(200.0, 150.0),
-            rect_origin: Vec2::ZERO,
+            rect_axis: Vec2::ZERO,
             rotate_strategy: RotateStrategy::NoRotate,
             slide_strategy: SlideStrategy::NoSlide,
         },
@@ -225,7 +225,7 @@ pub fn switch_tutorial() -> StageInfo {
     const ROTATE_FUNC: fn(i32) -> f32 = |param: i32| FRAC_PI_2 / 30.0 * param as f32;
     let block_shape_info = BlockShapeInfo::Rect {
         extents: Vec2::new(120.0, 30.0),
-        rect_origin: Vec2::ZERO,
+        rect_axis: Vec2::ZERO,
         rotate_strategy: RotateStrategy::NoRotate,
         slide_strategy: SlideStrategy::NoSlide,
     };
@@ -234,7 +234,7 @@ pub fn switch_tutorial() -> StageInfo {
             pos: Vec2::new(340.0, -160.0),
             block_shape_info: BlockShapeInfo::Rect {
                 extents: Vec2::new(120.0, 30.0),
-                rect_origin: Vec2::new(60.0, 0.0),
+                rect_axis: Vec2::new(60.0, 0.0),
                 rotate_strategy: RotateStrategy::NoRotate,
                 slide_strategy: SlideStrategy::NoSlide,
             },
@@ -345,7 +345,7 @@ pub fn switch_tutorial() -> StageInfo {
 pub fn gravity_tutorial() -> StageInfo {
     let block_shape_info = BlockShapeInfo::Rect {
         extents: Vec2::new(FIELD_WIDTH / 3.0, 150.0),
-        rect_origin: Vec2::ZERO,
+        rect_axis: Vec2::ZERO,
         rotate_strategy: RotateStrategy::NoRotate,
         slide_strategy: SlideStrategy::NoSlide,
     };
@@ -354,7 +354,7 @@ pub fn gravity_tutorial() -> StageInfo {
             pos: Vec2::new(0.0, -100.0),
             block_shape_info: BlockShapeInfo::Rect {
                 extents: Vec2::new(FIELD_WIDTH / 3.0, 150.0),
-                rect_origin: Vec2::ZERO,
+                rect_axis: Vec2::ZERO,
                 rotate_strategy: RotateStrategy::NoRotate,
                 slide_strategy: SlideStrategy::Manual {
                     speed: 0.05,

@@ -22,7 +22,7 @@ pub fn aisle0() -> StageInfo {
             pos: Vec2::new(-130.0, -60.0),
             block_shape_info: BlockShapeInfo::Rect {
                 extents: Vec2::new(FIELD_WIDTH / 2.0, FIELD_HEIGHT / 2.0),
-                rect_origin: Vec2::ZERO,
+                rect_axis: Vec2::ZERO,
                 rotate_strategy: RotateStrategy::NoRotate,
                 slide_strategy: SlideStrategy::NoSlide,
             },
@@ -32,7 +32,7 @@ pub fn aisle0() -> StageInfo {
             pos: Vec2::new(130.0, 60.0),
             block_shape_info: BlockShapeInfo::Rect {
                 extents: Vec2::new(FIELD_WIDTH / 2.0, FIELD_HEIGHT / 2.0),
-                rect_origin: Vec2::ZERO,
+                rect_axis: Vec2::ZERO,
                 rotate_strategy: RotateStrategy::NoRotate,
                 slide_strategy: SlideStrategy::NoSlide,
             },
@@ -81,7 +81,7 @@ pub fn aisle1() -> StageInfo {
             pos: orig_point,
             block_shape_info: BlockShapeInfo::Rect {
                 extents: Vec2::new(FIELD_WIDTH, FIELD_HEIGHT),
-                rect_origin: Vec2::new(FIELD_WIDTH / 2.0 - 30.0, FIELD_HEIGHT / 2.0 + 80.0),
+                rect_axis: Vec2::new(FIELD_WIDTH / 2.0 - 30.0, FIELD_HEIGHT / 2.0 + 80.0),
                 rotate_strategy: RotateStrategy::Manual(ROTATE_SPEED, 0.0, FRAC_PI_2),
                 slide_strategy: SlideStrategy::NoSlide,
             },
@@ -94,7 +94,7 @@ pub fn aisle1() -> StageInfo {
             pos: orig_point,
             block_shape_info: BlockShapeInfo::Rect {
                 extents: Vec2::new(FIELD_WIDTH, FIELD_HEIGHT),
-                rect_origin: Vec2::new(FIELD_WIDTH / 2.0 - 30.0, -FIELD_HEIGHT / 2.0 - 80.0),
+                rect_axis: Vec2::new(FIELD_WIDTH / 2.0 - 30.0, -FIELD_HEIGHT / 2.0 - 80.0),
                 rotate_strategy: RotateStrategy::Manual(ROTATE_SPEED, 0.0, FRAC_PI_2),
                 slide_strategy: SlideStrategy::NoSlide,
             },
@@ -145,7 +145,7 @@ pub fn aisle2() -> StageInfo {
             pos: Vec2::new(400.0, -100.0),
             block_shape_info: BlockShapeInfo::Rect {
                 extents: Vec2::new(FIELD_WIDTH, FIELD_HEIGHT),
-                rect_origin: Vec2::ZERO,
+                rect_axis: Vec2::ZERO,
                 rotate_strategy: RotateStrategy::NoRotate,
                 slide_strategy: SlideStrategy::NoSlide,
             },
@@ -158,7 +158,7 @@ pub fn aisle2() -> StageInfo {
             pos: Vec2::new(-FIELD_WIDTH / 2.0 - 30.0, FIELD_HEIGHT / 2.0 - 60.0),
             block_shape_info: BlockShapeInfo::Rect {
                 extents: Vec2::new(160.0, 100.0),
-                rect_origin: Vec2::ZERO,
+                rect_axis: Vec2::ZERO,
                 rotate_strategy: RotateStrategy::NoRotate,
                 slide_strategy: SlideStrategy::Manual {
                     speed: 0.07,
