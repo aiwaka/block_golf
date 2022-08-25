@@ -47,13 +47,8 @@ fn set_block(mut commands: Commands, mut event_listener: EventReader<SpawnBlockE
         let color = Color::from(&ev.block_type);
         let (shape_bundle, collision_ent) = match ev.block_type {
             BlockType::Wall { shape } => {
-                let shape_bundle = make_block_shape_bundle(
-                    &shape,
-                    color,
-                    ev.pos,
-                    10.5 + z_offset,
-                    ev.default_angle,
-                );
+                let shape_bundle =
+                    make_block_shape_bundle(&shape, color, ev.pos, z_offset, ev.default_angle);
                 let collision_ent = commands
                     .spawn()
                     .insert(RectangleCollision::new(shape.extents))
@@ -61,13 +56,8 @@ fn set_block(mut commands: Commands, mut event_listener: EventReader<SpawnBlockE
                 (shape_bundle, collision_ent)
             }
             BlockType::Rect { shape } => {
-                let shape_bundle = make_block_shape_bundle(
-                    &shape,
-                    color,
-                    ev.pos,
-                    12.0 + z_offset,
-                    ev.default_angle,
-                );
+                let shape_bundle =
+                    make_block_shape_bundle(&shape, color, ev.pos, z_offset, ev.default_angle);
                 let collision_ent = commands
                     .spawn()
                     .insert(RectangleCollision::new(shape.extents))
@@ -75,13 +65,8 @@ fn set_block(mut commands: Commands, mut event_listener: EventReader<SpawnBlockE
                 (shape_bundle, collision_ent)
             }
             BlockType::Ellipse { shape } => {
-                let shape_bundle = make_block_shape_bundle(
-                    &shape,
-                    color,
-                    ev.pos,
-                    12.0 + z_offset,
-                    ev.default_angle,
-                );
+                let shape_bundle =
+                    make_block_shape_bundle(&shape, color, ev.pos, z_offset, ev.default_angle);
                 // TODO: あとで楕円のものに直す
                 let collision_ent = commands
                     .spawn()
