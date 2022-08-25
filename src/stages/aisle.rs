@@ -7,7 +7,6 @@ use super::structs::{
     ArrangeBallInfo, BallInfo, BlockInfo, BlockShapeInfo, GoalInfo, LauncherInfo, StageInfo,
 };
 use crate::components::block::BlockSlidePath;
-use crate::components::physics::material::PhysicMaterial;
 use crate::components::{
     ball::BallType,
     block::{RotateStrategy, SlideStrategy},
@@ -22,9 +21,6 @@ pub fn aisle0() -> StageInfo {
             pos: Vec2::new(-130.0, -60.0),
             block_shape_info: BlockShapeInfo::Rect {
                 extents: Vec2::new(FIELD_WIDTH / 2.0, FIELD_HEIGHT / 2.0),
-                rect_axis: Vec2::ZERO,
-                rotate_strategy: RotateStrategy::NoRotate,
-                slide_strategy: SlideStrategy::NoSlide,
             },
             ..Default::default()
         },
@@ -32,9 +28,6 @@ pub fn aisle0() -> StageInfo {
             pos: Vec2::new(130.0, 60.0),
             block_shape_info: BlockShapeInfo::Rect {
                 extents: Vec2::new(FIELD_WIDTH / 2.0, FIELD_HEIGHT / 2.0),
-                rect_axis: Vec2::ZERO,
-                rotate_strategy: RotateStrategy::NoRotate,
-                slide_strategy: SlideStrategy::NoSlide,
             },
             ..Default::default()
         },
@@ -73,7 +66,6 @@ pub fn aisle0() -> StageInfo {
 }
 
 pub fn aisle1() -> StageInfo {
-    let material = PhysicMaterial::new(1.0, 1.0, 0.0);
     let orig_point = Vec2::new(-FIELD_WIDTH / 2.0 + 30.0, -FIELD_HEIGHT / 2.0 + 30.0);
     const ROTATE_SPEED: f32 = 0.01;
     let block_list = vec![
@@ -81,27 +73,19 @@ pub fn aisle1() -> StageInfo {
             pos: orig_point,
             block_shape_info: BlockShapeInfo::Rect {
                 extents: Vec2::new(FIELD_WIDTH, FIELD_HEIGHT),
-                rect_axis: Vec2::new(FIELD_WIDTH / 2.0 - 30.0, FIELD_HEIGHT / 2.0 + 80.0),
-                rotate_strategy: RotateStrategy::Manual(ROTATE_SPEED, 0.0, FRAC_PI_2),
-                slide_strategy: SlideStrategy::NoSlide,
             },
-            material,
-            default_angle: 0.0,
-            default_pos_param: 0.0,
-            block_attachment: vec![],
+            block_axis: Vec2::new(FIELD_WIDTH / 2.0 - 30.0, FIELD_HEIGHT / 2.0 + 80.0),
+            rotate_strategy: RotateStrategy::Manual(ROTATE_SPEED, 0.0, FRAC_PI_2),
+            ..Default::default()
         },
         BlockInfo {
             pos: orig_point,
             block_shape_info: BlockShapeInfo::Rect {
                 extents: Vec2::new(FIELD_WIDTH, FIELD_HEIGHT),
-                rect_axis: Vec2::new(FIELD_WIDTH / 2.0 - 30.0, -FIELD_HEIGHT / 2.0 - 80.0),
-                rotate_strategy: RotateStrategy::Manual(ROTATE_SPEED, 0.0, FRAC_PI_2),
-                slide_strategy: SlideStrategy::NoSlide,
             },
-            material,
-            default_angle: 0.0,
-            default_pos_param: 0.0,
-            block_attachment: vec![],
+            block_axis: Vec2::new(FIELD_WIDTH / 2.0 - 30.0, -FIELD_HEIGHT / 2.0 - 80.0),
+            rotate_strategy: RotateStrategy::Manual(ROTATE_SPEED, 0.0, FRAC_PI_2),
+            ..Default::default()
         },
     ];
 
@@ -138,40 +122,28 @@ pub fn aisle1() -> StageInfo {
 }
 
 pub fn aisle2() -> StageInfo {
-    let material = PhysicMaterial::new(1.0, 1.0, 0.0);
     const ROTATE_SPEED: f32 = 0.01;
     let block_list = vec![
         BlockInfo {
             pos: Vec2::new(400.0, -100.0),
             block_shape_info: BlockShapeInfo::Rect {
                 extents: Vec2::new(FIELD_WIDTH, FIELD_HEIGHT),
-                rect_axis: Vec2::ZERO,
-                rotate_strategy: RotateStrategy::NoRotate,
-                slide_strategy: SlideStrategy::NoSlide,
             },
-            material,
-            default_angle: 0.0,
-            default_pos_param: 0.0,
-            block_attachment: vec![],
+            ..Default::default()
         },
         BlockInfo {
             pos: Vec2::new(-FIELD_WIDTH / 2.0 - 30.0, FIELD_HEIGHT / 2.0 - 60.0),
             block_shape_info: BlockShapeInfo::Rect {
                 extents: Vec2::new(160.0, 100.0),
-                rect_axis: Vec2::ZERO,
-                rotate_strategy: RotateStrategy::NoRotate,
-                slide_strategy: SlideStrategy::Manual {
-                    speed: 0.07,
-                    path: BlockSlidePath::StandardLine {
-                        theta: 0.0,
-                        width: -160.0,
-                    },
+            },
+            slide_strategy: SlideStrategy::Manual {
+                speed: 0.07,
+                path: BlockSlidePath::StandardLine {
+                    theta: 0.0,
+                    width: -160.0,
                 },
             },
-            material,
-            default_angle: 0.0,
-            default_pos_param: 0.0,
-            block_attachment: vec![],
+            ..Default::default()
         },
     ];
 

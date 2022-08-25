@@ -6,7 +6,6 @@ use super::field_blocks::field_block;
 use super::structs::{
     ArrangeBallInfo, BallInfo, BlockInfo, BlockShapeInfo, GoalInfo, LauncherInfo, StageInfo,
 };
-use crate::components::physics::material::PhysicMaterial;
 use crate::components::{
     ball::BallType,
     block::{BlockSlidePath, RotateStrategy, SlideStrategy},
@@ -14,71 +13,58 @@ use crate::components::{
 use crate::systems::field::{FIELD_HEIGHT, FIELD_WIDTH};
 
 pub fn sample_stage() -> StageInfo {
-    let material = PhysicMaterial::new(1.0, 1.0, 0.0);
     let block_list = vec![
         BlockInfo {
             pos: Vec2::new(-240.0, 70.0),
             block_shape_info: BlockShapeInfo::Rect {
                 extents: Vec2::new(90.0, 120.0),
-                rect_axis: Vec2::ZERO,
-                rotate_strategy: RotateStrategy::NoRotate,
-                slide_strategy: SlideStrategy::Manual {
-                    speed: 0.08,
-                    path: BlockSlidePath::StandardLine {
-                        theta: PI,
-                        width: 50.0,
-                    },
+            },
+            slide_strategy: SlideStrategy::Manual {
+                speed: 0.08,
+                path: BlockSlidePath::StandardLine {
+                    theta: PI,
+                    width: 50.0,
                 },
             },
-            material,
             default_angle: 2.0,
-            default_pos_param: 0.0,
-            block_attachment: vec![],
+            ..Default::default()
         },
         BlockInfo {
             pos: Vec2::ZERO,
             block_shape_info: BlockShapeInfo::Rect {
                 extents: Vec2::new(120.0, 80.0),
-                rect_axis: Vec2::new(30.0, 20.0),
-                rotate_strategy: RotateStrategy::infinite_manual(0.025),
-                slide_strategy: SlideStrategy::NoSlide,
             },
-            material,
-            default_angle: 0.0,
-            default_pos_param: 0.0,
-            block_attachment: vec![],
+            block_axis: Vec2::new(30.0, 20.0),
+            rotate_strategy: RotateStrategy::infinite_manual(0.025),
+            ..Default::default()
         },
         BlockInfo {
             pos: Vec2::new(200.0, 50.0),
             block_shape_info: BlockShapeInfo::Rect {
                 extents: Vec2::new(120.0, 80.0),
-                rect_axis: Vec2::new(80.0, 0.0),
-                rotate_strategy: RotateStrategy::Auto(0.02),
-                slide_strategy: SlideStrategy::NoSlide,
             },
-            material,
+            block_axis: Vec2::new(80.0, 0.0),
             default_angle: 1.0,
-            default_pos_param: 0.0,
-            block_attachment: vec![],
+            rotate_strategy: RotateStrategy::Auto(0.02),
+            ..Default::default()
         },
         BlockInfo {
             pos: Vec2::new(300.0, -160.0),
             block_shape_info: BlockShapeInfo::Rect {
                 extents: Vec2::new(80.0, 30.0),
-                rect_axis: Vec2::new(35.0, 0.0),
-                rotate_strategy: RotateStrategy::infinite_manual(0.1),
-                slide_strategy: SlideStrategy::AutoWrap {
-                    speed: 0.1,
-                    path: BlockSlidePath::StandardLine {
-                        theta: FRAC_PI_2,
-                        width: 40.0,
-                    },
+            },
+            block_axis: Vec2::new(35.0, 0.0),
+            rotate_strategy: RotateStrategy::infinite_manual(0.1),
+            slide_strategy: SlideStrategy::AutoWrap {
+                speed: 0.1,
+                path: BlockSlidePath::StandardLine {
+                    theta: FRAC_PI_2,
+                    width: 40.0,
                 },
             },
-            material,
             default_angle: -FRAC_PI_2,
             default_pos_param: -1.0,
-            block_attachment: vec![],
+            ..Default::default()
         },
     ];
 

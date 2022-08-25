@@ -8,10 +8,7 @@ use super::structs::{
 };
 use crate::components::physics::force::Gravity;
 use crate::components::physics::material::PhysicMaterial;
-use crate::components::{
-    ball::BallType,
-    block::{RotateStrategy, SlideStrategy},
-};
+use crate::components::{ball::BallType, block::RotateStrategy};
 use crate::systems::field::FIELD_WIDTH;
 
 pub fn strange_gravity() -> StageInfo {
@@ -57,10 +54,8 @@ pub fn square_planet() -> StageInfo {
             pos: Vec2::ZERO,
             block_shape_info: BlockShapeInfo::Rect {
                 extents: Vec2::new(200.0, 200.0),
-                rect_axis: Vec2::ZERO,
-                rotate_strategy: RotateStrategy::Auto(0.01),
-                slide_strategy: SlideStrategy::NoSlide,
             },
+            rotate_strategy: RotateStrategy::Auto(0.01),
             material,
             ..Default::default()
         },
@@ -68,20 +63,18 @@ pub fn square_planet() -> StageInfo {
             pos: Vec2::new(50.0, 300.0),
             block_shape_info: BlockShapeInfo::Rect {
                 extents: Vec2::new(160.0, 40.0),
-                rect_axis: Vec2::new(70.0, 0.0),
-                rotate_strategy: RotateStrategy::infinite_manual(0.08),
-                slide_strategy: SlideStrategy::NoSlide,
             },
+            block_axis: Vec2::new(70.0, 0.0),
+            rotate_strategy: RotateStrategy::infinite_manual(0.08),
             ..Default::default()
         },
         BlockInfo {
             pos: Vec2::new(50.0, -300.0),
             block_shape_info: BlockShapeInfo::Rect {
                 extents: Vec2::new(160.0, 40.0),
-                rect_axis: Vec2::new(70.0, 0.0),
-                rotate_strategy: RotateStrategy::infinite_manual(-0.08),
-                slide_strategy: SlideStrategy::NoSlide,
             },
+            block_axis: Vec2::new(70.0, 0.0),
+            rotate_strategy: RotateStrategy::infinite_manual(-0.08),
             ..Default::default()
         },
     ];

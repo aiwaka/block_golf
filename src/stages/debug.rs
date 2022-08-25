@@ -6,41 +6,26 @@ use super::structs::{
     ArrangeBallInfo, BlockInfo, BlockShapeInfo, GoalInfo, LauncherInfo, StageInfo,
 };
 use super::{field_blocks::field_block, structs::BallInfo};
-use crate::components::physics::material::PhysicMaterial;
-use crate::components::{
-    ball::BallType,
-    block::{RotateStrategy, SlideStrategy},
-};
+use crate::components::{ball::BallType, block::RotateStrategy};
 use crate::systems::field::{FIELD_HEIGHT, FIELD_WIDTH};
 
 pub fn debug_stage() -> StageInfo {
-    let material = PhysicMaterial::new(1.0, 1.0, 0.0);
     let block_list = vec![
         BlockInfo {
             pos: Vec2::new(0.0, 0.0),
             block_shape_info: BlockShapeInfo::Rect {
                 extents: Vec2::new(50.0, 600.0),
-                rect_axis: Vec2::ZERO,
-                rotate_strategy: RotateStrategy::NoRotate,
-                slide_strategy: SlideStrategy::NoSlide,
             },
-            material,
-            default_angle: 0.0,
-            default_pos_param: 0.0,
-            block_attachment: vec![],
+            ..Default::default()
         },
         BlockInfo {
             pos: Vec2::new(0.0, 0.0),
             block_shape_info: BlockShapeInfo::Ellipse {
                 radii: Vec2::new(40.0, 60.0),
-                center: Vec2::new(0.0, 10.0),
-                rotate_strategy: RotateStrategy::infinite_manual(0.1),
-                slide_strategy: SlideStrategy::NoSlide,
             },
-            material,
-            default_angle: 0.0,
-            default_pos_param: 0.0,
-            block_attachment: vec![],
+            block_axis: Vec2::new(0.0, 10.0),
+            rotate_strategy: RotateStrategy::infinite_manual(0.1),
+            ..Default::default()
         },
     ];
 
