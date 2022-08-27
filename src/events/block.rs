@@ -40,7 +40,7 @@ impl ToSpawnEvent for BlockInfo {
                 };
                 SpawnBlockEvent {
                     pos: self.pos,
-                    block_axis: Vec2::ZERO,
+                    block_axis: self.block_axis,
                     block_type,
                     material: self.material,
                     default_angle: self.default_angle,

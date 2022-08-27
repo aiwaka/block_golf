@@ -170,15 +170,10 @@ fn rotate_block(
 /// TODO: 現在パスは1つしかセットできないが, 配列に収めるようにして複数のパスを加算できるようにする.
 fn slide_block(
     key_in: Res<Input<KeyCode>>,
-    mut block_query: Query<(
-        &mut BlockTransformInfo,
-        &mut BlockSlideParam,
-        &BlockOriginalPos,
-        &Children,
-    )>,
+    mut block_query: Query<(&mut BlockTransformInfo, &mut BlockSlideParam, &Children)>,
     sld_str_query: Query<&SlideStrategy>,
 ) {
-    for (mut block_trans, mut slide_param, original_pos, block_children) in block_query.iter_mut() {
+    for (mut block_trans, mut slide_param, block_children) in block_query.iter_mut() {
         for &child in block_children.iter() {
             // ブロックの子であるスライド方法コンポーネントを取得
             if let Ok(strategy) = sld_str_query.get(child) {
@@ -211,7 +206,7 @@ fn slide_block(
                         path
                     }
                 };
-                block_trans.offset = path.calc_orbit(slide_param.0) + original_pos.0;
+                block_trans.offset = path.calc_orbit(slide_param.0);
             }
         }
     }

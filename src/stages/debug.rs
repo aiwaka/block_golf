@@ -6,6 +6,7 @@ use super::structs::{
     ArrangeBallInfo, BlockInfo, BlockShapeInfo, GoalInfo, LauncherInfo, StageInfo,
 };
 use super::{field_blocks::field_block, structs::BallInfo};
+use crate::components::block::SlideStrategy;
 use crate::components::{ball::BallType, block::RotateStrategy};
 use crate::systems::field::{FIELD_HEIGHT, FIELD_WIDTH};
 
@@ -14,9 +15,10 @@ pub fn debug_stage() -> StageInfo {
         pos: Vec2::new(0.0, 0.0),
         block_axis: Vec2::new(20.0, 0.0),
         block_shape_info: BlockShapeInfo::Rect {
-            extents: Vec2::new(50.0, 100.0),
+            extents: Vec2::new(50.0, 150.0),
         },
         rotate_strategy: RotateStrategy::infinite_manual(0.05),
+        slide_strategy: SlideStrategy::simple_manual_slider(0.02, 0.0, 50.0),
         ..Default::default()
     }];
 
@@ -39,7 +41,7 @@ pub fn debug_stage() -> StageInfo {
 
     StageInfo {
         stage_title: "debug",
-        time: 10 * 60,
+        time: 60 * 60,
         launcher: launcher_info,
         blocks: field_block()
             .into_iter()

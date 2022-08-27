@@ -92,6 +92,13 @@ impl SlideStrategy {
             SlideStrategy::Auto { speed: _, path } => path.clone(),
         }
     }
+    // StandardLineを軌道とするManualタイプを作成
+    pub fn simple_manual_slider(speed: f32, theta: f32, width: f32) -> Self {
+        SlideStrategy::Manual {
+            speed,
+            path: BlockSlidePath::StandardLine { theta, width },
+        }
+    }
 }
 
 #[derive(Clone, Debug)]
