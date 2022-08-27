@@ -6,9 +6,7 @@ use bevy_prototype_lyon::{prelude::RectangleOrigin, shapes::Rectangle};
 use crate::{
     components::{
         ball::{Ball, BallNocking, GoalinBall},
-        block::{
-            Block, BlockOriginalPos, BlockSlidePath, BlockTransform, BlockType, SlideStrategy,
-        },
+        block::{BlockOriginalPos, BlockSlidePath, BlockTransformInfo, BlockType, SlideStrategy},
         block_attach::switch::SwitchTile,
         goal::GoalHole,
         physics::{
@@ -33,7 +31,7 @@ fn rect_contains_point(center: Vec2, extents: Vec2, p: Vec2) -> bool {
 
 /// 当たり判定をして拘束解消に必要な情報（拘束方向と貫通深度のタプル）を返す
 fn collision_between_block_and_ball(
-    block_info: (&Rectangle, &BlockOriginalPos, &BlockTransform),
+    block_info: (&Rectangle, &BlockOriginalPos, &BlockTransformInfo),
     block_slide_path: &BlockSlidePath,
     ball_info: (&Ball, &Transform),
 ) -> Option<(Vec2, f32)> {
@@ -156,16 +154,13 @@ fn block_ball_collision(
         ),
         Without<GoalinBall>,
     >,
-    block_query: Query<
-        (
-            &BlockTransform,
-            &BlockType,
-            &BlockOriginalPos,
-            &PhysicMaterial,
-            Option<&SlideStrategy>,
-        ),
-        With<Block>,
-    >,
+    block_query: Query<(
+        &BlockTransformInfo,
+        &BlockType,
+        &BlockOriginalPos,
+        &PhysicMaterial,
+        Option<&SlideStrategy>,
+    )>,
 ) {
     for (ball_trans, ball, ball_material, mut ball_pos, ball_vel, mut force, volume) in
         ball_query.iter_mut()

@@ -2,13 +2,13 @@ use bevy::prelude::*;
 
 use crate::{
     components::{
-        block::BlockTransform,
+        block::BlockTransformInfo,
         block_attach::updater::{UpdaterType, UpdaterVec},
     },
     AppState,
 };
 
-fn update(mut block_query: Query<(&mut BlockTransform, &mut UpdaterVec)>) {
+fn update(mut block_query: Query<(&mut BlockTransformInfo, &mut UpdaterVec)>) {
     for (mut block_trans, mut updater_vec) in block_query.iter_mut() {
         for updater in updater_vec.0.iter_mut() {
             match updater.updater_type {

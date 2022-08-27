@@ -7,7 +7,7 @@ use bevy_prototype_lyon::{
 use crate::{
     components::{
         ball::{Ball, MetalBall},
-        block::{BlockTransform, BlockType},
+        block::{BlockTransformInfo, BlockType},
         block_attach::{magnet::Magnet, utils::EdgeDirection},
         physics::{force::Force, position::Position},
     },
@@ -55,7 +55,7 @@ pub fn spawn_magnet(commands: &mut Commands, block_ent: Entity, rect: &Rectangle
 
 /// 磁石とボールの間に力を加える
 fn magnet_force(
-    block_query: Query<(&BlockTransform, &GlobalTransform, &BlockType, &Children)>,
+    block_query: Query<(&BlockTransformInfo, &GlobalTransform, &BlockType, &Children)>,
     magnet_query: Query<&Magnet>,
     mut ball_query: Query<(&Ball, &Position, &mut Force), With<MetalBall>>,
 ) {

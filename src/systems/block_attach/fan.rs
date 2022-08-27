@@ -7,7 +7,7 @@ use bevy_prototype_lyon::{
 use crate::{
     components::{
         ball::Ball,
-        block::{BlockTransform, BlockType},
+        block::{BlockTransformInfo, BlockType},
         block_attach::fan::{Fan, WindVisualEffect},
         block_attach::utils::EdgeDirection,
         physics::{force::Force, material::Volume, position::Position, velocity::Velocity},
@@ -67,7 +67,7 @@ fn set_wind_vfx_duration(mut commands: Commands) {
 // 風エフェクトを出す
 fn spawn_wind_visual_effect(
     mut commands: Commands,
-    block_query: Query<(&BlockTransform, &GlobalTransform, &BlockType, &Children)>,
+    block_query: Query<(&BlockTransformInfo, &GlobalTransform, &BlockType, &Children)>,
     fan_query: Query<&Fan>,
     time: Res<Time>,
     mut timer_query: Query<&mut WindVfxDuration>,
@@ -132,7 +132,7 @@ fn update_wind_visual_effect(
 
 /// 動いている送風機とボールの間に障害物がなければ力を加える
 fn generate_wind(
-    block_query: Query<(&BlockTransform, &GlobalTransform, &BlockType, &Children)>,
+    block_query: Query<(&BlockTransformInfo, &GlobalTransform, &BlockType, &Children)>,
     fan_query: Query<&Fan>,
     mut ball_query: Query<(&Ball, &Position, &Volume, &mut Force)>,
 ) {

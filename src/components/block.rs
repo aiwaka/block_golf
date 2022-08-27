@@ -13,23 +13,12 @@ pub struct BlockAxisPos(pub Vec2);
 
 /// ブロックの位置や角度の情報を持っておくコンポーネント
 #[derive(Component, Default)]
-pub struct BlockTransform {
+pub struct BlockTransformInfo {
     pub angle: f32,   // 現在の角度
     pub offset: Vec2, // 位置補正
-    pub pos_param: f32, // 位置を計算するためのパラメータ. Manualの場合[-1, 1]をとるとする.
-                      // /// 直前フレームの位置データを保持して差分を取れるようにする.
-                      // pub prev_angle: f32,
-                      // pub prev_offset: Vec2,
-                      // pub prev_param: f32,
 }
-impl BlockTransform {
-    /// デフォルト角度と位置パラメータから新規生成
-    pub fn new(angle: f32, pos_param: f32) -> Self {
-        Self {
-            angle,
-            offset: Vec2::ZERO,
-            pos_param,
-        }
+
+impl BlockTransformInfo {
     }
     // /// そのフレームでの重心の並進速度
     // /// delta: 重心 - 回転軸 のベクトル（Rectならoriginでよい）

@@ -7,7 +7,7 @@ use crate::events::block::SpawnBlockEvent;
 use crate::{
     components::{
         block::{
-            Block, BlockOriginalPos, BlockSlidePath, BlockTransform, BlockType, RotateStrategy,
+            BlockOriginalPos, BlockSlidePath, BlockTransformInfo, BlockType, RotateStrategy,
             SlideStrategy,
         },
         block_attach::BlockAttachment,
