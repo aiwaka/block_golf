@@ -11,6 +11,10 @@ pub struct BlockOriginalPos(pub Vec2);
 #[derive(Component, Clone, Copy, Default, Debug)]
 pub struct BlockAxisPos(pub Vec2);
 
+/// 位置を計算するためのパラメータ. Manualの場合[-1, 1]をとるとする.
+#[derive(Component, Default)]
+pub struct BlockSlideParam(pub f32);
+
 /// ブロックの位置や角度の情報を持っておくコンポーネント
 #[derive(Component, Default)]
 pub struct BlockTransformInfo {
@@ -19,7 +23,17 @@ pub struct BlockTransformInfo {
 }
 
 impl BlockTransformInfo {
+    pub fn new(angle: f32, offset: Vec2) -> Self {
+        Self { angle, offset }
     }
+    // /// デフォルト角度と位置パラメータから新規生成
+    // pub fn new(angle: f32, pos_param: f32) -> Self {
+    //     Self {
+    //         angle,
+    //         offset: Vec2::ZERO,
+    //         pos_param,
+    //     }
+    // }
     // /// そのフレームでの重心の並進速度
     // /// delta: 重心 - 回転軸 のベクトル（Rectならoriginでよい）
     // pub fn pos_diff(&self, path: &BlockSlidePath, delta: Vec2) -> Vec2 {

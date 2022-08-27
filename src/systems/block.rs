@@ -2,6 +2,7 @@ use bevy::prelude::*;
 use bevy_prototype_lyon::entity::ShapeBundle;
 use bevy_prototype_lyon::prelude::*;
 
+use crate::components::block::{BlockAxisPos, BlockSlideParam};
 use crate::components::collision::RectangleCollision;
 use crate::events::block::SpawnBlockEvent;
 use crate::{
@@ -45,12 +46,23 @@ fn set_block(mut commands: Commands, mut event_listener: EventReader<SpawnBlockE
         // ブロックが重なったときに変な表示にならないようにz座標に微妙な差をつける
         let z_offset = idx as f32 / 1000.0;
         let color = Color::from(&ev.block_type);
+        let debug_bundle = GeometryBuilder::build_as(
+            &shapes::Circle {
+                radius: 10.0,
+                center: Vec2::new(0.0, 0.0),
+            },
+            DrawMode::Fill(FillMode::color(Color::RED)),
+            Transform {
+                translation: ev.pos.extend(80.0),
+                ..Default::default()
+            },
+        );
         let (shape_bundle, collision_ent) = match ev.block_type {
             BlockType::Wall { shape } => {
                 let shape_bundle =
                     make_block_shape_bundle(&shape, color, ev.pos, z_offset, ev.default_angle);
                 let collision_ent = commands
-                    .spawn()
+                    .spawn_bundle(debug_bundle)
                     .insert(RectangleCollision::new(shape.extents))
                     .id();
                 (shape_bundle, collision_ent)
@@ -59,7 +71,7 @@ fn set_block(mut commands: Commands, mut event_listener: EventReader<SpawnBlockE
                 let shape_bundle =
                     make_block_shape_bundle(&shape, color, ev.pos, z_offset, ev.default_angle);
                 let collision_ent = commands
-                    .spawn()
+                    .spawn_bundle(debug_bundle)
                     .insert(RectangleCollision::new(shape.extents))
                     .id();
                 (shape_bundle, collision_ent)
@@ -77,10 +89,11 @@ fn set_block(mut commands: Commands, mut event_listener: EventReader<SpawnBlockE
         };
         let ent = commands
             .spawn_bundle(shape_bundle)
-            .insert(Block)
             .insert(ev.block_type.clone())
             .insert(BlockOriginalPos(ev.pos))
-            .insert(BlockTransform::new(ev.default_angle, ev.default_pos_param))
+            .insert(BlockAxisPos(ev.block_axis))
+            .insert(BlockTransformInfo::new(ev.default_angle, Vec2::ZERO))
+            .insert(BlockSlideParam(ev.default_pos_param))
             .insert(ev.material)
             .id();
         // 子コンポーネントとして回転・移動方法, 当たり判定を追加
@@ -125,105 +138,128 @@ fn set_block(mut commands: Commands, mut event_listener: EventReader<SpawnBlockE
 /// 回せるブロックと常に回るブロックを回す
 fn rotate_block(
     key_in: Res<Input<KeyCode>>,
-    mut block_query: Query<(&mut Transform, &mut BlockTransform, &Children), With<Block>>,
+    mut block_query: Query<(&mut BlockTransformInfo, &Children)>,
     rot_str_query: Query<&RotateStrategy>,
 ) {
-    for (mut trans, mut block_trans, block_children) in block_query.iter_mut() {
+    for (mut block_trans, block_children) in block_query.iter_mut() {
         for &child in block_children.iter() {
             if let Ok(strategy) = rot_str_query.get(child) {
-                // ひとつ前のパラメータとして現在の値を保存
-                // block_trans.prev_angle = block_trans.angle;
                 match strategy {
                     RotateStrategy::NoRotate => {}
                     RotateStrategy::Manual(angle, min, max) => {
-                        if key_in.pressed(KeyCode::Left) {
-                            block_trans.angle += angle;
+                        let current_angle = block_trans.angle;
+                        block_trans.angle = (if key_in.pressed(KeyCode::Left) {
+                            current_angle + angle
                         } else if key_in.pressed(KeyCode::Right) {
-                            block_trans.angle -= angle;
-                        };
-                        if block_trans.angle > *max {
-                            block_trans.angle = *max;
-                        }
-                        if block_trans.angle < *min {
-                            block_trans.angle = *min;
-                        }
+                            current_angle - angle
+                        } else {
+                            current_angle
+                        })
+                        .clamp(*min, *max);
                     }
                     RotateStrategy::Auto(angle) => {
                         block_trans.angle += angle;
                     }
                 }
-                trans.rotation = Quat::from_rotation_z(block_trans.angle);
             }
         }
     }
 }
 
-/// ブロックの移動処理を行う. オフセットを加えるのもここで行う.
+/// ブロックの移動を計算する処理. ブロック移動のオフセットを計算する.
+/// TODO: 現在パスは1つしかセットできないが, 配列に収めるようにして複数のパスを加算できるようにする.
 fn slide_block(
     key_in: Res<Input<KeyCode>>,
-    mut block_query: Query<
-        (
-            &mut Transform,
-            &mut BlockTransform,
-            &BlockOriginalPos,
-            &Children,
-        ),
-        With<Block>,
-    >,
+    mut block_query: Query<(
+        &mut BlockTransformInfo,
+        &mut BlockSlideParam,
+        &BlockOriginalPos,
+        &Children,
+    )>,
     sld_str_query: Query<&SlideStrategy>,
 ) {
-    for (mut trans, mut block_trans, original_pos, block_children) in block_query.iter_mut() {
+    for (mut block_trans, mut slide_param, original_pos, block_children) in block_query.iter_mut() {
         for &child in block_children.iter() {
+            // ブロックの子であるスライド方法コンポーネントを取得
             if let Ok(strategy) = sld_str_query.get(child) {
                 // ひとつ前のパラメータとして現在の値を保存
-                // block_trans.prev_param = block_trans.pos_param;
-                // block_trans.prev_offset = block_trans.offset;
                 let path = match strategy {
                     SlideStrategy::NoSlide => &BlockSlidePath::NoPath,
                     SlideStrategy::Manual { speed, path } => {
-                        if key_in.pressed(KeyCode::Left) {
-                            block_trans.pos_param += speed;
+                        let current_param = slide_param.0;
+                        // パラメータを[-1, 1]に収める
+                        slide_param.0 = (if key_in.pressed(KeyCode::Left) {
+                            current_param + speed
                         } else if key_in.pressed(KeyCode::Right) {
-                            block_trans.pos_param -= speed;
-                        };
-                        if block_trans.pos_param > 1.0 {
-                            block_trans.pos_param = 1.0;
-                        } else if block_trans.pos_param < -1.0 {
-                            block_trans.pos_param = -1.0;
-                        }
+                            current_param - speed
+                        } else {
+                            current_param
+                        })
+                        .clamp(-1.0, 1.0);
                         path
                     }
                     SlideStrategy::AutoWrap { speed, path } => {
                         if key_in.pressed(KeyCode::Left) {
-                            block_trans.pos_param += speed;
+                            slide_param.0 += speed;
                         } else if key_in.pressed(KeyCode::Right) {
-                            block_trans.pos_param -= speed;
+                            slide_param.0 -= speed;
                         };
                         path
                     }
                     SlideStrategy::Auto { speed, path } => {
-                        block_trans.pos_param += speed;
+                        slide_param.0 += speed;
                         path
                     }
                 };
-                let new_pos =
-                    path.calc_orbit(block_trans.pos_param) + block_trans.offset + original_pos.0;
-                let z_coord = trans.translation.z;
-                trans.translation = new_pos.extend(z_coord);
+                block_trans.offset = path.calc_orbit(slide_param.0) + original_pos.0;
             }
         }
     }
 }
 
-// fn temp(q: Query<(&RectangleBlock, &SlideStrategy, &RotateStrategy), With<Block>>) {
-//     for (rec, sl, ro) in q.iter() {
-//         if let SlideStrategy::NoSlide = sl {
-//             if let RotateStrategy::Manual(angle) = ro {
-//                 info!("current ang vel: {}", rec.angle_diff());
-//             }
-//         }
-//     }
-// }
+/// ブロックの移動情報を実際の描画に反映する
+fn reflect_block_transform(
+    mut block_query: Query<(&mut Transform, &BlockTransformInfo, &BlockOriginalPos)>,
+) {
+    for (mut block_trans, block_trans_info, original_pos) in block_query.iter_mut() {
+        let z_coord = block_trans.translation.z;
+        block_trans.rotation = Quat::from_rotation_z(block_trans_info.angle);
+        block_trans.translation = (block_trans_info.offset + original_pos.0).extend(z_coord);
+    }
+}
+
+/// 矩形の当たり判定をブロックに追従させる.
+fn update_rect_collision(
+    block_q: Query<(
+        &BlockTransformInfo,
+        &BlockAxisPos,
+        &BlockOriginalPos,
+        &Children,
+    )>,
+    mut collision_q: Query<&mut RectangleCollision>,
+) {
+    for (block_trans, block_axis, block_orig_pos, block_children) in block_q.iter() {
+        for &child in block_children.iter() {
+            if let Ok(mut collision) = collision_q.get_mut(child) {
+                collision.prev_pos = collision.pos;
+                collision.prev_angle = collision.angle;
+                collision.pos = block_orig_pos.0
+                    + block_trans.offset
+                    + Vec2::from_angle(block_trans.angle).rotate(block_axis.0);
+                collision.angle = block_trans.angle;
+            }
+        }
+    }
+}
+
+/// デバッグ用
+#[derive(Component)]
+struct DebugMarker;
+fn debug_col(mut col_q: Query<(&mut Transform, &RectangleCollision), With<DebugMarker>>) {
+    for (mut trans, col) in col_q.iter_mut() {
+        trans.translation = col.pos.extend(80.0);
+    }
+}
 
 pub struct BlockPlugin;
 impl Plugin for BlockPlugin {
@@ -231,10 +267,37 @@ impl Plugin for BlockPlugin {
         app.add_system_set(
             SystemSet::on_enter(AppState::Game)
                 .with_system(set_block)
-                .after("spawn_stage_entities"),
+                .after("spawn_stage_entities")
+                .label("debug"),
         );
-        app.add_system_set(SystemSet::on_update(AppState::Game).with_system(rotate_block));
-        app.add_system_set(SystemSet::on_update(AppState::Game).with_system(slide_block));
-        // app.add_system_set(SystemSet::on_update(AppState::Game).with_system(temp));
+        app.add_system_set(
+            SystemSet::on_update(AppState::Game)
+                .with_system(rotate_block)
+                .label("block:rotate")
+                .before("update_rect_collision"),
+        );
+        app.add_system_set(
+            SystemSet::on_update(AppState::Game)
+                .with_system(slide_block)
+                .label("block:slide")
+                .before("update_rect_collision"),
+        );
+        app.add_system_set(
+            SystemSet::on_update(AppState::Game)
+                .with_system(reflect_block_transform)
+                .before("update_rect_collision")
+                .after("block:rotate")
+                .after("block:slide"),
+        );
+        app.add_system_set(
+            SystemSet::on_update(AppState::Game)
+                .with_system(update_rect_collision)
+                .label("update_rect_collision"),
+        );
+        app.add_system_set(
+            SystemSet::on_update(AppState::Game)
+                .with_system(debug_col)
+                .after("update_rect_collision"),
+        );
     }
 }

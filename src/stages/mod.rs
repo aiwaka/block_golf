@@ -2,6 +2,7 @@ use self::{
     aisle::{aisle0, aisle1, aisle2},
     jamming::jamming1,
     planet::{square_planet, strange_gravity},
+    sample::sample_stage,
     structs::StageInfo,
     tutorial_stage::{
         fan_tutorial, gravity_tutorial, magnet_tutorial, switch_tutorial, tutorial1, tutorial2,
@@ -23,13 +24,13 @@ type GenerateStageInfoFunc = fn() -> StageInfo;
 
 fn stage_vec() -> Vec<GenerateStageInfoFunc> {
     vec![
+        sample_stage,
         tutorial1,
         tutorial2,
         fan_tutorial,
         magnet_tutorial,
         switch_tutorial,
         gravity_tutorial,
-        // sample_stage,
         aisle0,
         aisle1,
         aisle2,
