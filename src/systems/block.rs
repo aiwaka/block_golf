@@ -1,6 +1,7 @@
 use bevy::prelude::*;
 use bevy_prototype_lyon::entity::ShapeBundle;
 use bevy_prototype_lyon::prelude::*;
+use bevy_prototype_lyon::shapes::Rectangle;
 
 use crate::components::block::{BlockAxisPos, BlockSlideParam};
 use crate::components::collision::RectangleCollision;
@@ -46,23 +47,28 @@ fn set_block(mut commands: Commands, mut event_listener: EventReader<SpawnBlockE
         // ブロックが重なったときに変な表示にならないようにz座標に微妙な差をつける
         let z_offset = idx as f32 / 1000.0;
         let color = Color::from(&ev.block_type);
-        let debug_bundle = GeometryBuilder::build_as(
-            &shapes::Circle {
-                radius: 10.0,
-                center: Vec2::new(0.0, 0.0),
-            },
-            DrawMode::Fill(FillMode::color(Color::RED)),
-            Transform {
-                translation: ev.pos.extend(80.0),
-                ..Default::default()
-            },
-        );
+        let make_debug_bundle = |extents: Vec2| {
+            GeometryBuilder::build_as(
+                &Rectangle {
+                    extents,
+                    origin: RectangleOrigin::Center,
+                },
+                DrawMode::Outlined {
+                    fill_mode: FillMode::color(Color::NONE),
+                    outline_mode: StrokeMode::new(Color::ALICE_BLUE, 5.0),
+                },
+                Transform {
+                    translation: Vec3::new(0.0, 0.0, 80.0),
+                    ..Default::default()
+                },
+            )
+        };
         let (shape_bundle, collision_ent) = match ev.block_type {
             BlockType::Wall { shape } => {
                 let shape_bundle =
                     make_block_shape_bundle(&shape, color, ev.pos, z_offset, ev.default_angle);
                 let collision_ent = commands
-                    .spawn_bundle(debug_bundle)
+                    .spawn_bundle(make_debug_bundle(shape.extents))
                     .insert(RectangleCollision::new(shape.extents))
                     .id();
                 (shape_bundle, collision_ent)
@@ -71,7 +77,8 @@ fn set_block(mut commands: Commands, mut event_listener: EventReader<SpawnBlockE
                 let shape_bundle =
                     make_block_shape_bundle(&shape, color, ev.pos, z_offset, ev.default_angle);
                 let collision_ent = commands
-                    .spawn_bundle(debug_bundle)
+                    .spawn()
+                    // .spawn_bundle(make_debug_bundle(shape.extents))
                     .insert(RectangleCollision::new(shape.extents))
                     .id();
                 (shape_bundle, collision_ent)
@@ -289,10 +296,10 @@ impl Plugin for BlockPlugin {
                 .with_system(update_rect_collision)
                 .label("update_rect_collision"),
         );
-        app.add_system_set(
-            SystemSet::on_update(AppState::Game)
-                .with_system(debug_col)
-                .after("update_rect_collision"),
-        );
+        // app.add_system_set(
+        //     SystemSet::on_update(AppState::Game)
+        //         .with_system(debug_collision)
+        //         .after("update_rect_collision"),
+        // );
     }
 }

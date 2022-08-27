@@ -28,6 +28,10 @@ impl RectangleCollision {
             prev_angle: 0.0,
         }
     }
+    /// 前フレームとの位置の差分を取り速度を計算する
+    pub fn diff_velocity(&self) -> Vec2 {
+        self.pos - self.prev_pos
+    }
 }
 
 impl ToVolume for RectangleCollision {

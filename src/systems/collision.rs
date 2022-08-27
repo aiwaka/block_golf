@@ -5,10 +5,7 @@ use bevy::prelude::*;
 use crate::{
     components::{
         ball::{Ball, BallNocking, GoalinBall},
-        block::{
-            BlockAxisPos, BlockOriginalPos, BlockSlidePath, BlockTransformInfo, BlockType,
-            SlideStrategy,
-        },
+        block::BlockType,
         block_attach::switch::SwitchTile,
         collision::RectangleCollision,
         goal::GoalHole,
@@ -34,14 +31,13 @@ fn rect_contains_point(center: Vec2, extents: Vec2, p: Vec2) -> bool {
 
 /// 当たり判定をして拘束解消に必要な情報（拘束方向と貫通深度のタプル）を返す
 fn collision_between_block_and_ball(
-    collision_info: (&RectangleCollision, &BlockAxisPos),
+    collision_info: &RectangleCollision,
     ball_info: (&Ball, &Transform),
 ) -> Option<(Vec2, f32)> {
     // 横縦幅
-    let col_extents = collision_info.0.extents;
-    let col_pos = collision_info.0.pos;
-    let col_axis = collision_info.1 .0;
-    let col_angle = collision_info.0.angle;
+    let col_extents = collision_info.extents;
+    let col_pos = collision_info.pos;
+    let col_angle = collision_info.angle;
     let ball_pos = ball_info.1.translation.truncate();
     let ball_radius = ball_info.0.ball_type.radius();
 
@@ -52,9 +48,8 @@ fn collision_between_block_and_ball(
     // ボールを原点として, 矩形の角度を水平に補正した局所座標を定義する
     // lcをつけたら局所座標での値とする
     // block_centerは対角線の交点とする
-    let lc_block_center = Vec2::from_angle(-col_angle)
-        .rotate(col_pos + Vec2::from_angle(col_angle).rotate(col_axis) - ball_pos);
-    if rect_contains_origin(
+    let lc_block_center = Vec2::from_angle(-col_angle).rotate(col_pos - ball_pos);
+    let result = if rect_contains_origin(
         lc_block_center,
         col_extents + Vec2::splat(ball_radius * 2.0),
     ) {
@@ -133,7 +128,14 @@ fn collision_between_block_and_ball(
         }
     } else {
         None
-    }
+    };
+    // 当たっているなら画面上の座標に戻して返す. 当たっていないならNoneを返す.
+    result.map(|(lc_collide_direction, length)| {
+        (
+            Vec2::from_angle(col_angle).rotate(lc_collide_direction),
+            length,
+        )
+    })
 }
 
 #[allow(clippy::type_complexity)]
@@ -150,40 +152,19 @@ fn block_ball_collision(
         ),
         Without<GoalinBall>,
     >,
-    block_query: Query<(
-        &BlockTransformInfo,
-        &BlockType,
-        &BlockOriginalPos,
-        &BlockAxisPos,
-        &PhysicMaterial,
-        &Children,
-    )>,
+    block_query: Query<(&BlockType, &PhysicMaterial, &Children)>,
     collision_q: Query<&RectangleCollision>,
 ) {
     for (ball_trans, ball, ball_material, mut ball_pos, ball_vel, mut force, volume) in
         ball_query.iter_mut()
     {
-        for (
-            block_trans,
-            block_type,
-            block_original_pos,
-            block_axis,
-            block_material,
-            block_children,
-        ) in block_query.iter()
-        {
+        for (block_type, block_material, block_children) in block_query.iter() {
             for &child in block_children {
                 // TODO: 楕円の場合も実装する
                 if let Ok(collision) = collision_q.get(child) {
-                    if let Some((lc_collide_normal, penetrate_depth)) =
-                        collision_between_block_and_ball(
-                            (collision, block_axis),
-                            (ball, ball_trans),
-                        )
+                    if let Some((collide_normal, penetrate_depth)) =
+                        collision_between_block_and_ball(collision, (ball, ball_trans))
                     {
-                        // 局所座標を画面座標に修正
-                        let collide_normal =
-                            Vec2::from_angle(block_trans.angle).rotate(lc_collide_normal);
                         ball_pos.0 += collide_normal * penetrate_depth;
                         let restitution = block_material.restitution * ball_material.restitution;
                         // let friction = block_material.friction;
@@ -199,28 +180,8 @@ fn block_ball_collision(
                         // 球が衝突する場合rとnの向きが平行なのでこの項は0になる.
 
                         // 撃力は速度差の単位法線へ射影となり, 衝突後の速度はそれを単に足したものになる.
-                        // ブロックが止まっているときを考えたいので相対速度補正
-                        // let delta = match *block_type {
-                        //     BlockType::Wall { shape } => {
-                        //         if let RectangleOrigin::CustomCenter(center) = shape.origin {
-                        //             center
-                        //         } else {
-                        //             panic!("custom center error");
-                        //         }
-                        //     }
-                        //     BlockType::Rect { shape } => {
-                        //         if let RectangleOrigin::CustomCenter(center) = shape.origin {
-                        //             center
-                        //         } else {
-                        //             panic!("custom center error");
-                        //         }
-                        //     }
-                        //     BlockType::Ellipse { shape } => {
-                        //         continue;
-                        //     }
-                        // };
-                        // let prev_vel = ball_vel.0 - block_trans.pos_diff(&path, delta);
-                        let prev_vel = ball_vel.0;
+                        // ブロックが止まっているときの計算式を使うため相対速度を計算
+                        let prev_vel = ball_vel.0 - collision.diff_velocity();
                         let impulsive_force = (1.0 + restitution)
                             * ball_weight
                             * (-prev_vel).project_onto(collide_normal);
