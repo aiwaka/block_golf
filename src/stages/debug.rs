@@ -10,24 +10,15 @@ use crate::components::{ball::BallType, block::RotateStrategy};
 use crate::systems::field::{FIELD_HEIGHT, FIELD_WIDTH};
 
 pub fn debug_stage() -> StageInfo {
-    let block_list = vec![
-        BlockInfo {
-            pos: Vec2::new(0.0, 0.0),
-            block_shape_info: BlockShapeInfo::Rect {
-                extents: Vec2::new(50.0, 600.0),
-            },
-            ..Default::default()
+    let block_list = vec![BlockInfo {
+        pos: Vec2::new(0.0, 0.0),
+        block_axis: Vec2::new(20.0, 0.0),
+        block_shape_info: BlockShapeInfo::Rect {
+            extents: Vec2::new(50.0, 100.0),
         },
-        BlockInfo {
-            pos: Vec2::new(0.0, 0.0),
-            block_shape_info: BlockShapeInfo::Ellipse {
-                radii: Vec2::new(40.0, 60.0),
-            },
-            block_axis: Vec2::new(0.0, 10.0),
-            rotate_strategy: RotateStrategy::infinite_manual(0.1),
-            ..Default::default()
-        },
-    ];
+        rotate_strategy: RotateStrategy::infinite_manual(0.05),
+        ..Default::default()
+    }];
 
     let launcher_info = LauncherInfo {
         pos: Vec2::new(-FIELD_WIDTH / 2.0 + 30.0, -FIELD_HEIGHT / 2.0 + 30.0),
