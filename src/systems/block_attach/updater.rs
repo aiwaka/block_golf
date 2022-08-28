@@ -2,7 +2,7 @@ use bevy::prelude::*;
 
 use crate::{
     components::{
-        block::BlockTransformInfo,
+        block::{BlockAngle, BlockPosOffset},
         block_attach::updater::{BlockPosUpdater, Updater},
         timer::FrameCounter,
     },
@@ -10,14 +10,14 @@ use crate::{
 };
 
 fn block_pos_update(
-    mut block_query: Query<(&mut BlockTransformInfo, &Children)>,
+    mut block_query: Query<(&mut BlockPosOffset, &Children)>,
     updater_q: Query<(&Updater, &BlockPosUpdater, &FrameCounter)>,
 ) {
-    for (mut block_trans_info, mut block_children) in block_query.iter_mut() {
+    for (mut block_offset, block_children) in block_query.iter_mut() {
         for &child in block_children.iter() {
             if let Ok((updater, pos_updater, counter)) = updater_q.get(child) {
                 if updater.range.contains(&counter.count) {
-                    block_trans_info.offset += (pos_updater.func)(**counter);
+                    block_offset.0 += (pos_updater.func)(**counter);
                 }
             }
         }

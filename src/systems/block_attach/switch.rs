@@ -128,7 +128,7 @@ fn execute_change_by_switch(
 ) {
     for switch in switch_query.iter() {
         if switch.just_active {
-            for (receiver, receiver_parents) in receiver_query.iter_mut() {
+            for (receiver, receiver_parents) in receiver_query.iter() {
                 // 動作したスイッチとレシーバーのidが一致すれば動作させる
                 if switch.target_id == receiver.target_id {
                     if let Ok(block_ent) = block_q.get(receiver_parents.get()) {
@@ -160,7 +160,7 @@ fn execute_change_by_switch(
                 }
             }
         } else if !switch.active {
-            for (receiver, receiver_parents) in receiver_query.iter_mut() {
+            for (receiver, receiver_parents) in receiver_query.iter() {
                 if switch.target_id == receiver.target_id {
                     if let Ok(block_ent) = block_q.get(receiver_parents.get()) {
                         let mut entity_commands = commands.entity(block_ent);

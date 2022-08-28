@@ -7,7 +7,7 @@ use bevy_prototype_lyon::{
 use crate::{
     components::{
         ball::Ball,
-        block::{BlockTransformInfo, BlockType},
+        block::{BlockAngle, BlockType},
         block_attach::fan::{Fan, WindVisualEffect},
         block_attach::utils::EdgeDirection,
         physics::{force::Force, material::Volume, position::Position, velocity::Velocity},
@@ -60,7 +60,7 @@ fn set_wind_vfx_duration(mut commands: Commands) {
 // 風エフェクトを出す
 fn spawn_wind_visual_effect(
     mut commands: Commands,
-    block_query: Query<(&BlockTransformInfo, &GlobalTransform, &BlockType, &Children)>,
+    block_query: Query<(&BlockAngle, &GlobalTransform, &BlockType, &Children)>,
     fan_query: Query<&Fan>,
     time: Res<Time>,
     mut timer_query: Query<&mut WindVfxDuration>,
@@ -72,12 +72,12 @@ fn spawn_wind_visual_effect(
             center: Vec2::ZERO,
         };
         let effect_draw_mode = DrawMode::Fill(FillMode::color(Color::WHITE));
-        for (block_trans, block_glb_trans, block_type, block_children) in block_query.iter() {
+        for (block_angle, block_glb_trans, block_type, block_children) in block_query.iter() {
             for &child in block_children.iter() {
                 if let Ok(fan) = fan_query.get(child) {
                     if fan.active {
                         if let BlockType::Rect { shape } = block_type {
-                            let angle = block_trans.angle;
+                            let angle = block_angle.0;
                             let (_, _, block_glb_translation) =
                                 block_glb_trans.to_scale_rotation_translation();
                             // まずファンの両端点を計算する
@@ -125,16 +125,16 @@ fn update_wind_visual_effect(
 
 /// 動いている送風機とボールの間に障害物がなければ力を加える
 fn generate_wind(
-    block_query: Query<(&BlockTransformInfo, &GlobalTransform, &BlockType, &Children)>,
+    block_query: Query<(&BlockAngle, &GlobalTransform, &BlockType, &Children)>,
     fan_query: Query<&Fan>,
     mut ball_query: Query<(&Ball, &Position, &Volume, &mut Force)>,
 ) {
-    for (block_trans, block_glb_trans, block_type, block_children) in block_query.iter() {
+    for (block_angle, block_glb_trans, block_type, block_children) in block_query.iter() {
         for &child in block_children.iter() {
             if let Ok(fan) = fan_query.get(child) {
                 if fan.active {
                     if let BlockType::Rect { shape } = block_type {
-                        let angle = block_trans.angle;
+                        let angle = block_angle.0;
                         // まずファンの両端点を計算する
                         let (_, _, block_glb_translation) =
                             block_glb_trans.to_scale_rotation_translation();
