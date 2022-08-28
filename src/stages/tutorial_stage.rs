@@ -1,4 +1,4 @@
-use std::f32::consts::FRAC_PI_2;
+use std::f32::consts::{FRAC_PI_2, PI};
 
 use bevy::prelude::*;
 use itertools::Itertools;
@@ -206,7 +206,7 @@ pub fn magnet_tutorial() -> StageInfo {
 }
 
 pub fn switch_tutorial() -> StageInfo {
-    const ROTATE_FUNC: fn(i32) -> f32 = |param: i32| FRAC_PI_2 / 30.0 * param as f32;
+    const ROTATE_FUNC: fn(u32) -> f32 = |param: u32| PI / 60.0 * param as f32 - FRAC_PI_2;
     let block_shape_info = BlockShapeInfo::Rect {
         extents: Vec2::new(120.0, 30.0),
     };
@@ -220,7 +220,7 @@ pub fn switch_tutorial() -> StageInfo {
             block_attachment: vec![BlockAttachment::SwitchReceiver {
                 receiver: SwitchReceiver {
                     switch_type: SwitchType::RotateBlock {
-                        range: (-30..=30).rev().collect_vec(),
+                        range: (0..=60).rev().collect_vec(),
                         func: ROTATE_FUNC,
                     },
                     target_id: 0,
@@ -245,7 +245,7 @@ pub fn switch_tutorial() -> StageInfo {
                 receiver: SwitchReceiver {
                     switch_type: SwitchType::MoveBlock {
                         range: (0..40).collect_vec(),
-                        func: |count: i32| Vec2::new(-count as f32 * 3.0, 0.0),
+                        func: |count: u32| Vec2::new(count as f32 * -3.0, 0.0),
                     },
                     target_id: 1,
                 },
