@@ -15,34 +15,26 @@ use crate::{
     AppState,
 };
 
-/// ブロック出現時に磁石のポリゴンを描画するときに使う
+/// ブロック出現時に磁石のポリゴンを描画するときに使う関数（システムではなくただの関数）
 pub fn spawn_magnet(commands: &mut Commands, block_ent: Entity, rect: &Rectangle, magnet: &Magnet) {
-    let (magnet_extents, magnet_pos) = match magnet.direction {
-        EdgeDirection::Up => (
-            rect.extents.project_onto(Vec2::X) + Vec2::Y * 10.0,
-            rect.extents.project_onto(Vec2::Y) / 2.0,
+    let (extents, magnet_pos) = match magnet.direction {
+        EdgeDirection::Up | EdgeDirection::Down => (
+            Vec2::new(rect.extents.x, 10.0),
+            Vec2::from(magnet.direction) * rect.extents.y / 2.0,
         ),
-        EdgeDirection::Down => (
-            rect.extents.project_onto(Vec2::X) + Vec2::Y * 10.0,
-            -rect.extents.project_onto(Vec2::Y) / 2.0,
-        ),
-        EdgeDirection::Left => (
-            rect.extents.project_onto(Vec2::Y) + Vec2::X * 10.0,
-            -rect.extents.project_onto(Vec2::X) / 2.0,
-        ),
-        EdgeDirection::Right => (
-            rect.extents.project_onto(Vec2::Y) + Vec2::X * 10.0,
-            rect.extents.project_onto(Vec2::X) / 2.0,
+        EdgeDirection::Left | EdgeDirection::Right => (
+            Vec2::new(10.0, rect.extents.y),
+            Vec2::from(magnet.direction) * rect.extents.x / 2.0,
         ),
     };
     let magnet_shape_bundle = GeometryBuilder::build_as(
         &Rectangle {
-            extents: magnet_extents,
-            origin: RectangleOrigin::CustomCenter(Vec2::ZERO),
+            extents,
+            origin: RectangleOrigin::Center,
         },
         DrawMode::Fill(FillMode::color(Color::GRAY)),
         Transform {
-            translation: magnet_pos.extend(16.0),
+            translation: magnet_pos.extend(16.1),
             ..Default::default()
         },
     );
