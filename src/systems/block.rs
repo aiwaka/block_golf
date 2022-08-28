@@ -97,17 +97,20 @@ fn set_block(mut commands: Commands, mut event_listener: EventReader<SpawnBlockE
             .insert(Block)
             .insert(ev.block_type.clone())
             .insert(BlockOriginalPos(ev.pos))
-            .insert(BlockPosOffset::default())
-            .insert(BlockAngle(ev.default_angle))
             .insert(BlockAxisPos(ev.block_axis))
             .insert(ev.material)
             .id();
-        // 子コンポーネントとして回転・移動方法, 当たり判定・初期角度・初期オフセットを追加
-        let child_rot_str_ent = commands.spawn().insert(ev.rotate_strategy.clone()).id();
+        // 子コンポーネントとして回転・移動方法, 当たり判定を追加
+        let child_rot_str_ent = commands
+            .spawn()
+            .insert(ev.rotate_strategy.clone())
+            .insert(BlockAngle(ev.default_angle))
+            .id();
         let child_sld_str_ent = commands
             .spawn()
-            .insert(BlockSlideParam(ev.default_pos_param))
             .insert(ev.slide_strategy.clone())
+            .insert(BlockSlideParam(ev.default_pos_param))
+            .insert(BlockPosOffset::default())
             .id();
         commands
             .entity(ent)
@@ -116,8 +119,6 @@ fn set_block(mut commands: Commands, mut event_listener: EventReader<SpawnBlockE
         for com in ev.block_attachment.iter() {
             match com {
                 BlockAttachment::SwitchReceiver { receiver } => {
-                    // TODO: ここもchildとして変更する
-                    // commands.entity(ent).insert(receiver.clone());
                     attach_switch_receiver(&mut commands, ent, receiver);
                 }
                 BlockAttachment::Fan(fan) => {
@@ -146,15 +147,15 @@ fn set_block(mut commands: Commands, mut event_listener: EventReader<SpawnBlockE
     }
 }
 
-/// 回せるブロックと常に回るブロックを回す
+/// 回せるブロックと常に回るブロックの角度の値を更新（内部数値のみ）
 fn rotate_block(
     key_in: Res<Input<KeyCode>>,
-    mut block_query: Query<(&mut BlockAngle, &Children)>,
-    rot_str_query: Query<&RotateStrategy>,
+    block_query: Query<&Children>,
+    mut rotation_query: Query<(&RotateStrategy, &mut BlockAngle)>,
 ) {
-    for (mut block_angle, block_children) in block_query.iter_mut() {
+    for block_children in block_query.iter() {
         for &child in block_children.iter() {
-            if let Ok(strategy) = rot_str_query.get(child) {
+            if let Ok((strategy, mut block_angle)) = rotation_query.get_mut(child) {
                 match strategy {
                     RotateStrategy::NoRotate => {}
                     RotateStrategy::Manual(angle, min, max) => {
@@ -177,17 +178,16 @@ fn rotate_block(
     }
 }
 
-/// ブロックの移動を計算する処理. ブロック移動のオフセットを計算する.
-/// TODO: 現在パスは1つしかセットできないが, 配列に収めるようにして複数のパスを加算できるようにする.
+/// ブロックの移動を計算する処理. ブロック移動のオフセットを計算する（内部数値のみ）.
 fn slide_block(
     key_in: Res<Input<KeyCode>>,
-    mut block_query: Query<(&mut BlockPosOffset, &Children)>,
-    mut sld_str_query: Query<(&SlideStrategy, &mut BlockSlideParam)>,
+    block_query: Query<&Children>,
+    mut slide_query: Query<(&SlideStrategy, &mut BlockSlideParam, &mut BlockPosOffset)>,
 ) {
-    for (mut block_offset, block_children) in block_query.iter_mut() {
+    for block_children in block_query.iter() {
         for &child in block_children.iter() {
             // ブロックの子であるスライド方法コンポーネントを取得
-            if let Ok((strategy, mut slide_param)) = sld_str_query.get_mut(child) {
+            if let Ok((strategy, mut slide_param, mut block_offset)) = slide_query.get_mut(child) {
                 // ひとつ前のパラメータとして現在の値を保存
                 let path = match strategy {
                     SlideStrategy::NoSlide => &BlockSlidePath::NoPath,
@@ -225,17 +225,24 @@ fn slide_block(
 
 /// ブロックの移動情報を実際の描画に反映する
 fn reflect_block_transform(
-    mut block_query: Query<(
-        &mut Transform,
-        &BlockPosOffset,
-        &BlockAngle,
-        &BlockOriginalPos,
-    )>,
+    mut block_query: Query<(&mut Transform, &BlockOriginalPos, &Children)>,
+    offset_q: Query<&BlockPosOffset>,
+    angle_q: Query<&BlockAngle>,
 ) {
-    for (mut block_trans, block_offset, block_angle, original_pos) in block_query.iter_mut() {
+    for (mut block_trans, original_pos, block_children) in block_query.iter_mut() {
+        let mut total_offset = Vec2::ZERO;
+        let mut total_angle = 0.0f32;
+        for &child in block_children.iter() {
+            if let Ok(block_offset) = offset_q.get(child) {
+                total_offset += block_offset.0;
+            }
+            if let Ok(block_angle) = angle_q.get(child) {
+                total_angle += block_angle.0;
+            }
+        }
         let z_coord = block_trans.translation.z;
-        block_trans.rotation = Quat::from_rotation_z(block_angle.0);
-        block_trans.translation = (block_offset.0 + original_pos.0).extend(z_coord);
+        block_trans.rotation = Quat::from_rotation_z(total_angle);
+        block_trans.translation = (total_offset + original_pos.0).extend(z_coord);
     }
 }
 
@@ -286,20 +293,19 @@ impl Plugin for BlockPlugin {
             SystemSet::on_update(AppState::Game)
                 .with_system(rotate_block)
                 .label("block:rotate")
-                .before("update_rect_collision"),
+                .before("block:reflect_transform"),
         );
         app.add_system_set(
             SystemSet::on_update(AppState::Game)
                 .with_system(slide_block)
                 .label("block:slide")
-                .before("update_rect_collision"),
+                .before("block:reflect_transform"),
         );
         app.add_system_set(
             SystemSet::on_update(AppState::Game)
                 .with_system(reflect_block_transform)
                 .before("update_rect_collision")
-                .after("block:rotate")
-                .after("block:slide"),
+                .label("block:reflect_transform"),
         );
         app.add_system_set(
             SystemSet::on_update(AppState::Game)

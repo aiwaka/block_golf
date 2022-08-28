@@ -18,8 +18,10 @@ pub struct BlockAxisPos(pub Vec2);
 #[derive(Component, Default)]
 pub struct BlockSlideParam(pub f32);
 
+/// ブロックの初期位置からのずれを表す.
 #[derive(Component, Clone, Copy, Default, Debug)]
 pub struct BlockPosOffset(pub Vec2);
+/// ブロックについている角度を表す.
 #[derive(Component, Clone, Copy, Default, Debug)]
 pub struct BlockAngle(pub f32);
 
