@@ -3,7 +3,7 @@ use bevy_prototype_lyon::entity::ShapeBundle;
 use bevy_prototype_lyon::prelude::*;
 use bevy_prototype_lyon::shapes::Rectangle;
 
-use crate::components::block::{BlockAxisPos, BlockSlideParam};
+use crate::components::block::{Block, BlockAxisPos, BlockSlideParam};
 use crate::components::collision::RectangleCollision;
 use crate::events::block::SpawnBlockEvent;
 use crate::{
@@ -19,6 +19,7 @@ use crate::{
 
 use super::block_attach::fan::spawn_fan;
 use super::block_attach::magnet::spawn_magnet;
+use super::block_attach::switch::attach_switch_receiver;
 
 fn make_block_shape_bundle(
     shape: &impl Geometry,
@@ -96,6 +97,7 @@ fn set_block(mut commands: Commands, mut event_listener: EventReader<SpawnBlockE
         };
         let ent = commands
             .spawn_bundle(shape_bundle)
+            .insert(Block)
             .insert(ev.block_type.clone())
             .insert(BlockOriginalPos(ev.pos))
             .insert(BlockAxisPos(ev.block_axis))
@@ -114,7 +116,8 @@ fn set_block(mut commands: Commands, mut event_listener: EventReader<SpawnBlockE
             match com {
                 BlockAttachment::SwitchReceiver { receiver } => {
                     // TODO: ここもchildとして変更する
-                    commands.entity(ent).insert(receiver.clone());
+                    // commands.entity(ent).insert(receiver.clone());
+                    attach_switch_receiver(&mut commands, ent, receiver);
                 }
                 BlockAttachment::Fan(fan) => {
                     if let BlockType::Rect { shape } = ev.block_type {

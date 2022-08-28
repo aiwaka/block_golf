@@ -3,6 +3,9 @@ use std::f32::consts::{FRAC_2_PI, FRAC_PI_2};
 use bevy::prelude::*;
 use bevy_prototype_lyon::shapes;
 
+#[derive(Component, Clone, Copy, Default, Debug)]
+pub struct Block;
+
 /// ブロックのすべての位置補正がかかっていない状態のブロック中心の位置
 #[derive(Component, Clone, Copy, Default, Debug)]
 pub struct BlockOriginalPos(pub Vec2);
@@ -15,6 +18,9 @@ pub struct BlockAxisPos(pub Vec2);
 #[derive(Component, Default)]
 pub struct BlockSlideParam(pub f32);
 
+// TODO: これをBlockPosOffsetとBlockAngleというコンポーネントに分解し,
+//       様々なオフセット（軌道やスイッチの影響等）ごとに個別に登録するように変更する.
+//       個別のコンポーネントをイテレートし, それらの合算を描画に反映する.
 /// ブロックの位置や角度の情報を持っておくコンポーネント
 #[derive(Component, Default)]
 pub struct BlockTransformInfo {
