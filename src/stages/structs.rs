@@ -77,25 +77,16 @@ pub enum BlockShapeInfo {
         extents: Vec2,
     },
     Rect {
-        extents: Vec2,     // xyの大きさ
-        rect_origin: Vec2, // 矩形内の位置
-        rotate_strategy: RotateStrategy,
-        slide_strategy: SlideStrategy,
+        extents: Vec2, // xyの大きさ
     },
     Ellipse {
         radii: Vec2, // x半径とy半径
-        center: Vec2,
-        rotate_strategy: RotateStrategy,
-        slide_strategy: SlideStrategy,
     },
 }
 impl Default for BlockShapeInfo {
     fn default() -> Self {
         BlockShapeInfo::Rect {
             extents: Vec2::ONE * 50.0,
-            rect_origin: Vec2::ZERO,
-            rotate_strategy: RotateStrategy::NoRotate,
-            slide_strategy: SlideStrategy::NoSlide,
         }
     }
 }
@@ -104,10 +95,14 @@ impl Default for BlockShapeInfo {
 #[derive(Clone, Default, Debug)]
 pub struct BlockInfo {
     pub pos: Vec2,
+    /// ブロック回転軸からブロック中心位置の位置を相対座標で指定する
+    pub block_axis: Vec2,
     pub block_shape_info: BlockShapeInfo,
     pub material: PhysicMaterial,
-    pub default_angle: f32,                     // 初期角度
-    pub default_pos_param: f32,                 // 初期位置パラメータ
+    pub default_angle: f32,     // 初期角度
+    pub default_pos_param: f32, // 初期位置パラメータ
+    pub rotate_strategy: RotateStrategy,
+    pub slide_strategy: SlideStrategy,
     pub block_attachment: Vec<BlockAttachment>, // ブロックにくっつけるもの
 }
 

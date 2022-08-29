@@ -18,6 +18,7 @@ use super::ToSpawnEvent;
 /// タイプと色を指定
 pub struct SpawnBlockEvent {
     pub pos: Vec2,
+    pub block_axis: Vec2,
     pub block_type: BlockType,
     pub material: PhysicMaterial,
     pub default_angle: f32,
@@ -39,6 +40,7 @@ impl ToSpawnEvent for BlockInfo {
                 };
                 SpawnBlockEvent {
                     pos: self.pos,
+                    block_axis: self.block_axis,
                     block_type,
                     material: self.material,
                     default_angle: self.default_angle,
@@ -48,49 +50,41 @@ impl ToSpawnEvent for BlockInfo {
                     block_attachment: self.block_attachment.clone(),
                 }
             }
-            BlockShapeInfo::Rect {
-                extents,
-                rect_origin,
-                rotate_strategy,
-                slide_strategy,
-            } => {
+            BlockShapeInfo::Rect { extents } => {
                 let block_type = BlockType::Rect {
                     shape: Rectangle {
                         extents: *extents,
-                        origin: RectangleOrigin::CustomCenter(*rect_origin),
+                        origin: RectangleOrigin::CustomCenter(self.block_axis),
                     },
                 };
                 SpawnBlockEvent {
                     pos: self.pos,
+                    block_axis: self.block_axis,
                     block_type,
                     material: self.material,
                     default_angle: self.default_angle,
                     default_pos_param: self.default_pos_param,
-                    rotate_strategy: rotate_strategy.clone(),
-                    slide_strategy: slide_strategy.clone(),
+                    rotate_strategy: self.rotate_strategy.clone(),
+                    slide_strategy: self.slide_strategy.clone(),
                     block_attachment: self.block_attachment.clone(),
                 }
             }
-            BlockShapeInfo::Ellipse {
-                radii,
-                center,
-                rotate_strategy,
-                slide_strategy,
-            } => {
+            BlockShapeInfo::Ellipse { radii } => {
                 let block_type = BlockType::Ellipse {
                     shape: Ellipse {
                         radii: *radii,
-                        center: *center,
+                        center: self.block_axis,
                     },
                 };
                 SpawnBlockEvent {
                     pos: self.pos,
+                    block_axis: self.block_axis,
                     block_type,
                     material: self.material,
                     default_angle: self.default_angle,
                     default_pos_param: self.default_pos_param,
-                    rotate_strategy: rotate_strategy.clone(),
-                    slide_strategy: slide_strategy.clone(),
+                    rotate_strategy: self.rotate_strategy.clone(),
+                    slide_strategy: self.slide_strategy.clone(),
                     block_attachment: self.block_attachment.clone(),
                 }
             }

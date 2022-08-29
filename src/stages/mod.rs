@@ -1,13 +1,15 @@
 use self::{
     aisle::{aisle0, aisle1, aisle2},
+    debug::debug_stage,
     jamming::jamming1,
     planet::{square_planet, strange_gravity},
-    structs::StageInfo,
+    sample::sample_stage,
     tutorial_stage::{
         fan_tutorial, gravity_tutorial, magnet_tutorial, switch_tutorial, tutorial1, tutorial2,
     },
 };
 use itertools::Itertools;
+use structs::StageInfo;
 
 pub mod structs;
 
@@ -23,13 +25,13 @@ type GenerateStageInfoFunc = fn() -> StageInfo;
 
 fn stage_vec() -> Vec<GenerateStageInfoFunc> {
     vec![
+        debug_stage,
         tutorial1,
         tutorial2,
         fan_tutorial,
         magnet_tutorial,
         switch_tutorial,
         gravity_tutorial,
-        // sample_stage,
         aisle0,
         aisle1,
         aisle2,

@@ -3,16 +3,20 @@ use bevy_prototype_lyon::{prelude::*, shapes::Rectangle};
 
 use crate::{
     components::{
+        block::{Block, BlockAngle, BlockPosOffset},
         block_attach::{
             switch::{SwitchReceiver, SwitchTile, SwitchType},
-            updater::{Updater, UpdaterType, UpdaterVec},
+            updater::{
+                AngleByUpdater, BlockAngleUpdater, BlockPosUpdater, OffsetByUpdater, Updater,
+            },
         },
-        timer::CountDownTimer,
+        timer::{CountDownTimer, FrameCounter},
     },
     events::switch::SpawnSwitchEvent,
     AppState,
 };
 
+/// スイッチボタンを出現させる
 fn spawn_switch(mut commands: Commands, mut event_reader: EventReader<SpawnSwitchEvent>) {
     for ev in event_reader.iter() {
         let color = if ev.component.active {
@@ -38,6 +42,33 @@ fn spawn_switch(mut commands: Commands, mut event_reader: EventReader<SpawnSwitc
             ))
             .insert(ev.component.clone());
     }
+}
+
+/// ブロック出現時にレシーバーを付与するときに使う関数（システムではなくただの関数）
+pub fn attach_switch_receiver(
+    commands: &mut Commands,
+    block_ent: Entity,
+    receiver: &SwitchReceiver,
+) {
+    // デバッグ用に見た目をつくる
+    let shape_bundle = GeometryBuilder::build_as(
+        &Rectangle {
+            extents: Vec2::splat(5.0),
+            origin: RectangleOrigin::Center,
+        },
+        DrawMode::Fill(FillMode::color(Color::RED)),
+        Transform {
+            translation: Vec2::ZERO.extend(60.0),
+            ..Default::default()
+        },
+    );
+    // 子コンポーネントとして生成・追加
+    let child_ent = commands
+        .spawn()
+        .insert_bundle(shape_bundle)
+        .insert(receiver.clone())
+        .id();
+    commands.entity(block_ent).push_children(&[child_ent]);
 }
 
 /// タイマーが切れたらスイッチのactiveを切る（タイマーは自動で除去される）
@@ -92,83 +123,128 @@ fn off_one_frame_flag(mut query: Query<&mut SwitchTile>) {
     }
 }
 
+/// スイッチによる変化を処理する.
+/// アップデーターを付与するなどを行う.
 fn execute_change_by_switch(
     mut commands: Commands,
     switch_query: Query<&SwitchTile, Changed<SwitchTile>>,
-    mut receiver_query: Query<(&SwitchReceiver, Option<&mut UpdaterVec>, Entity)>,
+    receiver_query: Query<(&SwitchReceiver, &Parent)>,
+    block_q: Query<Entity, With<Block>>,
 ) {
     for switch in switch_query.iter() {
         if switch.just_active {
-            for (attachment, updater_vec, ent) in receiver_query.iter_mut() {
-                if switch.target_id == attachment.target_id {
-                    let mut entity_commands = commands.entity(ent);
-                    match &attachment.switch_type {
-                        SwitchType::ChangeRotateStrategy { before: _, after } => {
-                            info!("{:?}", after);
-                            entity_commands.insert(after.clone());
-                        }
-                        SwitchType::ChangeSlideStrategy { before: _, after } => {
-                            entity_commands.insert(after.clone());
-                        }
-                        SwitchType::ToggleFanActive => {}
-                        SwitchType::MoveBlock { range, func } => {
-                            // info!("move block attachment : limit {}", limit);
-                            let updater =
-                                Updater::new(range.clone(), UpdaterType::BlockPos { func: *func });
-                            if let Some(mut updater_vec) = updater_vec {
-                                updater_vec.0.push(updater);
-                            } else {
-                                entity_commands.insert(UpdaterVec::new_from_a_updater(updater));
+            for (receiver, receiver_parents) in receiver_query.iter() {
+                // 動作したスイッチとレシーバーのidが一致すれば動作させる
+                if switch.target_id == receiver.target_id {
+                    if let Ok(block_ent) = block_q.get(receiver_parents.get()) {
+                        let mut entity_commands = commands.entity(block_ent);
+                        match &receiver.switch_type {
+                            SwitchType::ChangeRotateStrategy { before: _, after } => {
+                                // info!("{:?}", after);
+                                // entity_commands.insert(after.clone());
                             }
-                        }
-                        SwitchType::RotateBlock { range, func } => {
-                            let updater = Updater::new(
-                                range.clone(),
-                                UpdaterType::BlockAngle { func: *func },
-                            );
-                            if let Some(mut updater_vec) = updater_vec {
-                                updater_vec.0.push(updater);
-                            } else {
-                                entity_commands.insert(UpdaterVec::new_from_a_updater(updater));
+                            SwitchType::ChangeSlideStrategy { before: _, after } => {
+                                // entity_commands.insert(after.clone());
+                            }
+                            SwitchType::ToggleFanActive => {}
+                            SwitchType::MoveBlock { range, func } => {
+                                // ブロックの子コンポーネントとしてアップデーターを追加
+                                let updater_ent = commands
+                                    .spawn()
+                                    .insert(Updater::new(
+                                        switch.target_id,
+                                        range.clone(),
+                                        if let Some(auto_reverse) = switch.auto_reverse {
+                                            auto_reverse
+                                        } else {
+                                            u32::MAX
+                                        },
+                                    ))
+                                    .insert(BlockPosOffset::default())
+                                    .insert(OffsetByUpdater)
+                                    .insert(BlockPosUpdater { func: *func })
+                                    .insert(FrameCounter::new())
+                                    .id();
+                                commands.entity(block_ent).push_children(&[updater_ent]);
+                            }
+                            SwitchType::RotateBlock { range, func } => {
+                                let updater_ent = commands
+                                    .spawn()
+                                    .insert(Updater::new(
+                                        switch.target_id,
+                                        range.clone(),
+                                        if let Some(auto_reverse) = switch.auto_reverse {
+                                            auto_reverse
+                                        } else {
+                                            u32::MAX
+                                        },
+                                    ))
+                                    .insert(BlockAngle::default())
+                                    .insert(AngleByUpdater)
+                                    .insert(BlockAngleUpdater { func: *func })
+                                    .insert(FrameCounter::new())
+                                    .id();
+                                commands.entity(block_ent).push_children(&[updater_ent]);
                             }
                         }
                     }
                 }
             }
         } else if !switch.active {
-            for (attachment, updater_vec, ent) in receiver_query.iter_mut() {
-                if switch.target_id == attachment.target_id {
-                    let mut entity_commands = commands.entity(ent);
-                    match &attachment.switch_type {
-                        SwitchType::ChangeRotateStrategy { before, after: _ } => {
-                            commands.entity(ent).insert(before.clone());
-                        }
-                        SwitchType::ChangeSlideStrategy { before, after: _ } => {
-                            commands.entity(ent).insert(before.clone());
-                        }
-                        SwitchType::ToggleFanActive => {}
-                        SwitchType::MoveBlock { range, func } => {
-                            let mut reversed_range = range.clone();
-                            reversed_range.reverse();
-                            let updater =
-                                Updater::new(reversed_range, UpdaterType::BlockPos { func: *func });
-                            if let Some(mut updater_vec) = updater_vec {
-                                updater_vec.0.push(updater);
-                            } else {
-                                entity_commands.insert(UpdaterVec::new_from_a_updater(updater));
+            for (receiver, receiver_parents) in receiver_query.iter() {
+                if switch.target_id == receiver.target_id {
+                    if let Ok(block_ent) = block_q.get(receiver_parents.get()) {
+                        let mut entity_commands = commands.entity(block_ent);
+                        match &receiver.switch_type {
+                            SwitchType::ChangeRotateStrategy { before, after: _ } => {
+                                // commands.entity(ent).insert(before.clone());
                             }
-                        }
-                        SwitchType::RotateBlock { range, func } => {
-                            let mut reversed_range = range.clone();
-                            reversed_range.reverse();
-                            let updater = Updater::new(
-                                reversed_range,
-                                UpdaterType::BlockAngle { func: *func },
-                            );
-                            if let Some(mut updater_vec) = updater_vec {
-                                updater_vec.0.push(updater);
-                            } else {
-                                entity_commands.insert(UpdaterVec::new_from_a_updater(updater));
+                            SwitchType::ChangeSlideStrategy { before, after: _ } => {
+                                // commands.entity(ent).insert(before.clone());
+                            }
+                            SwitchType::ToggleFanActive => {}
+                            SwitchType::MoveBlock { range, func } => {
+                                let mut reversed_range = range.clone();
+                                reversed_range.reverse();
+
+                                let updater_ent = commands
+                                    .spawn()
+                                    .insert(Updater::new(
+                                        switch.target_id,
+                                        reversed_range,
+                                        if let Some(auto_reverse) = switch.auto_reverse {
+                                            auto_reverse
+                                        } else {
+                                            u32::MAX
+                                        },
+                                    ))
+                                    .insert(BlockPosOffset::default())
+                                    .insert(OffsetByUpdater)
+                                    .insert(BlockPosUpdater { func: *func })
+                                    .insert(FrameCounter::new())
+                                    .id();
+                                commands.entity(block_ent).push_children(&[updater_ent]);
+                            }
+                            SwitchType::RotateBlock { range, func } => {
+                                let mut reversed_range = range.clone();
+                                reversed_range.reverse();
+                                let updater_ent = commands
+                                    .spawn()
+                                    .insert(Updater::new(
+                                        switch.target_id,
+                                        reversed_range,
+                                        if let Some(auto_reverse) = switch.auto_reverse {
+                                            auto_reverse
+                                        } else {
+                                            u32::MAX
+                                        },
+                                    ))
+                                    .insert(BlockAngle::default())
+                                    .insert(AngleByUpdater)
+                                    .insert(BlockAngleUpdater { func: *func })
+                                    .insert(FrameCounter::new())
+                                    .id();
+                                commands.entity(block_ent).push_children(&[updater_ent]);
                             }
                         }
                     }

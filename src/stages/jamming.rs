@@ -11,10 +11,7 @@ use super::structs::{
 use crate::components::block_attach::switch::{SwitchReceiver, SwitchType};
 use crate::components::block_attach::BlockAttachment;
 use crate::components::physics::material::PhysicMaterial;
-use crate::components::{
-    ball::BallType,
-    block::{RotateStrategy, SlideStrategy},
-};
+use crate::components::{ball::BallType, block::RotateStrategy};
 use crate::systems::field::FIELD_WIDTH;
 
 pub fn jamming1() -> StageInfo {
@@ -22,8 +19,8 @@ pub fn jamming1() -> StageInfo {
     let mut block_list = Vec::<BlockInfo>::new();
 
     // ブロックが退避する動き
-    const ESCAPE_MOVE_0: fn(i32) -> Vec2 = |count: i32| Vec2::new(0.0, -count as f32 * 6.0);
-    const ESCAPE_MOVE_1: fn(i32) -> Vec2 = |count: i32| Vec2::new(0.0, count as f32 * 6.0);
+    const ESCAPE_MOVE_0: fn(u32) -> Vec2 = |count: u32| Vec2::new(0.0, count as f32 * -6.0);
+    const ESCAPE_MOVE_1: fn(u32) -> Vec2 = |count: u32| Vec2::new(0.0, count as f32 * 6.0);
 
     for i in 0..4i32 {
         for j in -2..2i32 {
@@ -48,14 +45,12 @@ pub fn jamming1() -> StageInfo {
                 pos: Vec2::new(pos_x, pos_y),
                 block_shape_info: BlockShapeInfo::Rect {
                     extents: Vec2::new(30.0, 100.0),
-                    rect_origin: Vec2::ZERO,
-                    rotate_strategy: RotateStrategy::Auto(0.08 * rotate_sgn),
-                    slide_strategy: SlideStrategy::NoSlide,
                 },
+                rotate_strategy: RotateStrategy::Auto(0.08 * rotate_sgn),
                 material,
                 default_angle: (i * j) as f32,
-                default_pos_param: 0.0,
                 block_attachment,
+                ..Default::default()
             })
         }
     }
