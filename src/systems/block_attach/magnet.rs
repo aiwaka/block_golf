@@ -47,18 +47,18 @@ pub fn spawn_magnet(commands: &mut Commands, block_ent: Entity, rect: &Rectangle
 
 /// 磁石とボールの間に力を加える
 fn magnet_force(
-    block_query: Query<(&BlockAngle, &GlobalTransform, &BlockType, &Children)>,
+    block_query: Query<(&GlobalTransform, &BlockType, &Children)>,
     magnet_query: Query<&Magnet>,
     mut ball_query: Query<(&Ball, &Position, &mut Force), With<MetalBall>>,
 ) {
-    for (block_angle, block_glb_trans, block_type, block_children) in block_query.iter() {
+    for (block_glb_trans, block_type, block_children) in block_query.iter() {
         for &child in block_children.iter() {
             if let Ok(magnet) = magnet_query.get(child) {
                 if magnet.active {
                     if let BlockType::Rect { shape } = block_type {
-                        let angle = block_angle.0;
-                        let (_, _, block_glb_translation) =
+                        let (_, rot_quat, block_glb_translation) =
                             block_glb_trans.to_scale_rotation_translation();
+                        let (_, angle) = rot_quat.to_axis_angle();
                         let [p1, p2] = calc_edge_points_of_rectangle(
                             &magnet.direction,
                             block_glb_translation.truncate(),
