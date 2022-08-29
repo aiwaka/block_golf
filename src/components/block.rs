@@ -3,6 +3,9 @@ use std::f32::consts::{FRAC_2_PI, FRAC_PI_2};
 use bevy::prelude::*;
 use bevy_prototype_lyon::shapes;
 
+#[derive(Component, Clone, Copy, Default, Debug)]
+pub struct Block;
+
 /// ブロックのすべての位置補正がかかっていない状態のブロック中心の位置
 #[derive(Component, Clone, Copy, Default, Debug)]
 pub struct BlockOriginalPos(pub Vec2);
@@ -15,37 +18,12 @@ pub struct BlockAxisPos(pub Vec2);
 #[derive(Component, Default)]
 pub struct BlockSlideParam(pub f32);
 
-/// ブロックの位置や角度の情報を持っておくコンポーネント
-#[derive(Component, Default)]
-pub struct BlockTransformInfo {
-    pub angle: f32,   // 現在の角度
-    pub offset: Vec2, // 位置補正
-}
-
-impl BlockTransformInfo {
-    pub fn new(angle: f32, offset: Vec2) -> Self {
-        Self { angle, offset }
-    }
-    // /// デフォルト角度と位置パラメータから新規生成
-    // pub fn new(angle: f32, pos_param: f32) -> Self {
-    //     Self {
-    //         angle,
-    //         offset: Vec2::ZERO,
-    //         pos_param,
-    //     }
-    // }
-    // /// そのフレームでの重心の並進速度
-    // /// delta: 重心 - 回転軸 のベクトル（Rectならoriginでよい）
-    // pub fn pos_diff(&self, path: &BlockSlidePath, delta: Vec2) -> Vec2 {
-    //     let current_pos = path.calc_orbit(self.pos_param)
-    //         + delta * Vec2::new(self.angle.cos(), self.angle.sin())
-    //         + self.offset;
-    //     let prev_pos = path.calc_orbit(self.prev_param)
-    //         + delta * Vec2::new(self.prev_angle.cos(), self.prev_angle.sin())
-    //         + self.prev_offset;
-    //     current_pos - prev_pos
-    // }
-}
+/// ブロックの初期位置からのずれを表す.
+#[derive(Component, Clone, Copy, Default, Debug)]
+pub struct BlockPosOffset(pub Vec2);
+/// ブロックについている角度を表す.
+#[derive(Component, Clone, Copy, Default, Debug)]
+pub struct BlockAngle(pub f32);
 
 /// 回転の方法
 #[derive(Component, Clone, Debug)]

@@ -19,8 +19,8 @@ pub fn jamming1() -> StageInfo {
     let mut block_list = Vec::<BlockInfo>::new();
 
     // ブロックが退避する動き
-    const ESCAPE_MOVE_0: fn(i32) -> Vec2 = |count: i32| Vec2::new(0.0, -count as f32 * 6.0);
-    const ESCAPE_MOVE_1: fn(i32) -> Vec2 = |count: i32| Vec2::new(0.0, count as f32 * 6.0);
+    const ESCAPE_MOVE_0: fn(u32) -> Vec2 = |count: u32| Vec2::new(0.0, count as f32 * -6.0);
+    const ESCAPE_MOVE_1: fn(u32) -> Vec2 = |count: u32| Vec2::new(0.0, count as f32 * 6.0);
 
     for i in 0..4i32 {
         for j in -2..2i32 {

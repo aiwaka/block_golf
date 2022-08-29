@@ -3,15 +3,12 @@ use bevy_prototype_lyon::entity::ShapeBundle;
 use bevy_prototype_lyon::prelude::*;
 use bevy_prototype_lyon::shapes::Rectangle;
 
-use crate::components::block::{BlockAxisPos, BlockSlideParam};
+use crate::components::block::{Block, BlockAngle, BlockAxisPos, BlockPosOffset, BlockSlideParam};
 use crate::components::collision::RectangleCollision;
 use crate::events::block::SpawnBlockEvent;
 use crate::{
     components::{
-        block::{
-            BlockOriginalPos, BlockSlidePath, BlockTransformInfo, BlockType, RotateStrategy,
-            SlideStrategy,
-        },
+        block::{BlockOriginalPos, BlockSlidePath, BlockType, RotateStrategy, SlideStrategy},
         block_attach::BlockAttachment,
     },
     AppState,
@@ -19,6 +16,7 @@ use crate::{
 
 use super::block_attach::fan::spawn_fan;
 use super::block_attach::magnet::spawn_magnet;
+use super::block_attach::switch::attach_switch_receiver;
 
 fn make_block_shape_bundle(
     shape: &impl Geometry,
@@ -96,16 +94,24 @@ fn set_block(mut commands: Commands, mut event_listener: EventReader<SpawnBlockE
         };
         let ent = commands
             .spawn_bundle(shape_bundle)
+            .insert(Block)
             .insert(ev.block_type.clone())
             .insert(BlockOriginalPos(ev.pos))
             .insert(BlockAxisPos(ev.block_axis))
-            .insert(BlockTransformInfo::new(ev.default_angle, Vec2::ZERO))
-            .insert(BlockSlideParam(ev.default_pos_param))
             .insert(ev.material)
             .id();
         // 子コンポーネントとして回転・移動方法, 当たり判定を追加
-        let child_rot_str_ent = commands.spawn().insert(ev.rotate_strategy.clone()).id();
-        let child_sld_str_ent = commands.spawn().insert(ev.slide_strategy.clone()).id();
+        let child_rot_str_ent = commands
+            .spawn()
+            .insert(ev.rotate_strategy.clone())
+            .insert(BlockAngle(ev.default_angle))
+            .id();
+        let child_sld_str_ent = commands
+            .spawn()
+            .insert(ev.slide_strategy.clone())
+            .insert(BlockSlideParam(ev.default_pos_param))
+            .insert(BlockPosOffset::default())
+            .id();
         commands
             .entity(ent)
             .push_children(&[child_rot_str_ent, child_sld_str_ent, collision_ent]);
@@ -113,8 +119,7 @@ fn set_block(mut commands: Commands, mut event_listener: EventReader<SpawnBlockE
         for com in ev.block_attachment.iter() {
             match com {
                 BlockAttachment::SwitchReceiver { receiver } => {
-                    // TODO: ここもchildとして変更する
-                    commands.entity(ent).insert(receiver.clone());
+                    attach_switch_receiver(&mut commands, ent, receiver);
                 }
                 BlockAttachment::Fan(fan) => {
                     if let BlockType::Rect { shape } = ev.block_type {
@@ -142,20 +147,20 @@ fn set_block(mut commands: Commands, mut event_listener: EventReader<SpawnBlockE
     }
 }
 
-/// 回せるブロックと常に回るブロックを回す
+/// 回せるブロックと常に回るブロックの角度の値を更新（内部数値のみ）
 fn rotate_block(
     key_in: Res<Input<KeyCode>>,
-    mut block_query: Query<(&mut BlockTransformInfo, &Children)>,
-    rot_str_query: Query<&RotateStrategy>,
+    block_query: Query<&Children>,
+    mut rotation_query: Query<(&RotateStrategy, &mut BlockAngle)>,
 ) {
-    for (mut block_trans, block_children) in block_query.iter_mut() {
+    for block_children in block_query.iter() {
         for &child in block_children.iter() {
-            if let Ok(strategy) = rot_str_query.get(child) {
+            if let Ok((strategy, mut block_angle)) = rotation_query.get_mut(child) {
                 match strategy {
                     RotateStrategy::NoRotate => {}
                     RotateStrategy::Manual(angle, min, max) => {
-                        let current_angle = block_trans.angle;
-                        block_trans.angle = (if key_in.pressed(KeyCode::Left) {
+                        let current_angle = block_angle.0;
+                        block_angle.0 = (if key_in.pressed(KeyCode::Left) {
                             current_angle + angle
                         } else if key_in.pressed(KeyCode::Right) {
                             current_angle - angle
@@ -165,7 +170,7 @@ fn rotate_block(
                         .clamp(*min, *max);
                     }
                     RotateStrategy::Auto(angle) => {
-                        block_trans.angle += angle;
+                        block_angle.0 += angle;
                     }
                 }
             }
@@ -173,17 +178,16 @@ fn rotate_block(
     }
 }
 
-/// ブロックの移動を計算する処理. ブロック移動のオフセットを計算する.
-/// TODO: 現在パスは1つしかセットできないが, 配列に収めるようにして複数のパスを加算できるようにする.
+/// ブロックの移動を計算する処理. ブロック移動のオフセットを計算する（内部数値のみ）.
 fn slide_block(
     key_in: Res<Input<KeyCode>>,
-    mut block_query: Query<(&mut BlockTransformInfo, &mut BlockSlideParam, &Children)>,
-    sld_str_query: Query<&SlideStrategy>,
+    block_query: Query<&Children>,
+    mut slide_query: Query<(&SlideStrategy, &mut BlockSlideParam, &mut BlockPosOffset)>,
 ) {
-    for (mut block_trans, mut slide_param, block_children) in block_query.iter_mut() {
+    for block_children in block_query.iter() {
         for &child in block_children.iter() {
             // ブロックの子であるスライド方法コンポーネントを取得
-            if let Ok(strategy) = sld_str_query.get(child) {
+            if let Ok((strategy, mut slide_param, mut block_offset)) = slide_query.get_mut(child) {
                 // ひとつ前のパラメータとして現在の値を保存
                 let path = match strategy {
                     SlideStrategy::NoSlide => &BlockSlidePath::NoPath,
@@ -213,42 +217,43 @@ fn slide_block(
                         path
                     }
                 };
-                block_trans.offset = path.calc_orbit(slide_param.0);
+                block_offset.0 = path.calc_orbit(slide_param.0);
             }
         }
     }
 }
 
-/// ブロックの移動情報を実際の描画に反映する
-fn reflect_block_transform(
-    mut block_query: Query<(&mut Transform, &BlockTransformInfo, &BlockOriginalPos)>,
-) {
-    for (mut block_trans, block_trans_info, original_pos) in block_query.iter_mut() {
-        let z_coord = block_trans.translation.z;
-        block_trans.rotation = Quat::from_rotation_z(block_trans_info.angle);
-        block_trans.translation = (block_trans_info.offset + original_pos.0).extend(z_coord);
-    }
-}
-
-/// 矩形の当たり判定をブロックに追従させる.
-fn update_rect_collision(
-    block_q: Query<(
-        &BlockTransformInfo,
-        &BlockAxisPos,
-        &BlockOriginalPos,
-        &Children,
-    )>,
+/// ブロックの移動情報を実際の描画に反映し, 当たり判定も更新する
+fn reflect_block_transform_and_collision(
+    mut block_query: Query<(&mut Transform, &BlockOriginalPos, &BlockAxisPos, &Children)>,
+    offset_q: Query<&BlockPosOffset>,
+    angle_q: Query<&BlockAngle>,
     mut collision_q: Query<&mut RectangleCollision>,
 ) {
-    for (block_trans, block_axis, block_orig_pos, block_children) in block_q.iter() {
+    for (mut block_trans, original_pos, block_axis, block_children) in block_query.iter_mut() {
+        let mut total_offset = Vec2::ZERO;
+        let mut total_angle = 0.0f32;
+        for &child in block_children.iter() {
+            if let Ok(block_offset) = offset_q.get(child) {
+                total_offset += block_offset.0;
+            }
+            if let Ok(block_angle) = angle_q.get(child) {
+                total_angle += block_angle.0;
+            }
+        }
+        let z_coord = block_trans.translation.z;
+        block_trans.rotation = Quat::from_rotation_z(total_angle);
+        block_trans.translation = (total_offset + original_pos.0).extend(z_coord);
+
+        // 当たり判定も更新する
         for &child in block_children.iter() {
             if let Ok(mut collision) = collision_q.get_mut(child) {
                 collision.prev_pos = collision.pos;
                 collision.prev_angle = collision.angle;
-                collision.pos = block_orig_pos.0
-                    + block_trans.offset
-                    + Vec2::from_angle(block_trans.angle).rotate(block_axis.0);
-                collision.angle = block_trans.angle;
+                collision.pos = original_pos.0
+                    + total_offset
+                    + Vec2::from_angle(total_angle).rotate(block_axis.0);
+                collision.angle = total_angle;
             }
         }
     }
@@ -276,26 +281,21 @@ impl Plugin for BlockPlugin {
             SystemSet::on_update(AppState::Game)
                 .with_system(rotate_block)
                 .label("block:rotate")
-                .before("update_rect_collision"),
+                .before("block:reflect_transform_and_collision"),
         );
         app.add_system_set(
             SystemSet::on_update(AppState::Game)
                 .with_system(slide_block)
                 .label("block:slide")
-                .before("update_rect_collision"),
+                .before("block:reflect_transform_and_collision"),
         );
         app.add_system_set(
             SystemSet::on_update(AppState::Game)
-                .with_system(reflect_block_transform)
-                .before("update_rect_collision")
-                .after("block:rotate")
-                .after("block:slide"),
+                .with_system(reflect_block_transform_and_collision)
+                // .before("update_rect_collision")
+                .label("block:reflect_transform_and_collision"),
         );
-        app.add_system_set(
-            SystemSet::on_update(AppState::Game)
-                .with_system(update_rect_collision)
-                .label("update_rect_collision"),
-        );
+
         // app.add_system_set(
         //     SystemSet::on_update(AppState::Game)
         //         .with_system(debug_collision)

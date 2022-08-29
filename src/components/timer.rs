@@ -1,3 +1,5 @@
+use std::ops::Deref;
+
 use bevy::prelude::*;
 
 /// 初期化したフレーム数減少するカウントダウン
@@ -51,7 +53,7 @@ impl CountDownTimer {
 }
 
 /// tickを呼ぶと1増加するカウンター
-#[derive(Component)]
+#[derive(Component, Clone, Debug)]
 pub struct FrameCounter {
     pub count: u32,
     pub pause: bool,
@@ -73,5 +75,12 @@ impl FrameCounter {
     }
     pub fn toggle_pause(&mut self) {
         self.pause = !self.pause;
+    }
+}
+
+impl Deref for FrameCounter {
+    type Target = u32;
+    fn deref(&self) -> &Self::Target {
+        &self.count
     }
 }

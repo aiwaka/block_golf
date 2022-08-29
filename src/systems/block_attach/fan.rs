@@ -7,7 +7,7 @@ use bevy_prototype_lyon::{
 use crate::{
     components::{
         ball::Ball,
-        block::{BlockTransformInfo, BlockType},
+        block::BlockType,
         block_attach::fan::{Fan, WindVisualEffect},
         block_attach::utils::EdgeDirection,
         physics::{force::Force, material::Volume, position::Position, velocity::Velocity},
@@ -17,30 +17,22 @@ use crate::{
     AppState,
 };
 
-/// ブロック出現時に送風機のポリゴンを描画するときに使う関数
+/// ブロック出現時に送風機のポリゴンを描画するときに使う関数（システムではなくただの関数）
 pub fn spawn_fan(commands: &mut Commands, block_ent: Entity, rect: &Rectangle, fan: &Fan) {
-    let (fan_extents, fan_pos) = match fan.direction {
-        EdgeDirection::Up => (
-            rect.extents.project_onto(Vec2::X) + Vec2::Y * 10.0,
-            rect.extents.project_onto(Vec2::Y) / 2.0,
+    let (extents, fan_pos) = match fan.direction {
+        EdgeDirection::Up | EdgeDirection::Down => (
+            Vec2::new(rect.extents.x, 10.0),
+            Vec2::from(fan.direction) * rect.extents.y / 2.0,
         ),
-        EdgeDirection::Down => (
-            rect.extents.project_onto(Vec2::X) + Vec2::Y * 10.0,
-            -rect.extents.project_onto(Vec2::Y) / 2.0,
-        ),
-        EdgeDirection::Left => (
-            rect.extents.project_onto(Vec2::Y) + Vec2::X * 10.0,
-            -rect.extents.project_onto(Vec2::X) / 2.0,
-        ),
-        EdgeDirection::Right => (
-            rect.extents.project_onto(Vec2::Y) + Vec2::X * 10.0,
-            rect.extents.project_onto(Vec2::X) / 2.0,
+        EdgeDirection::Left | EdgeDirection::Right => (
+            Vec2::new(10.0, rect.extents.y),
+            Vec2::from(fan.direction) * rect.extents.x / 2.0,
         ),
     };
     let fan_shape_bundle = GeometryBuilder::build_as(
         &Rectangle {
-            extents: fan_extents,
-            origin: RectangleOrigin::CustomCenter(Vec2::ZERO),
+            extents,
+            origin: RectangleOrigin::Center,
         },
         DrawMode::Fill(FillMode::color(Color::BLUE)),
         Transform {
@@ -48,6 +40,7 @@ pub fn spawn_fan(commands: &mut Commands, block_ent: Entity, rect: &Rectangle, f
             ..Default::default()
         },
     );
+    // 子コンポーネントとして生成・追加
     let child_ent = commands
         .spawn()
         .insert_bundle(fan_shape_bundle)
@@ -67,7 +60,7 @@ fn set_wind_vfx_duration(mut commands: Commands) {
 // 風エフェクトを出す
 fn spawn_wind_visual_effect(
     mut commands: Commands,
-    block_query: Query<(&BlockTransformInfo, &GlobalTransform, &BlockType, &Children)>,
+    block_query: Query<(&GlobalTransform, &BlockType, &Children)>,
     fan_query: Query<&Fan>,
     time: Res<Time>,
     mut timer_query: Query<&mut WindVfxDuration>,
@@ -79,14 +72,15 @@ fn spawn_wind_visual_effect(
             center: Vec2::ZERO,
         };
         let effect_draw_mode = DrawMode::Fill(FillMode::color(Color::WHITE));
-        for (block_trans, block_glb_trans, block_type, block_children) in block_query.iter() {
+        for (block_glb_trans, block_type, block_children) in block_query.iter() {
             for &child in block_children.iter() {
                 if let Ok(fan) = fan_query.get(child) {
                     if fan.active {
                         if let BlockType::Rect { shape } = block_type {
-                            let angle = block_trans.angle;
-                            let (_, _, block_glb_translation) =
+                            let (_, rot_quat, block_glb_translation) =
                                 block_glb_trans.to_scale_rotation_translation();
+                            // 角度を取得する
+                            let (_, angle) = rot_quat.to_axis_angle();
                             // まずファンの両端点を計算する
                             let [p1, p2] = calc_edge_points_of_rectangle(
                                 &fan.direction,
@@ -132,19 +126,19 @@ fn update_wind_visual_effect(
 
 /// 動いている送風機とボールの間に障害物がなければ力を加える
 fn generate_wind(
-    block_query: Query<(&BlockTransformInfo, &GlobalTransform, &BlockType, &Children)>,
+    block_query: Query<(&GlobalTransform, &BlockType, &Children)>,
     fan_query: Query<&Fan>,
     mut ball_query: Query<(&Ball, &Position, &Volume, &mut Force)>,
 ) {
-    for (block_trans, block_glb_trans, block_type, block_children) in block_query.iter() {
+    for (block_glb_trans, block_type, block_children) in block_query.iter() {
         for &child in block_children.iter() {
             if let Ok(fan) = fan_query.get(child) {
                 if fan.active {
                     if let BlockType::Rect { shape } = block_type {
-                        let angle = block_trans.angle;
                         // まずファンの両端点を計算する
-                        let (_, _, block_glb_translation) =
+                        let (_, rot_quat, block_glb_translation) =
                             block_glb_trans.to_scale_rotation_translation();
+                        let (_, angle) = rot_quat.to_axis_angle();
                         let [p1, p2] = calc_edge_points_of_rectangle(
                             &fan.direction,
                             block_glb_translation.truncate(),

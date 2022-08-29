@@ -7,7 +7,7 @@ use bevy_prototype_lyon::{
 use crate::{
     components::{
         ball::{Ball, MetalBall},
-        block::{BlockTransformInfo, BlockType},
+        block::{BlockAngle, BlockType},
         block_attach::{magnet::Magnet, utils::EdgeDirection},
         physics::{force::Force, position::Position},
     },
@@ -15,34 +15,26 @@ use crate::{
     AppState,
 };
 
-/// ブロック出現時に磁石のポリゴンを描画するときに使う
+/// ブロック出現時に磁石のポリゴンを描画するときに使う関数（システムではなくただの関数）
 pub fn spawn_magnet(commands: &mut Commands, block_ent: Entity, rect: &Rectangle, magnet: &Magnet) {
-    let (magnet_extents, magnet_pos) = match magnet.direction {
-        EdgeDirection::Up => (
-            rect.extents.project_onto(Vec2::X) + Vec2::Y * 10.0,
-            rect.extents.project_onto(Vec2::Y) / 2.0,
+    let (extents, magnet_pos) = match magnet.direction {
+        EdgeDirection::Up | EdgeDirection::Down => (
+            Vec2::new(rect.extents.x, 10.0),
+            Vec2::from(magnet.direction) * rect.extents.y / 2.0,
         ),
-        EdgeDirection::Down => (
-            rect.extents.project_onto(Vec2::X) + Vec2::Y * 10.0,
-            -rect.extents.project_onto(Vec2::Y) / 2.0,
-        ),
-        EdgeDirection::Left => (
-            rect.extents.project_onto(Vec2::Y) + Vec2::X * 10.0,
-            -rect.extents.project_onto(Vec2::X) / 2.0,
-        ),
-        EdgeDirection::Right => (
-            rect.extents.project_onto(Vec2::Y) + Vec2::X * 10.0,
-            rect.extents.project_onto(Vec2::X) / 2.0,
+        EdgeDirection::Left | EdgeDirection::Right => (
+            Vec2::new(10.0, rect.extents.y),
+            Vec2::from(magnet.direction) * rect.extents.x / 2.0,
         ),
     };
     let magnet_shape_bundle = GeometryBuilder::build_as(
         &Rectangle {
-            extents: magnet_extents,
-            origin: RectangleOrigin::CustomCenter(Vec2::ZERO),
+            extents,
+            origin: RectangleOrigin::Center,
         },
         DrawMode::Fill(FillMode::color(Color::GRAY)),
         Transform {
-            translation: magnet_pos.extend(16.0),
+            translation: magnet_pos.extend(16.1),
             ..Default::default()
         },
     );
@@ -55,18 +47,18 @@ pub fn spawn_magnet(commands: &mut Commands, block_ent: Entity, rect: &Rectangle
 
 /// 磁石とボールの間に力を加える
 fn magnet_force(
-    block_query: Query<(&BlockTransformInfo, &GlobalTransform, &BlockType, &Children)>,
+    block_query: Query<(&GlobalTransform, &BlockType, &Children)>,
     magnet_query: Query<&Magnet>,
     mut ball_query: Query<(&Ball, &Position, &mut Force), With<MetalBall>>,
 ) {
-    for (block_trans, block_glb_trans, block_type, block_children) in block_query.iter() {
+    for (block_glb_trans, block_type, block_children) in block_query.iter() {
         for &child in block_children.iter() {
             if let Ok(magnet) = magnet_query.get(child) {
                 if magnet.active {
                     if let BlockType::Rect { shape } = block_type {
-                        let angle = block_trans.angle;
-                        let (_, _, block_glb_translation) =
+                        let (_, rot_quat, block_glb_translation) =
                             block_glb_trans.to_scale_rotation_translation();
+                        let (_, angle) = rot_quat.to_axis_angle();
                         let [p1, p2] = calc_edge_points_of_rectangle(
                             &magnet.direction,
                             block_glb_translation.truncate(),
