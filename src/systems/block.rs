@@ -223,13 +223,14 @@ fn slide_block(
     }
 }
 
-/// ブロックの移動情報を実際の描画に反映する
-fn reflect_block_transform(
-    mut block_query: Query<(&mut Transform, &BlockOriginalPos, &Children)>,
+/// ブロックの移動情報を実際の描画に反映し, 当たり判定も更新する
+fn reflect_block_transform_and_collision(
+    mut block_query: Query<(&mut Transform, &BlockOriginalPos, &BlockAxisPos, &Children)>,
     offset_q: Query<&BlockPosOffset>,
     angle_q: Query<&BlockAngle>,
+    mut collision_q: Query<&mut RectangleCollision>,
 ) {
-    for (mut block_trans, original_pos, block_children) in block_query.iter_mut() {
+    for (mut block_trans, original_pos, block_axis, block_children) in block_query.iter_mut() {
         let mut total_offset = Vec2::ZERO;
         let mut total_angle = 0.0f32;
         for &child in block_children.iter() {
@@ -243,29 +244,16 @@ fn reflect_block_transform(
         let z_coord = block_trans.translation.z;
         block_trans.rotation = Quat::from_rotation_z(total_angle);
         block_trans.translation = (total_offset + original_pos.0).extend(z_coord);
-    }
-}
 
-/// 矩形の当たり判定をブロックに追従させる.
-fn update_rect_collision(
-    block_q: Query<(
-        &BlockPosOffset,
-        &BlockAngle,
-        &BlockAxisPos,
-        &BlockOriginalPos,
-        &Children,
-    )>,
-    mut collision_q: Query<&mut RectangleCollision>,
-) {
-    for (block_offset, block_angle, block_axis, block_orig_pos, block_children) in block_q.iter() {
+        // 当たり判定も更新する
         for &child in block_children.iter() {
             if let Ok(mut collision) = collision_q.get_mut(child) {
                 collision.prev_pos = collision.pos;
                 collision.prev_angle = collision.angle;
-                collision.pos = block_orig_pos.0
-                    + block_offset.0
-                    + Vec2::from_angle(block_angle.0).rotate(block_axis.0);
-                collision.angle = block_angle.0;
+                collision.pos = original_pos.0
+                    + total_offset
+                    + Vec2::from_angle(total_angle).rotate(block_axis.0);
+                collision.angle = total_angle;
             }
         }
     }
@@ -293,25 +281,21 @@ impl Plugin for BlockPlugin {
             SystemSet::on_update(AppState::Game)
                 .with_system(rotate_block)
                 .label("block:rotate")
-                .before("block:reflect_transform"),
+                .before("block:reflect_transform_and_collision"),
         );
         app.add_system_set(
             SystemSet::on_update(AppState::Game)
                 .with_system(slide_block)
                 .label("block:slide")
-                .before("block:reflect_transform"),
+                .before("block:reflect_transform_and_collision"),
         );
         app.add_system_set(
             SystemSet::on_update(AppState::Game)
-                .with_system(reflect_block_transform)
-                .before("update_rect_collision")
-                .label("block:reflect_transform"),
+                .with_system(reflect_block_transform_and_collision)
+                // .before("update_rect_collision")
+                .label("block:reflect_transform_and_collision"),
         );
-        app.add_system_set(
-            SystemSet::on_update(AppState::Game)
-                .with_system(update_rect_collision)
-                .label("update_rect_collision"),
-        );
+
         // app.add_system_set(
         //     SystemSet::on_update(AppState::Game)
         //         .with_system(debug_collision)
