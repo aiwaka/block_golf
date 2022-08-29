@@ -34,7 +34,9 @@ pub struct BlockPosUpdater {
     pub func: fn(u32) -> Vec2,
 }
 #[derive(Component, Clone, Debug)]
-pub struct BlockAngleUpdater(fn(i32) -> f32);
+pub struct BlockAngleUpdater {
+    pub func: fn(u32) -> f32,
+}
 
 // /// クロージャを保持して何らかの変更を行う
 // #[derive(Component, Clone, Debug)]
