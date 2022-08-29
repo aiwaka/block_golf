@@ -32,13 +32,13 @@ pub enum SwitchType {
     },
     ToggleFanActive,
     MoveBlock {
-        /// i32の列を保持してNoneが出るまで回す
+        /// u32の列を保持してNoneが出るまで回す
         range: Vec<u32>,
         /// カウントから座標を計算する関数. BlockOriginalPosからの相対移動を行う.
         func: fn(u32) -> Vec2,
     },
     RotateBlock {
-        /// i32の列を保持してNoneが出るまで回す
+        /// u32の列を保持してNoneが出るまで回す
         range: Vec<u32>,
         /// カウントから座標を計算する関数. BlockOriginalPosからの相対移動を行う.
         func: fn(u32) -> f32,

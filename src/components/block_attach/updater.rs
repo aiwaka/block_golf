@@ -1,12 +1,31 @@
+use std::collections::VecDeque;
+
 use bevy::prelude::*;
+
+#[derive(Component, Clone, Copy, Default, Debug)]
+pub struct OffsetByUpdater;
+#[derive(Component, Clone, Copy, Default, Debug)]
+pub struct AngleByUpdater;
 
 #[derive(Component, Clone, Debug)]
 pub struct Updater {
-    pub range: Vec<u32>,
+    /// スイッチ等のidを保存する
+    pub source_id: u32,
+    /// キューからマイフレーム値を取り出して使用させる
+    pub count_queue: VecDeque<u32>,
+    /// deleteカウントで消去
+    pub delete_count: u32,
+    /// 最後に使ったカウントを保持する
+    pub prev_count: u32,
 }
 impl Updater {
-    pub fn new(range: Vec<u32>) -> Self {
-        Self { range }
+    pub fn new(source_id: u32, count_vec: Vec<u32>, delete_count: u32) -> Self {
+        Self {
+            source_id,
+            count_queue: VecDeque::from(count_vec),
+            delete_count,
+            prev_count: 0,
+        }
     }
 }
 

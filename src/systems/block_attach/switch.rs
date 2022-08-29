@@ -3,10 +3,10 @@ use bevy_prototype_lyon::{prelude::*, shapes::Rectangle};
 
 use crate::{
     components::{
-        block::Block,
+        block::{Block, BlockPosOffset},
         block_attach::{
             switch::{SwitchReceiver, SwitchTile, SwitchType},
-            updater::{BlockAngleUpdater, BlockPosUpdater, Updater},
+            updater::{BlockAngleUpdater, BlockPosUpdater, OffsetByUpdater, Updater},
         },
         timer::{CountDownTimer, FrameCounter},
     },
@@ -55,7 +55,10 @@ pub fn attach_switch_receiver(
             origin: RectangleOrigin::Center,
         },
         DrawMode::Fill(FillMode::color(Color::RED)),
-        Transform::default(),
+        Transform {
+            translation: Vec2::ZERO.extend(60.0),
+            ..Default::default()
+        },
     );
     // 子コンポーネントとして生成・追加
     let child_ent = commands
@@ -145,11 +148,20 @@ fn execute_change_by_switch(
                             SwitchType::MoveBlock { range, func } => {
                                 // ブロックの子コンポーネントとしてアップデーターを追加
                                 // info!("move block attachment : limit {}", limit);
-                                let updater = BlockPosUpdater { func: *func };
                                 let updater_ent = commands
                                     .spawn()
-                                    .insert(Updater::new(range.clone()))
-                                    .insert(updater)
+                                    .insert(Updater::new(
+                                        switch.target_id,
+                                        range.clone(),
+                                        if let Some(auto_reverse) = switch.auto_reverse {
+                                            auto_reverse
+                                        } else {
+                                            u32::MAX
+                                        },
+                                    ))
+                                    .insert(BlockPosOffset::default())
+                                    .insert(OffsetByUpdater)
+                                    .insert(BlockPosUpdater { func: *func })
                                     .insert(FrameCounter::new())
                                     .id();
                                 commands.entity(block_ent).push_children(&[updater_ent]);
@@ -176,11 +188,21 @@ fn execute_change_by_switch(
                                 let mut reversed_range = range.clone();
                                 reversed_range.reverse();
 
-                                let updater = BlockPosUpdater { func: *func };
                                 let updater_ent = commands
                                     .spawn()
-                                    .insert(Updater::new(reversed_range))
-                                    .insert(updater)
+                                    .insert(Updater::new(
+                                        switch.target_id,
+                                        reversed_range,
+                                        if let Some(auto_reverse) = switch.auto_reverse {
+                                            auto_reverse
+                                        } else {
+                                            u32::MAX
+                                        },
+                                    ))
+                                    .insert(BlockPosOffset::default())
+                                    .insert(OffsetByUpdater)
+                                    .insert(BlockPosUpdater { func: *func })
+                                    .insert(FrameCounter::new())
                                     .id();
                                 commands.entity(block_ent).push_children(&[updater_ent]);
                             }
